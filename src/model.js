@@ -1,25 +1,28 @@
 /**
- * Model js - Utility wraps a JSON object to add basic Model Functionality
- * http://${location} TODO
+ * Model js - A simple javascript library for creating the Model part of a MVC application.
+ * https://github.com/dgeorges/modeljs.git
  * @version 1.0.0
  * @author Daniel Georges
  *
  *
  * Features
  * - Can save/load Model to/from JSON with/without model metadata
- * - Can register onChange events with any property
+ * - Can register onChange events with any property or group of properties
+ * - Model change events bubble up.
  * - Can tie validation methods to model properties
  * - Can suppress events completely or delay them by putting them into a transaction.
  *
+ *
  * TODO:
  *  - Optimize Transaction callbacks, by being smart/removing duplicates etc...
- *  - hook up documentation and document methods properly.
+ *  - hook up/create documentation and document methods properly.
+ *  - Add "use strict"
+ *  - Think about using ECMA gettter / setters
+ *  - clean up unit tests
  *
  * BUGS:
- * - currently can not registar onChange on the entire Model or group of properties(including Children)
- *      only on individuals. To fix this implement bubbling up of properties change events
- *      and when attaching a listener adding the option to be notified of all downstream changes too.
- *
+ * - The callback executed when listening to modelChange event on one of your childrens needs to refined
+ *     to make more sense. Right now its the same as a property change.
  */
 
 /**
@@ -31,18 +34,39 @@ var eventProxy = function () {
         state = {   ACTIVE: "active", TRANSACTION: "transaction"},
         currentState = state.ACTIVE;
 
+    function _fireEvent(property, oldValue) {
+
+        // This weird executeCallback function is a bit more complicated than it needs to be but is
+        // used to get around the JSLint warning of creating a function within the while loop below
+        var executeCallbacksFunction = function (oldValue, property) {
+            return function (callback){
+                callback.call(null, oldValue, property.getter_setter());
+            };
+        };
+
+        property.getListeners().forEach(
+            executeCallbacksFunction(oldValue, property)
+        );
+
+        var propertyParent = property.getParent();
+        while (propertyParent){
+
+            propertyParent.getListeners(false).forEach(
+                executeCallbacksFunction(oldValue, propertyParent)
+            );
+            propertyParent = propertyParent.getParent();
+        }
+    }
+
     function fireEvent (property, oldValue) {
         if (currentState === state.ACTIVE){
-            property.getListeners().forEach( function (callback){
-                callback(oldValue, property.getter_setter());
-            });
+            _fireEvent(property, oldValue);
         } else { //place event on queue to be called at a later time.
             eventQueue.push({
                 property: property,
                 oldValue: oldValue
             });
         }
-
     }
 
     function changeState(newState){
@@ -56,10 +80,9 @@ var eventProxy = function () {
 
     function flushEventQueue() {
         eventQueue.forEach( function (event){
-            event.property.getListeners().forEach( function (callback) {
-                callback(event.oldValue, event.property.getter_setter());
-            });
+            _fireEvent(event.property, event.oldValue);
         });
+        eventQueue = [];
     }
 
     return {
@@ -77,10 +100,32 @@ var eventProxy = function () {
  * @param {[type]} options May contain the following:
  *                         validator - a function to validate the new value is valid before it is assigned.
  */
-function Property (value, options) {
-    this._myValue = undefined;
-    this._options = options;
-    this._listeners = [];
+function Property (parent, value, options) {
+
+    Object.defineProperty(this, "_parent", {
+        value: parent,
+        enumerable: false
+    });
+
+    Object.defineProperty(this, "_myValue", {
+        value: value,
+        enumerable: false,
+         writable: true
+    });
+
+    Object.defineProperty(this, "_options", {
+        value: options,
+        enumerable: false
+    });
+
+    Object.defineProperty(this, "_propertyListeners", {
+        value: [],
+        enumerable: false
+    });
+     Object.defineProperty(this, "_modelListeners", {
+        value: [],
+        enumerable: false
+    });
     this.getter_setter(value);
 }
 
@@ -110,26 +155,56 @@ Property.prototype.getter_setter = function (newValue, options) {
     return this._myValue;
 };
 
-Property.prototype.addChangeCallback = function (callback) {
-    this._listeners.push(callback);
+/**
+ * [addChangeCallback description]
+ * @param {Function} callback [description]
+ * @param {[type]}   options May contain the following:
+ *                         listenToChildren - registars the listener with any subproperty change.
+ */
+Property.prototype.addChangeCallback = function (callback, options) {
+    if (options && options.listenToChildren){
+        this._modelListeners.push(callback);
+    } else {
+        this._propertyListeners.push(callback);
+    }
 };
 
 Property.prototype.getOptions = function () {
     return this._options;
 };
 
-Property.prototype.getListeners = function () {
-    return this._listeners;
+
+Property.prototype.getListeners = function (type) { //TODO type is very undiscriptive
+    if (type === undefined){ //return all listeners
+        return this._propertyListeners.concat(this._modelListeners);
+    } else if (type) {
+        return this._propertyListeners;
+    } else {
+        return this._modelListeners;
+    }
+
 };
 
+Property.prototype.getParent = function () {
+    return this._parent;
+};
 
 /**
  * The model Object that wraps the JSON.
  * @param {[type]} json [description]
  */
-function Model (json) {
+function Model (json, parent) {
     var jsonModel = json || {};
     var me = this;
+
+    //A Model is in itself a Property so let inherit property
+    // call with empty options for now and this is the value
+    Property.call(this, parent, this, {});
+
+    Object.defineProperty(this, "onChange", {
+        value: this.addChangeCallback
+    });
+
     Object.keys(jsonModel).forEach(function (name){
 
         if (name.match(Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX)){
@@ -148,6 +223,8 @@ function Model (json) {
 
     });
 }
+Model.prototype = Object.create(Property.prototype);
+
 
 Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX = "__modeljs__options";
 Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX = /__modeljs__options$/;
@@ -160,9 +237,10 @@ Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX = /__modeljs__options$/;
  * @return {[type]}         [description]
  */
 Model.prototype.createProperty = function createProperty(name, value, options) {
-    var prop = new Property (value, options);
+    var prop = new Property (this, value, options);
 
     // **hack We must bind our method to prop otherwise 'this' will be the model since we are placing the method on the model.
+    // this is also how we control what is public
     var returnFunction = prop.getter_setter.bind(prop);
     returnFunction.onChange = prop.addChangeCallback.bind(prop);
     returnFunction.options = prop.getOptions(); //TODO: is this mutable? than it needs to change

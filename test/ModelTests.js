@@ -211,3 +211,31 @@ test("testModelTransactions", function () {
     Model.endTransaction();
     ok(callbackCalled, "Passed");
 });
+
+test("testBubbleUpEvents", function () {
+    var jsonModel = { number: 1,
+        str : "aString",
+        bool : true,
+        nil: null,
+        undef: undefined,
+        subModel: {
+            subProp: "I am the subProp"
+        }
+        };
+
+    var callbackCalled = false;
+    var count = 0;
+    var callback = function (oldValue, newValue) {
+        callbackCalled = true;
+        count++;
+    };
+
+    var m = new Model(jsonModel);
+    m.onChange(callback, {listenToChildren: true});
+    m.number.onChange(callback);
+
+    m.number(5);
+    ok(callbackCalled, "Passed");
+
+    ok(count===2, "Passed");
+});
