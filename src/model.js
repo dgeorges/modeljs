@@ -195,7 +195,6 @@ Property.prototype.getParent = function () {
  */
 function Model (json, parent) {
     var jsonModel = json || {};
-    var me = this;
 
     //A Model is in itself a Property so let inherit property
     // call with empty options for now and this is the value
@@ -216,12 +215,12 @@ function Model (json, parent) {
 
         if (value !== null && typeof value === 'object'){
             var subModel = new Model(value);
-            me.createProperty(name, subModel, options);
+            this.createProperty(name, subModel, options);
         } else {
-            me.createProperty(name, value, options);
+            this.createProperty(name, value, options);
         }
 
-    });
+    }, this);
 }
 Model.prototype = Object.create(Property.prototype);
 
@@ -254,20 +253,18 @@ Model.prototype.createProperty = function createProperty(name, value, options) {
  */
 Model.prototype.toJSON = function (includeMetaData) {
     var json = {};
-    // **hack can't seem to do forEach.call( this, ...)
-    var me = this;
     Object.keys(this).forEach( function (name){
-         var value = me[name]();
+         var value = this[name]();
          if (value instanceof Model) {
             json[name] = value.toJSON();
          } else {
             json[name] = value;
-            if (includeMetaData && me[name].options){
-                json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX] = me[name].options;
+            if (includeMetaData && this[name].options){
+                json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX] = this[name].options;
             }
 
          }
-    });
+    }, this);
     return json;
 };
 
