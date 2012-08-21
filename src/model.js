@@ -6,7 +6,8 @@
  *
  *
  * Features
- * - Can save/load Model to/from JSON with/without model metadata
+ * - Simple easy to use and intuitive Model library
+ * - Can save/load Model to/from JSON with/without model meta data
  * - Can register onChange events with any property or group of properties
  * - Model change events bubble up.
  * - Can tie validation methods to model properties
@@ -15,8 +16,8 @@
  *
  * TODO:
  *  - Optimize Transaction callbacks, by being smart/removing duplicates etc...
- *  - hook up/create documentation and document methods properly.
- *  - Think about using ECMA gettter / setters
+ *  - hook up/create/clean documentation and document methods properly.
+ *  - Think about using ECMA getter / setters
  *  - clean up unit tests
  *
  * BUGS:
@@ -28,7 +29,7 @@
     "use strict";
 
     /**
-     * Centerlized place where all Model Events pass through.
+     * Centralized place where all Model Events pass through.
      * @type {Object}
      */
     var eventProxy = function () {
@@ -96,7 +97,7 @@
     }();
 
     /**
-     * A given propery in the model.
+     * A given property in the model.
      *
      * @param {[type]} value   property Value
      * @param {[type]} options May contain the following:
@@ -161,7 +162,7 @@
      * [addChangeCallback description]
      * @param {Function} callback [description]
      * @param {[type]}   options May contain the following:
-     *                         listenToChildren - registars the listener with any subproperty change.
+     *                         listenToChildren - register the listener with any sub property change.
      */
     Property.prototype.addChangeCallback = function (callback, options) {
         if (options && options.listenToChildren){
@@ -250,7 +251,7 @@
 
     /**
      * [toJSON description]
-     * @param  {[type]} includeMetaData indicates if model metadata should be included in the returned JSON
+     * @param  {[type]} includeMetaData indicates if model meta data should be included in the returned JSON
      * @return {[type]}                 The json representation of the Model.
      */
     Model.prototype.toJSON = function (includeMetaData) {
