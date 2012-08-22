@@ -24,10 +24,10 @@ test("testPrimitiveSetGet", function () {
 
 
     var m = new Model(jsonModel);
-    ok(m.str() === jsonModel.str, "Passed");
-    ok(m.number() === jsonModel.number, "Passed");
-    m.str(1);
-    m.number("aString");
+    ok(m.str._value === jsonModel.str, "Passed");
+    ok(m.number._value === jsonModel.number, "Passed");
+    m.str._value  = 1;
+    m.number._value = "aString";
 
     var jsonModelExpected = { number: "aString",
         str : 1,
@@ -64,8 +64,8 @@ test("testFunctionsSaveLoad", function () {
     var jsonFReturnValue = jsonModel.subModel.f();
 
     var m = new Model(jsonModel);
-    var modelXReturnValue = m.x()();
-    var modelFReturnValue = m.subModel().f()();
+    var modelXReturnValue = m.x._value();
+    var modelFReturnValue = m.subModel.f._value();
     ok(jsonXReturnValue === modelXReturnValue, "Passed");
     ok(jsonFReturnValue === modelFReturnValue, "Passed");
 
@@ -89,21 +89,24 @@ test("testChangeListenerCallback", function () {
         count++;
     };
     m.number.onChange(f);
-    m.number(2);
-    m.number(3);
-    m.number(3); // value is the same should not fire a change
+    m.number._value = 2;
+    m.number._value = 3;
+    m.number._value = 3; // value is the same should not fire a change
 
     ok(count === 2, "Passed");
 
 });
 
 
-test("modelCreationFromScratch", function () {
+test("testModelCreationFromScratch", function () {
     var expectedJSON = {
         x: 1,
         y: "y",
         obj: {
             desc: "a New point"
+        },
+        obj2: {
+            desc: "This is obj2"
         }
     };
 
@@ -113,11 +116,42 @@ test("modelCreationFromScratch", function () {
 
     var subModel = new Model();
     subModel.createProperty("desc", "a New point");
-    m.createProperty("obj", subModel);
+    m.obj = subModel;
+
+    // alternate - just pass in JSON
+    m.createProperty("obj2", {desc: "This is obj2"});
+
 
     ok(JSON.stringify(m.toJSON()) === JSON.stringify(expectedJSON), "Passed");
+});
 
+test("testComplexChangePropertyValue", function () {
+    var json = {
+        x: 1,
+        y: "y",
+        obj1: "This is not obj1",
+        obj2: "This is not obj2"
+    };
+    var expectedJSON = {
+        x: 1,
+        y: "y",
+        obj1: "This is not obj1",
+        obj2: {
+            desc: "This is obj2"
+        }
+    };
 
+    var m = new Model(json);
+
+/* This isn't passing yet. Since _parent of property is immutable. Think about it.
+    var subModel = new Model();
+    subModel.createProperty("desc", "This is obj1");
+    m.obj._value = subModel;
+ */
+    // alternate
+    m.obj2._value = {desc: "This is obj2"};
+
+    ok(JSON.stringify(m.toJSON()) === JSON.stringify(expectedJSON), "Passed");
 });
 
 test("testSuppressNotifications", function () {
@@ -136,12 +170,12 @@ test("testSuppressNotifications", function () {
     };
 
     m.x.onChange(callback);
-    m.x(2);
+    m.x._value = 2;
     ok(notified, "Passed");
     notified = false;
-    m.x(4, {suppressNotifications: true});
+    m.x._value = {_value: 4, suppressNotifications: true}; //special object setting
     ok(!notified, "Passed");
-    ok(m.x() === 4, "Passed");
+    ok(m.x._value === 4, "Passed");
 });
 
 test("testPropertyValidationFunction", function () {
@@ -152,11 +186,11 @@ test("testPropertyValidationFunction", function () {
     var m = new Model();
     m.createProperty("x", 1, {validator: validateX});
     m.createProperty("y", "y");
-    ok(m.x() === 1, "Passed");
-    m.x(5);
-    ok(m.x() === 5, "Passed");
-    m.x(-1);
-    ok(m.x() === 5, "Passed");
+    ok(m.x._value === 1, "Passed");
+    m.x._value = 5;
+    ok(m.x._value === 5, "Passed");
+    m.x._value = -1;
+    ok(m.x._value === 5, "Passed");
 
 });
 
@@ -204,8 +238,8 @@ test("testModelTransactions", function () {
     m.number.onChange(callback);
     m.bool.onChange(callback);
     Model.startTransaction();
-    m.number(5);
-    m.bool(true); //should not fire a onChange event since value not changes
+    m.number._value = 5;
+    m.bool._value = true; //should not fire a onChange event since value not changes
 
     ok(!callbackCalled, "Passed");
     Model.endTransaction();
@@ -234,8 +268,9 @@ test("testBubbleUpEvents", function () {
     m.onChange(callback, {listenToChildren: true});
     m.number.onChange(callback);
 
-    m.number(5);
+    m.number._value = 5;
     ok(callbackCalled, "Passed");
 
     ok(count===2, "Passed");
 });
+

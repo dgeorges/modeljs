@@ -17,12 +17,13 @@
  * TODO:
  *  - Optimize Transaction callbacks, by being smart/removing duplicates etc...
  *  - hook up/create/clean documentation and document methods properly.
- *  - Think about using ECMA getter / setters
  *  - clean up unit tests
+ *  - consider deleteProperty method.
  *
  * BUGS:
  * - The callback executed when listening to modelChange event on one of your childrens needs to refined
  *     to make more sense. Right now its the same as a property change.
+ * - bug in testComplexChangePropertyValue need to fix
  */
 
 (function (window, undefined) {
@@ -43,7 +44,7 @@
             // used to get around the JSLint warning of creating a function within the while loop below
             var executeCallbacksFunction = function (oldValue, property) {
                 return function (callback){
-                    callback.call(null, oldValue, property.getter_setter());
+                    callback.call(null, oldValue, property._value);
                 };
             };
 
@@ -103,7 +104,7 @@
      * @param {[type]} options May contain the following:
      *                         validator - a function to validate the new value is valid before it is assigned.
      */
-    function Property (parent, value, options) {
+    function Property (value, parent, options) {
 
         Object.defineProperty(this, "_parent", {
             value: parent,
@@ -113,7 +114,7 @@
         Object.defineProperty(this, "_myValue", {
             value: value,
             enumerable: false,
-             writable: true
+            writable: true
         });
 
         Object.defineProperty(this, "_options", {
@@ -129,7 +130,13 @@
             value: [],
             enumerable: false
         });
-        this.getter_setter(value);
+
+        Object.defineProperty(this, "_value", {
+            get: function () {return this._myValue;},
+            set: function (newValue) { this.setValue(newValue);}
+        });
+
+        this.setValue(value);
     }
 
     /**
@@ -141,16 +148,35 @@
      *
      * @return {[type]}          The resulting value of the Property
      */
-    Property.prototype.getter_setter = function (newValue, options) {
+    Property.prototype.setValue = function (value) {
+        var newValue,
+            suppressNotifications = false;
 
-        if (newValue !== undefined && newValue !== this._myValue) { // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
+        if (value !== null && typeof value === 'object' && value._value) {
+            newValue = value._value;
+            suppressNotifications = value.suppressNotifications;
+        } else {
+            newValue = value;
+        }
+
+        // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
+        if (newValue !== undefined && newValue !== this._myValue) {
             var validationFunction = this._options && this._options.validator;
 
             if (!validationFunction || validationFunction(newValue)){
                 var oldValue = this._myValue;
-                this._myValue = newValue;
 
-                if (!options || !options.suppressNotifications){
+                if (newValue instanceof Property || newValue instanceof Model){
+                    //TODO Test failing for this case because _parent is immutable. see testComplexChangeProperty Value
+                    newValue._parent = this;
+                    this._myValue = newValue;
+                } else if (newValue !== null && typeof newValue === 'object') {
+                    this._myValue = new Model(newValue, this);
+                } else {
+                    this._myValue = newValue;
+                }
+
+                if (!suppressNotifications){
                     eventProxy.fireEvent(this, oldValue);
                 }
             }
@@ -164,7 +190,7 @@
      * @param {[type]}   options May contain the following:
      *                         listenToChildren - register the listener with any sub property change.
      */
-    Property.prototype.addChangeCallback = function (callback, options) {
+    Property.prototype.onChange = function (callback, options) {
         if (options && options.listenToChildren){
             this._modelListeners.push(callback);
         } else {
@@ -196,17 +222,17 @@
      * The model Object that wraps the JSON.
      * @param {[type]} json [description]
      */
-    function Model (json, parent) {
+    function Model (json, parent, options) {
         var jsonModel = json || {};
 
         //A Model is in itself a Property so let inherit property
         // call with empty options for now and this is the value
-        Property.call(this, parent, this, {});
-
+        Property.call(this, this, parent, options);
+/*
         Object.defineProperty(this, "onChange", {
             value: this.addChangeCallback
         });
-
+ */
         Object.keys(jsonModel).forEach(function (name){
 
             if (name.match(Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX)){
@@ -216,13 +242,7 @@
             var value = jsonModel[name];
             var options = json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX];
 
-            if (value !== null && typeof value === 'object'){
-                var subModel = new Model(value);
-                this.createProperty(name, subModel, options);
-            } else {
-                this.createProperty(name, value, options);
-            }
-
+            this.createProperty(name, value, options);
         }, this);
     }
     Model.prototype = Object.create(Property.prototype);
@@ -239,15 +259,13 @@
      * @return {[type]}         [description]
      */
     Model.prototype.createProperty = function createProperty(name, value, options) {
-        var prop = new Property (this, value, options);
-
-        // **hack We must bind our method to prop otherwise 'this' will be the model since we are placing the method on the model.
-        // this is also how we control what is public
-        var returnFunction = prop.getter_setter.bind(prop);
-        returnFunction.onChange = prop.addChangeCallback.bind(prop);
-        returnFunction.options = prop.getOptions(); //TODO: is this mutable? than it needs to change
-        this[name] = returnFunction;
+        if (value !== null && typeof value === 'object'){
+            this[name] = new Model(value, this, options);
+        } else {
+            this[name] = new Property (value, this, options);
+        }
     };
+
 
     /**
      * [toJSON description]
@@ -257,13 +275,13 @@
     Model.prototype.toJSON = function (includeMetaData) {
         var json = {};
         Object.keys(this).forEach( function (name){
-             var value = this[name]();
+             var value = this[name]._value;
              if (value instanceof Model) {
                 json[name] = value.toJSON();
              } else {
                 json[name] = value;
-                if (includeMetaData && this[name].options){
-                    json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX] = this[name].options;
+                if (includeMetaData && this[name].getOptions()){
+                    json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX] = this[name].getOptions();
                 }
 
              }
