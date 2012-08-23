@@ -298,6 +298,9 @@
         }
     };
 
+    Model.prototype.clone = function (){
+        return new Model(this.toJSON(), this.getOptions());
+    };
 
     /**
      * [toJSON description]

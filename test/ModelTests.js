@@ -275,6 +275,24 @@ test("testBubbleUpEvents", function () {
     ok(count===2, "Passed");
 });
 
+test("testModelClone", function (){
+    var jsonModel = {
+            number: 1,
+            str: "aString",
+            bool: true,
+            nil: null,
+            undef: undefined,
+            subModel: {
+                subProp: "I am the subProp"
+            }
+        };
+
+    var model = new Model(jsonModel);
+    var clone = model.clone();
+    ok(JSON.stringify(model.toJSON()) === JSON.stringify(clone.toJSON()), "Passed");
+
+});
+
 test("modlejsTutorial", function (){
 
     //The code below will teach you how to use modeljs by example. It attepts to go though all the features in logical progression.
