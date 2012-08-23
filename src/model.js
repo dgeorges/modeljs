@@ -11,7 +11,8 @@
  * - Can register onChange events with any property or group of properties
  * - Model change events bubble up.
  * - Can tie validation methods to model properties
- * - Can suppress events completely or delay them by putting them into a transaction.
+ * - Can suppress events notification.
+ * - Can batch changes into a transaction.
  *
  *
  * TODO:
@@ -19,11 +20,13 @@
  *  - hook up/create/clean documentation and document methods properly.
  *  - clean up unit tests
  *  - consider deleteProperty method.
+ *  - add basic validators that can be reused.
+ *  - set up gitHub site
  *
  * BUGS:
  * - The callback executed when listening to modelChange event on one of your childrens needs to refined
  *     to make more sense. Right now its the same as a property change.
- * - bug in testComplexChangePropertyValue need to fix
+ * - bug in testComplexChangePropertyValue need to fix when using the _value = Model/Property setter
  */
 
 (function (window, undefined) {
@@ -83,6 +86,11 @@
         }
 
         function flushEventQueue() {
+
+            if(Model.eventOptimizationEnabled){
+                //do something clever.
+            }
+
             eventQueue.forEach( function (event){
                 _fireEvent(event.property, event.oldValue);
             });
@@ -118,7 +126,7 @@
         });
 
         Object.defineProperty(this, "_options", {
-            value: options,
+            value: options || {},
             enumerable: false
         });
 
@@ -202,6 +210,17 @@
         return this._options;
     };
 
+    Property.prototype.hasValidator = function () {
+        return !!this._options.validator;
+    };
+
+    Property.prototype.validateValue = function (value) {
+        if (this._options.validator){
+            return this._options.validator(value);
+        }
+        return true;
+    };
+    //don't want a set validator function.
 
     Property.prototype.getListeners = function (type) { //TODO type is very undiscriptive
         if (type === undefined){ //return all listeners
@@ -300,6 +319,8 @@
     Model.inTransaction = function() {
         eventProxy.inTransaction();
     };
+
+    Model.eventOptimizationEnabled = false;
 
     window.Model = Model;
 }(window));
