@@ -22,6 +22,7 @@
  *  - consider deleteProperty method.
  *  - add basic validators that can be reused.
  *  - set up gitHub site
+ *  - figure out _value = (property| Model) setters
  *
  * BUGS:
  * - The callback executed when listening to modelChange event on one of your childrens needs to refined
@@ -174,12 +175,20 @@
             if (!validationFunction || validationFunction(newValue)){
                 var oldValue = this._myValue;
 
-                if (newValue instanceof Property || newValue instanceof Model){
-                    //TODO Test failing for this case because _parent is immutable. see testComplexChangeProperty Value
-                    newValue._parent = this;
-                    this._myValue = newValue;
-                } else if (newValue !== null && typeof newValue === 'object') {
-                    this._myValue = new Model(newValue, this);
+                if (newValue instanceof Property) {
+                    //TODO does a copy of value make sense?
+                    // should be copy options and listeners?
+                    // this is equivland of this._value = newValue._value
+                    this._myValue = newValue._value;
+                    window.console.log("unrecommended notation. use ._value = property._value instead");
+                } else if (newValue instanceof Model || newValue !== null && typeof newValue === 'object') {
+                    /*
+                    if (this instanceof Model){
+                        this._myValue = new Model(newValue, this).toJSON;
+                    }
+                     */
+                    // TODO figure out.
+                    window.console.log("Not Supported: Can't set a property to a Model. Delete the property and add it as a model");
                 } else {
                     this._myValue = newValue;
                 }
@@ -246,12 +255,16 @@
 
         //A Model is in itself a Property so let inherit property
         // call with empty options for now and this is the value
-        Property.call(this, this, parent, options);
-/*
-        Object.defineProperty(this, "onChange", {
-            value: this.addChangeCallback
+        Property.call(this, jsonModel, parent, options);
+
+        // Model overrides it's parents get/set
+        /*
+        Object.defineProperty(this, "_value", {
+            get: function () {return this.getJSON();},
+            set: function (newValue) { this.setValue(newValue);}
         });
- */
+        */
+
         Object.keys(jsonModel).forEach(function (name){
 
             if (name.match(Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX)){
@@ -294,16 +307,17 @@
     Model.prototype.toJSON = function (includeMetaData) {
         var json = {};
         Object.keys(this).forEach( function (name){
-             var value = this[name]._value;
-             if (value instanceof Model) {
-                json[name] = value.toJSON();
-             } else {
+            var property = this[name];
+            if (property instanceof Model) {
+                json[name] = property.toJSON(includeMetaData);
+            } else {
+                var value = this[name]._value;
                 json[name] = value;
                 if (includeMetaData && this[name].getOptions()){
                     json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX] = this[name].getOptions();
                 }
 
-             }
+            }
         }, this);
         return json;
     };
