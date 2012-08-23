@@ -317,14 +317,14 @@ test("modlejsTutorial", function (){
     /** --- method 2: creating your model programatically --- */
     var modelFromCode = new Model(); //creates a empty model equivlant of new Model({});
     // create properties via the createProperty method
-    model.createProperty("PropertyName", "property Value");
-    model.createProperty("number", 1); // value can be of any type
+    modelFromCode.createProperty("PropertyName", "property Value");
+    modelFromCode.createProperty("number", 1); // value can be of any type
     // like another model
-    model.createProperty("obj", new Model({"subModel": "I am a inlined Model object"}));
+    modelFromCode.createProperty("obj", new Model({"subModel": "I am a inlined Model object"})); //not sure this works
     // An alternate to the above with the same result would be:
-    model.createProperty("obj2", {"submodel2": "a better way to programatically set a property to a submodel"}); //This is recommended.
+    modelFromCode.createProperty("obj2", {"submodel2": "a better way to programatically set a property to a submodel"}); //This is recommended.
     // the createProperty method can also take options like a validator function
-    model.createProperty("positiveNumber", 2, {validator: function (value){return typeof value === 'number' && value > 0;}});
+    modelFromCode.createProperty("positiveNumber", 2, {validator: function (value){return typeof value === 'number' && value > 0;}});
     // Validator functions get run when you try to change the property value.
     // It take the newValue to be set as the arguement and returns true if the value.
     // If the value is not valid it will not be set and the property remains unchanged.
@@ -334,7 +334,7 @@ test("modlejsTutorial", function (){
     /** --- Model manipulation --- */
     //getting/setting a model value behaves simarly to  like JavaScript Objects.
     // This is a getter. it retieves the value 1
-    var numberPropertyValue = modelAsJSON.numberProperty._value;
+    var numberPropertyValue = modelFromJSON.numberProperty._value;
     //This sets the Property value to 2;
     modelFromJSON.numberProperty._value = 2;
     // We can set the property to anything, but remember it must pass the validator.
@@ -343,7 +343,7 @@ test("modlejsTutorial", function (){
 
     //if you don't like the silent failure you can use these methods to check if a validator exists
     modelFromCode.positiveNumber.hasValidator();
-    modelFromCode.positiveNumber.validate("a String"); // or even do the test yourself
+    modelFromCode.positiveNumber.validateValue("a String"); // or even do the test yourself
 
     //you can even use set notation to change the value to a complex type like a model
     //TODO bug doesn't work
@@ -376,9 +376,9 @@ test("modlejsTutorial", function (){
 
     // The callback can be put on any property
     // this is on a objProperty object. It only gets called when the objProperty changes not any of it's children
-    modelFromJSON.objProperty.onChange(calllback);
+    modelFromJSON.objProperty.onChange(callback);
     // This is attaching the same listener to a child property of objProperty
-    modelFromJSON.objProperty.name.onChange(calllback);
+    modelFromJSON.objProperty.name.onChange(callback);
 
     // If you want to listen to anyProperty changes of a Property and its children you can register you callback to do so.
     modelFromJSON.objProperty2.onChange(callback, {listenToChildren: true}); // callback will be called with objProperty2 or it's children change value
@@ -386,24 +386,34 @@ test("modlejsTutorial", function (){
 
     // Finally another useful feature is delaying your callbacks until your done munipulating the model
     // To do that you create a transaction like below.
-    
+
     Model.startTransaction();
     //any code in here will not notify it's listeners until Model.endTransaction() is called
     modelFromJSON.stringProperty._value = "new String Property";
     modelFromJSON.objProperty.name._value = "new name";
 
     // it doesn't matter how you set the value or which Model you are manipulating. Transaction apply to everything
-    modelFromCode.numberProperty.onChange(callback);
-    modelFromCode.numberProperty._value = 8;
+    modelFromCode.number.onChange(callback);
+    modelFromCode.number._value = 8;
     Model.endTransaction();
 
     // To check if your in a transaction block you can call
     Model.inTransaction();
-    //Finally there is away to optimize your callbacks
 
+    //Finally if your using transaction there is a way to be smart about the callbacks you at the end of the transaction.
+    // This feature is still in development, and is unclear of the strategies it will use, but it can be turn on and off via the boolean
+    Model.eventOptimizationEnabled = true; // likely to change in the near future;
+    Model.eventOptimizationEnabled = false;
 
-    // registering, bubbling, transactions, suppressing
 
     /* --- Saving and Loading from saved --- */
+    // Finally, last but not least is saving your model. The toJSON method will return the JSON representation of
+    // the model that you can persist and reload at a later time. If you pass true as an argument to the toJSON function
+    // the JSON will include model metadata like validators, otherwise it will be JSON with only the property name/values
+    // being outputted.
+    modelFromJSON.toJSON(true);
+    modelFromJSON.toJSON(false);
+
+   ok(JSON.stringify(modelFromJSON.toJSON()) !== JSON.stringify(modelAsJSON), "Passed");
 
 });
