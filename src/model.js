@@ -181,19 +181,20 @@
                 var oldValue = this._myValue;
 
                 if (newValue instanceof Property || newValue instanceof Model ) {
-                    //TODO does a copy of value make sense?
-                    // should be copy options and listeners?
-                    // this is equivland of this._value = newValue._value
-                    this._myValue = newValue._value;
-                    window.console.log("unrecommended notation. use ._value = [property|model]._value instead");
+                    // this is misleading syntax because other property attributes are not copied like _listener and _parent
+                    // so prevent it and provide alternate.
+                    window.console.error("Incorrect Syntax: use ._value = [property|model]._value instead");
                 } else if (isObject(newValue)) {
                     if (!(this instanceof Model)){
-                        window.console.log("property values can not be object. Delete property and use createProperty");
+                        window.console.error("Not Supported: Can't set the Model value to a property. Delete the model and use createProperty");
                     } else {
                         //TODO This is a Model Merge. write a new function for this.
-                        window.console.log("Not Supported right now: Can't set a property to a Model. Delete the property and add it as a model");
+                        window.console.warn("Not implemented yet because behavior not clear");
                     }
-                } else {
+                } else { // newValue is a property
+                    if (this instanceof Model){
+                        window.console.error("Not Supported: Can't set a Property value to a model. Delete the propert and use createProperty");
+                    }
                     this._myValue = newValue;
                 }
 
