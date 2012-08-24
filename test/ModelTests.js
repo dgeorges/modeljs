@@ -147,6 +147,7 @@ test("testComplexChangePropertyValue", function () {
     var subModel = new Model();
     subModel.createProperty("desc", "This is obj1");
     m.obj._value = subModel;
+    m.obj = subModel // will also break things because parent not assigned.
  */
     // alternate
     m.obj2._value = {desc: "This is obj2"};
@@ -253,6 +254,7 @@ test("testBubbleUpEvents", function () {
         bool: true,
         nil: null,
         undef: undefined,
+        fun: function () {return "I am a function";},
         subModel: {
             subProp: "I am the subProp"
         }
@@ -282,8 +284,10 @@ test("testModelClone", function (){
             bool: true,
             nil: null,
             undef: undefined,
+            fun: function () {return "I am a function";},
             subModel: {
-                subProp: "I am the subProp"
+                subProp: "I am the subProp",
+                fun: function () {return "I am a function";}
             }
         };
 
@@ -336,11 +340,12 @@ test("modlejsTutorial", function (){
     var modelFromCode = new Model(); //creates a empty model equivlant of new Model({});
     // create properties via the createProperty method
     modelFromCode.createProperty("PropertyName", "property Value");
-    modelFromCode.createProperty("number", 1); // value can be of any type
-    // like another model
-    modelFromCode.createProperty("obj", new Model({"subModel": "I am a inlined Model object"})); //not sure this works
-    // An alternate to the above with the same result would be:
-    modelFromCode.createProperty("obj2", {"submodel2": "a better way to programatically set a property to a submodel"}); //This is recommended.
+    modelFromCode.createProperty("number", 1);
+    // value can be any of the native Javascript types
+
+    //modelFromCode.createProperty("obj", new Model({"subModel": "I am a inlined Model object"})); // This will throw an error to the console
+    // Here is a complex type
+    modelFromCode.createProperty("obj", {"submodel2": "a way to programatically set a property to a submodel"}); //This is recommended.
     // the createProperty method can also take options like a validator function
     modelFromCode.createProperty("positiveNumber", 2, {validator: function (value){return typeof value === 'number' && value > 0;}});
     // Validator functions get run when you try to change the property value.
@@ -364,9 +369,6 @@ test("modlejsTutorial", function (){
     modelFromCode.positiveNumber.validateValue("a String"); // or even do the test yourself
 
     //you can even use set notation to change the value to a complex type like a model
-    //TODO bug doesn't work
-    //modelFromCode.obj._value = new Model({"subModel": "A submodel set via the '_value = (Model)' setter"});
-    //a better way to do this is just using JSON notation
     modelFromCode.obj._value = {"submodel": "A submodel set via the '_value = {}' setter"};
 
     // Although if your using JSON notation be mindful if the JSON object has a _value property it will be treated specially

@@ -33,6 +33,11 @@
 (function (window, undefined) {
     "use strict";
 
+    // copied from underscorejs
+    function isObject (obj) {
+        return obj === new Object(obj) && Object.prototype.toString.call(obj) != '[object Function]';
+    }
+
     /**
      * Centralized place where all Model Events pass through.
      * @type {Object}
@@ -161,7 +166,7 @@
         var newValue,
             suppressNotifications = false;
 
-        if (value !== null && typeof value === 'object' && value._value) {
+        if (isObject(value) && value._value) {
             newValue = value._value;
             suppressNotifications = value.suppressNotifications;
         } else {
@@ -175,20 +180,19 @@
             if (!validationFunction || validationFunction(newValue)){
                 var oldValue = this._myValue;
 
-                if (newValue instanceof Property) {
+                if (newValue instanceof Property || newValue instanceof Model ) {
                     //TODO does a copy of value make sense?
                     // should be copy options and listeners?
                     // this is equivland of this._value = newValue._value
                     this._myValue = newValue._value;
-                    window.console.log("unrecommended notation. use ._value = property._value instead");
-                } else if (newValue instanceof Model || newValue !== null && typeof newValue === 'object') {
-                    /*
-                    if (this instanceof Model){
-                        this._myValue = new Model(newValue, this).toJSON;
+                    window.console.log("unrecommended notation. use ._value = [property|model]._value instead");
+                } else if (isObject(newValue)) {
+                    if (!(this instanceof Model)){
+                        window.console.log("property values can not be object. Delete property and use createProperty");
+                    } else {
+                        //TODO This is a Model Merge. write a new function for this.
+                        window.console.log("Not Supported right now: Can't set a property to a Model. Delete the property and add it as a model");
                     }
-                     */
-                    // TODO figure out.
-                    window.console.log("Not Supported: Can't set a property to a Model. Delete the property and add it as a model");
                 } else {
                     this._myValue = newValue;
                 }
@@ -291,7 +295,9 @@
      * @return {[type]}         [description]
      */
     Model.prototype.createProperty = function createProperty(name, value, options) {
-        if (value !== null && typeof value === 'object'){
+        if (value instanceof Model || value instanceof Property){
+            window.console.error("Unsupported Opperation: Try passing the Model/Properties value instead");
+        } else if (isObject(value)){
             this[name] = new Model(value, this, options);
         } else {
             this[name] = new Property (value, this, options);
@@ -300,6 +306,35 @@
 
     Model.prototype.clone = function (){
         return new Model(this.toJSON(), this.getOptions());
+    };
+
+    Model.prototype.merge = function (json){
+        //will merge the properties in json with this. result will be the same as the Object extend.
+        //if something does not exist it will be created.
+        Model.startTransaction();
+        Object.keys(json).forEach( function (name) {
+            var value = json[name];
+            if (this[name]){
+                if (isObject(value)){ // right hand side is an object
+                    if (this[name] instanceof Model) {// merging objects
+                        this[name].merge(value);
+                    } else {
+                        // you are trying to assign a model to a property
+                    }
+
+                } else { // right hand side is a property
+                    if (!(this[name] instanceof Model)){ // Its not a Model therefore it's a Property
+                        this[name]._value = value;
+                    } else {
+                        // you are trying to assign a property to a Model
+                    }
+                }
+                this[name]._value = json[name];
+            } else { //create new property
+                this.createProperty(name, value, this);
+            }
+        });
+        Model.endTransaction();
     };
 
     /**
