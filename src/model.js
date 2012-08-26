@@ -8,7 +8,7 @@
  * Features
  * - Simple easy to use and intuitive Model library
  * - Can save/load Model to/from JSON with/without model meta data
- * - Can register onChange events with any property or group of properties
+ * - Can register onChange events with any single property or group of properties
  * - Model change events bubble up.
  * - Can tie validation methods to models and properties
  * - Can suppress events notification.
