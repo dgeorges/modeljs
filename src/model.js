@@ -56,14 +56,15 @@
                 };
             };
 
-            property.getListeners().forEach(
+            var allPropertyListeners = property._propertyListeners.concat(property._modelListeners);
+            allPropertyListeners.forEach(
                 executeCallbacksFunction(oldValue, property)
             );
 
             var propertyParent = property._parent;
             while (propertyParent){
 
-                propertyParent.getListeners(false).forEach(
+                propertyParent._modelListeners.forEach( // when we bubble the event we only notify modelListeners
                     executeCallbacksFunction(oldValue, propertyParent)
                 );
                 propertyParent = propertyParent._parent;
@@ -262,17 +263,6 @@
         return true;
     };
     //don't want a set validator function.
-
-    Property.prototype.getListeners = function (type) { //TODO type is very undiscriptive
-        if (type === undefined){ //return all listeners
-            return this._propertyListeners.concat(this._modelListeners);
-        } else if (type) {
-            return this._propertyListeners;
-        } else {
-            return this._modelListeners;
-        }
-
-    };
 
     /**
      * The model Object that wraps the JSON.
