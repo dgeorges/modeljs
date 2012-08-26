@@ -60,13 +60,13 @@
                 executeCallbacksFunction(oldValue, property)
             );
 
-            var propertyParent = property.getParent();
+            var propertyParent = property._parent;
             while (propertyParent){
 
                 propertyParent.getListeners(false).forEach(
                     executeCallbacksFunction(oldValue, propertyParent)
                 );
-                propertyParent = propertyParent.getParent();
+                propertyParent = propertyParent._parent;
             }
         }
 
@@ -251,10 +251,6 @@
         }
     };
 
-    Property.prototype.getOptions = function () {
-        return this._options;
-    };
-
     Property.prototype.hasValidator = function () {
         return !!this._options.validator;
     };
@@ -276,10 +272,6 @@
             return this._modelListeners;
         }
 
-    };
-
-    Property.prototype.getParent = function () {
-        return this._parent;
     };
 
     /**
@@ -337,7 +329,7 @@
     };
 
     Model.prototype.clone = function (){
-        return new Model(this.toJSON(), this.getOptions(), this.getParent());
+        return new Model(this.toJSON(), this._options, this._parent);
     };
 
     function mergeLoop (model, json, doModification, keepOldProperties) {
@@ -411,8 +403,8 @@
             } else {
                 var value = this[name]._value;
                 json[name] = value;
-                if (includeMetaData && this[name].getOptions()){
-                    json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX] = this[name].getOptions();
+                if (includeMetaData && this[name]._options){
+                    json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX] = this[name]._options;
                 }
             }
         }, this);
