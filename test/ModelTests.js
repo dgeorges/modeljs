@@ -154,9 +154,11 @@ test("testComplexChangePropertyValue", function () {
     //setting a model to a property should fail
     m.model._value = "new string property";
 
+    // setting a property to an object indirectly should fail
     m.model._value = {key1: "This should not be set",
                         key2: {prop1:"this is an Object", prop2: "this should fail, since setting key2 to an object"}};
 
+    // setting a model to an property indirectly should fail
     m.model._value = {key1: "this should not be set", subModel: "setting a model to a property should fail"};
 
     //setting a model to another model should do a merge

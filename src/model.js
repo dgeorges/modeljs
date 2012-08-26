@@ -10,24 +10,22 @@
  * - Can save/load Model to/from JSON with/without model meta data
  * - Can register onChange events with any property or group of properties
  * - Model change events bubble up.
- * - Can tie validation methods to model properties
+ * - Can tie validation methods to models and properties
  * - Can suppress events notification.
  * - Can batch changes into a transaction.
+ * - Logs error Message to concole when api used incorrectly to help catch bugs
  *
  *
  * TODO:
  *  - Optimize Transaction callbacks, by being smart/removing duplicates etc...
  *  - hook up/create/clean documentation and document methods properly.
  *  - clean up unit tests
- *  - consider deleteProperty method.
  *  - add basic validators that can be reused.
  *  - set up gitHub site
- *  - figure out _value = (property| Model) setters
  *
  * BUGS:
  * - The callback executed when listening to modelChange event on one of your childrens needs to refined
  *     to make more sense. Right now its the same as a property change.
- * - bug in testComplexChangePropertyValue need to fix when using the _value = Model/Property setter
  */
 
 (function (window, undefined) {
