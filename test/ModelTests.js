@@ -75,6 +75,33 @@ test("testFunctionsSaveLoad", function () {
 
 });
 
+test("testModelPropertyName", function () {
+
+    var jsonModel = {   number: 1,
+                        str : "aString",
+                        x: function () {return "I am function x";},
+                        subModel: {
+                            str2: "string2",
+                            f: function () {return "I am a function";}
+                        }
+                    };
+    var m = new Model(jsonModel);
+    ok(m.getName() === "/root", "Passed");
+    ok(m.str.getName() === "/root/str", "Passed");
+    ok(m.subModel.getName() === "/root/subModel", "Passed");
+    ok(m.subModel.f.getName() === "/root/subModel/f", "Passed");
+
+    // passing in a name to our model changes the default of root.
+    var m2 = new Model(jsonModel, {name: "test"});
+    ok(m2.getName() === "/test", "Passed");
+    ok(m2.str.getName() === "/test/str", "Passed");
+    ok(m2.subModel.getName() === "/test/subModel", "Passed");
+    ok(m2.subModel.f.getName() === "/test/subModel/f", "Passed");
+
+
+
+});
+
 test("testChangeListenerCallback", function () {
         var jsonModel = { number: 1,
         str : "aString",

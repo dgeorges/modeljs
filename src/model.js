@@ -116,7 +116,17 @@
      * @param {[type]} options May contain the following:
      *                         validator - a function to validate the new value is valid before it is assigned.
      */
-    function Property (value, parent, options) {
+    function Property (name, value, parent, options) {
+
+        var myName = "/" + name;
+        if (parent){
+            myName = parent.getName() + myName;
+        }
+
+        Object.defineProperty(this, "_name", {
+            value: myName,
+            enumerable: false
+        });
 
         Object.defineProperty(this, "_parent", {
             value: parent,
@@ -156,6 +166,10 @@
 
         this.setValue(value);
     }
+
+    Property.prototype.getName = function () {
+        return this._name;
+    };
 
     /**
      * [getter_setter description]
@@ -257,14 +271,20 @@
 
     /**
      * The model Object that wraps the JSON.
+     * @param {[type]} options May contain the following:
+     *                         validator - a function to validate the new value is valid before it is assigned.
+     *                         name - name of modei
      * @param {[type]} json [description]
      */
-    function Model (json, parent, options) {
-        var jsonModel = json || {};
+    function Model (json, options, parent) {
+        var jsonModel = json || {} ,
+            modelOptions = options|| {},
+            modelName = (modelOptions.name || "root"),
+            modelParent = parent || null;
 
         //A Model is in itself a Property so let inherit property
         // call with empty options for now and this is the value
-        Property.call(this, jsonModel, parent, options);
+        Property.call(this, modelName, jsonModel, modelParent, modelOptions);
 
         Object.keys(jsonModel).forEach(function (name){
 
@@ -295,14 +315,16 @@
         if (value instanceof Model || value instanceof Property){
             window.console.error("Unsupported Opperation: Try passing the Model/Properties value instead");
         } else if (isObject(value)){
-            this[name] = new Model(value, this, options);
+            var modelOptions = options || {};
+            modelOptions.name = name;
+            this[name] = new Model(value, modelOptions, this);
         } else {
-            this[name] = new Property (value, this, options);
+            this[name] = new Property (name, value, this, options);
         }
     };
 
     Model.prototype.clone = function (){
-        return new Model(this.toJSON(), this.getOptions());
+        return new Model(this.toJSON(), this.getOptions(), this.getParent());
     };
 
     function mergeLoop (model, json, doModification, keepOldProperties) {
