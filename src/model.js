@@ -159,7 +159,6 @@
      * @param  {[type]} options  May contain the following:
      *                           suppressNotifications - boolean indicating if listeners should be notified of change.
      *
-     *
      * @return {[type]}          The resulting value of the Property
      */
     Property.prototype.setValue = function (value) {
@@ -188,14 +187,16 @@
                     if (!(this instanceof Model)){
                         window.console.error("Not Supported: Can't set the Model value to a property. Delete the model and use createProperty");
                     } else {
-                        //TODO This is a Model Merge. write a new function for this.
-                        window.console.warn("Not implemented yet because behavior not clear");
+                        //This model need to be set to the newValue
+                        this.merge(newValue, false);
+                        this._myValue = this.toJSON(); // update cached value of this
                     }
                 } else { // newValue is a property
                     if (this instanceof Model){
                         window.console.error("Not Supported: Can't set a Property value to a model. Delete the propert and use createProperty");
+                    } else {
+                        this._myValue = newValue;
                     }
-                    this._myValue = newValue;
                 }
 
                 if (!suppressNotifications){
@@ -262,14 +263,6 @@
         // call with empty options for now and this is the value
         Property.call(this, jsonModel, parent, options);
 
-        // Model overrides it's parents get/set
-        /*
-        Object.defineProperty(this, "_value", {
-            get: function () {return this.getJSON();},
-            set: function (newValue) { this.setValue(newValue);}
-        });
-        */
-
         Object.keys(jsonModel).forEach(function (name){
 
             if (name.match(Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX)){
@@ -309,33 +302,61 @@
         return new Model(this.toJSON(), this.getOptions());
     };
 
-    Model.prototype.merge = function (json){
-        //will merge the properties in json with this. result will be the same as the Object extend.
-        //if something does not exist it will be created.
-        Model.startTransaction();
-        Object.keys(json).forEach( function (name) {
+    function mergeLoop (model, json, doModification, keepOldProperties) {
+
+        for (var name in json) {
             var value = json[name];
-            if (this[name]){
+            if (model[name]){
                 if (isObject(value)){ // right hand side is an object
-                    if (this[name] instanceof Model) {// merging objects
-                        this[name].merge(value);
+                    if (model[name] instanceof Model) {// merging objects
+                        var successful = mergeLoop(model[name], value, doModification, keepOldProperties );
+                        if (!successful){
+                            return false;
+                        }
                     } else {
-                        // you are trying to assign a model to a property
+                        // Trying to assign a model to a property. This will fail.
+                        return false;
                     }
 
                 } else { // right hand side is a property
-                    if (!(this[name] instanceof Model)){ // Its not a Model therefore it's a Property
-                        this[name]._value = value;
+                    if (!(model[name] instanceof Model)){ // Its not a Model therefore it's a Property
+                        if (doModification){
+                            model[name]._value = value;
+                        }
                     } else {
-                        // you are trying to assign a property to a Model
+                        // Trying to assign a property to a Model. This will fail.
+                        return false;
                     }
                 }
-                this[name]._value = json[name];
             } else { //create new property
-                this.createProperty(name, value, this);
+                if (doModification){
+                    model.createProperty(name, value);
+                }
             }
-        });
-        Model.endTransaction();
+        }
+
+        // delete properties that are not found in json
+        if (!keepOldProperties && doModification){
+            for (var modelProp in model) {
+                if (!json[modelProp]){
+                    delete model[modelProp];
+                }
+            }
+        }
+        return true;
+    }
+
+    Model.prototype.merge = function (json, keepOldProperties) {
+        //will merge the properties in json with this. result will be the same as the Object extend.
+        //if a property exists in the model but not in the json it will only be kept if keepOldProperties is true.
+        if (mergeLoop(this, json, false, keepOldProperties)){// check if merge will be successful
+            Model.startTransaction();
+            mergeLoop(this, json, true, keepOldProperties);
+            Model.endTransaction();
+        } else {
+            window.console.error("Operation Not Supported: Model assignment not valid. Model not modified");
+            return;
+        }
     };
 
     /**
@@ -355,7 +376,6 @@
                 if (includeMetaData && this[name].getOptions()){
                     json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX] = this[name].getOptions();
                 }
-
             }
         }, this);
         return json;

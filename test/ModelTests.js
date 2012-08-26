@@ -129,19 +129,38 @@ test("testComplexChangePropertyValue", function () {
     var json = {
         x: 1,
         y: "y",
-        obj1: "This is not obj1",
-        obj2: "This is not obj2"
+        property: "This is not obj1",
+        model: {
+            key1: "key1",
+            key2: "key2",
+            subModel : {v1: "value1", v2: "value2"}
+        }
     };
     var expectedJSON = {
         x: 1,
         y: "y",
-        obj1: "This is not obj1",
-        obj2: {
-            desc: "This is obj2"
+        property: "This is not obj1",
+        model: {
+            key1: "this is key1's new value",
+            key3: "we have added a key"
         }
     };
 
     var m = new Model(json);
+
+    //setting a property to a model should fail
+    m.property._value = {prop: "this is an obj property", prop2: "this is prop2"};
+
+    //setting a model to a property should fail
+    m.model._value = "new string property";
+
+    m.model._value = {key1: "This should not be set",
+                        key2: {prop1:"this is an Object", prop2: "this should fail, since setting key2 to an object"}};
+
+    m.model._value = {key1: "this should not be set", subModel: "setting a model to a property should fail"};
+
+    //setting a model to another model should do a merge
+    m.model._value = {key1: "this is key1's new value", key3: "we have added a key"};
 
 /* This isn't passing yet. Since _parent of property is immutable. Think about it.
     var subModel = new Model();
@@ -150,7 +169,7 @@ test("testComplexChangePropertyValue", function () {
     m.obj = subModel // will also break things because parent not assigned.
  */
     // alternate
-    m.obj2._value = {desc: "This is obj2"};
+    //m.obj2._value = {desc: "This is obj2"};
 
     ok(JSON.stringify(m.toJSON()) === JSON.stringify(expectedJSON), "Passed");
 });
@@ -371,10 +390,14 @@ test("modlejsTutorial", function (){
     //you can even use set notation to change the value to a complex type like a model
     modelFromCode.obj._value = {"submodel": "A submodel set via the '_value = {}' setter"};
 
+    // These two lines should fail.
+    modelFromJSON.objProperty._value = {name: {nameObj: "Setting a property to a ModelObj should fail"}};
+    modelFromJSON.objProperty._value = {name: "this is a proptery value change", value: "this trys to replace obj with property"};
+
     // Although if your using JSON notation be mindful if the JSON object has a _value property it will be treated specially
     // Here the property _value indicates the value and the other properties are options. acceptable options are:
     // suppressNotifications - which does not call any of the registered listeners.
-    modelFromCode.obj._value = {_value: "submodel",
+    modelFromCode.obj._value = {_value: {replacementObj: "replacement obj"},
         suppressNotifications: true
     };
 
