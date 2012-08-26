@@ -210,7 +210,7 @@
                     }
                 } else { // newValue is a property
                     if (this instanceof Model){
-                        window.console.error("Not Supported: Can't set a Property value to a model. Delete the propert and use createProperty");
+                        window.console.error("Not Supported: Can't set a Property value to a model. Delete the property and use createProperty");
                     } else {
                         this._myValue = newValue;
                     }
