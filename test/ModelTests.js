@@ -278,7 +278,7 @@ test("testModelTransactions", function () {
 
     var callbackCalled = false;
     var count = 0;
-    var callback = function (oldValue, newValue) {
+    var callback = function (oldValue, newValue, propertyName) {
         callbackCalled = true;
         count++;
     };
@@ -310,7 +310,7 @@ test("testBubbleUpEvents", function () {
 
     var callbackCalled = false;
     var count = 0;
-    var callback = function (oldValue, newValue) {
+    var callback = function (oldValue, newValue, propertyName) {
         callbackCalled = true;
         count++;
     };
@@ -342,6 +342,63 @@ test("testModelClone", function (){
     var model = new Model(jsonModel);
     var clone = model.clone();
     ok(JSON.stringify(model.toJSON()) === JSON.stringify(clone.toJSON()), "Passed");
+
+});
+
+test("testEventOptimization", function (){
+    var jsonModel = {
+            number: 1,
+            str: "aString",
+            bool: true,
+            nil: null,
+            undef: undefined,
+            fun: function () {return "I am a function";},
+            subModel: {
+                subProp: "I am the subProp",
+                fun: function () {return "I am a function";}
+            }
+        };
+
+    var count = 0;
+    var callbackNewValue;
+    function callback(oldValue, newValue, propertyName){
+        count +=1;
+        callbackNewValue = newValue;
+    }
+
+    var model = new Model(jsonModel);
+    //lets registar a bunch of onChangeListeners.
+    model.number.onChange(callback);
+
+    Model.eventOptimization.suppressPreviousPropertyChangeEvents = true;
+    Model.startTransaction();
+    //Lets change number multiple time. should only be called once with last value of change
+    model.number._value = 2;
+    model.number._value = 3;
+    model.number._value = 4;
+    Model.endTransaction();
+
+    ok(count === 1, "Passed");
+    ok(callbackNewValue === 4, "Passed");
+
+    //test on Model
+    model.subModel.onChange(callback, {listenToChildren: true});
+    Model.startTransaction();
+    model.subModel.subProp._value = "new subProp value1";
+    model.subModel.subProp._value = "new subProp value2";
+    model.subModel.subProp._value = "new subProp value3";
+    Model.endTransaction();
+
+
+    ok(count === 2, "Passed");
+
+    Model.startTransaction();
+    model.subModel.subProp._value = "new subProp value";
+    model.subModel.fun._value = "replace function with string";
+    Model.endTransaction();
+
+    // Is this what I expect with suppressPreviousPropertyChangeEvents on? Should this be 3?
+    ok(count === 4, "Passed");
 
 });
 

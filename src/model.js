@@ -22,6 +22,7 @@
  *  - clean up unit tests
  *  - add basic validators that can be reused.
  *  - set up gitHub site
+ *  - update browser support
  *
  * BUGS:
  * - The callback executed when listening to modelChange event on one of your childrens needs to refined
@@ -51,7 +52,7 @@
             // used to get around the JSLint warning of creating a function within the while loop below
             var executeCallbacksFunction = function (oldValue, property) {
                 return function (callback){
-                    callback.call(null, oldValue, property._value);
+                    callback.call(null, oldValue, property._value, property.getName());
                 };
             };
 
@@ -91,8 +92,20 @@
 
         function flushEventQueue() {
 
-            if(Model.eventOptimizationEnabled){
-                //do something clever.
+            if(Model.eventOptimization.suppressPreviousPropertyChangeEvents){
+                var optimizedQueue = [];
+                var seenProperties = [];
+                for(var i = eventQueue.length - 1; i >= 0; i-=1){// iterate backwards since last events are most recent.
+                    var eventProperty = eventQueue[i].property;
+                    if (seenProperties.indexOf(eventProperty) === -1){
+                        // Not seen yet add it.
+                        seenProperties.push(eventProperty);
+                        optimizedQueue.push(eventQueue[i]);
+                    } else {
+                        //eventQueue[i] = null; // null out event since it's propertyChange is on the Queue Already
+                    }
+                }
+                eventQueue = optimizedQueue;
             }
 
             eventQueue.forEach( function (event){
@@ -418,7 +431,9 @@
         eventProxy.inTransaction();
     };
 
-    Model.eventOptimizationEnabled = false;
+    Model.eventOptimization = {
+        suppressPreviousPropertyChangeEvents: false
+    };
 
     window.Model = Model;
 }(window));
