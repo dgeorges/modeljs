@@ -144,7 +144,13 @@
         });
 
         Object.defineProperty(this, "_value", {
-            get: function () {return this._myValue;},
+            get: function () { //ideally would like to override the getter in the Model calss but this will have to do.
+                if (this instanceof Model) {
+                    return this.toJSON();
+                } else {
+                    return this._myValue;
+                }
+            },
             set: function (newValue) { this.setValue(newValue);}
         });
 
@@ -187,7 +193,6 @@
                     } else {
                         //This model need to be set to the newValue
                         this.merge(newValue, false);
-                        this._myValue = this.toJSON(); // update cached value of this
                     }
                 } else { // newValue is a property
                     if (this instanceof Model){
