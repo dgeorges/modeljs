@@ -416,6 +416,7 @@
     Model.eventOptimization = {
         suppressPreviousPropertyChangeEvents: false
     };
+    Object.seal(Model.eventOptimization);
 
     window.Model = Model;
 }(window));
