@@ -404,7 +404,7 @@ test("testEventOptimization", function (){
 
 test("modlejsTutorial", function (){
 
-    //The code below will teach you how to use modeljs by example. It attepts to go though all the features in logical progression.
+    //The code below will teach you how to use modeljs by example. It attepts to go though all the features provided in modeljs in logical progression.
 
     /** First thing you will want to do is create your model.
     * If starting from scratch there are two ways to proceed.
@@ -441,30 +441,44 @@ test("modlejsTutorial", function (){
 
     var modelFromJSON = new Model(modelAsJSON);
 
+
     /** --- method 2: creating your model programatically --- */
     var modelFromCode = new Model(); //creates a empty model equivlant of new Model({});
-    // create properties via the createProperty method
+    // create properties via the createProperty (name, value, options) method
     modelFromCode.createProperty("PropertyName", "property Value");
-    modelFromCode.createProperty("number", 1);
-    // value can be any of the native Javascript types
+    modelFromCode.createProperty("number", 1); // values can be any of the native Javascript types
+    // Values can also be json objects.
+    modelFromCode.createProperty("obj", {"submodel2": "a way to programatically set a property to a submodel", prop1: "a property"}); //This is recommended.
 
+    //values can not be of tyep Model or Property like commented below.
     //modelFromCode.createProperty("obj", new Model({"subModel": "I am a inlined Model object"})); // This will throw an error to the console
-    // Here is a complex type
-    modelFromCode.createProperty("obj", {"submodel2": "a way to programatically set a property to a submodel"}); //This is recommended.
+    //instead do the following use the toJSON method on the model to recreate it.
+    modelFromCode.createProperty("subModel", modelFromJSON.objProperty2.toJSON());
+
     // the createProperty method can also take options like a validator function
     modelFromCode.createProperty("positiveNumber", 2, {validator: function (value){return typeof value === 'number' && value > 0;}});
     // Validator functions get run when you try to change the property value.
-    // It take the newValue to be set as the arguement and returns true if the value.
-    // If the value is not valid it will not be set and the property remains unchanged.
+    // If the value is not valid the validator will return false and the property remains unchanged.
     // Note validators can only be bound to the property at creation time.
     // Let look at how we can set/change property values
 
     /** --- Model manipulation --- */
-    //getting/setting a model value behaves simarly to  like JavaScript Objects.
-    // This is a getter. it retieves the value 1
+    //getting/setting a model values goes throught the ._value keyword.
+    // This is a getter for a Property. it retieves the value 1.
     var numberPropertyValue = modelFromJSON.numberProperty._value;
+
+    // This is a getter for a Model. It returns a JSON object.
+    var objModelValue = modelFromJSON.objProperty2._value;
+
     //This sets the Property value to 2;
     modelFromJSON.numberProperty._value = 2;
+
+    // This is a setter for Model Objects.
+    modelFromJSON.objProperty2._value = {value1: "new Value1 value", value3: "Adding a new property"};
+    // The above will effectively add properties that don't exist. change the values of ones that do (keeping validation and listeners untouched)
+    // and remove properties that are missing.
+
+
     // We can set the property to anything, but remember it must pass the validator.
     // This string will fail the positiveNumber validator. _value will still be 2
     modelFromCode.positiveNumber._value = "a String";
@@ -473,27 +487,30 @@ test("modlejsTutorial", function (){
     modelFromCode.positiveNumber.hasValidator();
     modelFromCode.positiveNumber.validateValue("a String"); // or even do the test yourself
 
-    //you can even use set notation to change the value to a complex type like a model
-    modelFromCode.obj._value = {"submodel": "A submodel set via the '_value = {}' setter"};
+    // sometimes its desireble to change a value without notifying your listener. You can do this is the special set notation
+    modelFromJSON.numberProperty._value = {_value: 6, suppressNotifications: true};
 
-    // These two lines should fail.
-    modelFromJSON.objProperty._value = {name: {nameObj: "Setting a property to a ModelObj should fail"}};
-    modelFromJSON.objProperty._value = {name: "this is a proptery value change", value: "this trys to replace obj with property"};
-
-    // Although if your using JSON notation be mindful if the JSON object has a _value property it will be treated specially
-    // Here the property _value indicates the value and the other properties are options. acceptable options are:
-    // suppressNotifications - which does not call any of the registered listeners.
+    // this notation can be used on objects aswell.
+    // Here the property _value indicates the value and the other properties are the options.
+    // suppressNotifications is the only currently accepted options. It does not call any of the registered listeners when it changes the value.
     modelFromCode.obj._value = {_value: {replacementObj: "replacement obj"},
         suppressNotifications: true
     };
+    // Do to this notation, "_value" should not be used as a key.
+
+    // Without the _value keyword in the it will attempt to set the value to a Model type.
+    // This fails. You can not set a Model to a Property or a Property to a Model
+    modelFromJSON.numberProperty._value = {newValue: 6, suppressNotifications: true};
+    // Be very careful this can happen within the Object.
+    modelFromJSON.objProperty._value = {name: {nameObj: "Setting a property to a ModelObj should fail"}};
+    modelFromJSON.objProperty._value = {name: "this is a proptery value change", value: "this trys to replace obj with property"};
 
     // The next section will talk about events
-
 
     /* --- Events --- */
     /** The core responsibility of the Model in the MVC patter is to notify the view when the model changes */
     // using modeljs the you can listen to when any model property value changes by registaring a callback.
-    // below is a example
+    // below is a example of registaring a callback to numberProperty
     var callbackCount = 0;
     function callback (oldValue, newValue){
         callbackCount+=1;
@@ -521,7 +538,6 @@ test("modlejsTutorial", function (){
     modelFromJSON.stringProperty._value = "new String Property";
     modelFromJSON.objProperty.name._value = "new name";
 
-    // it doesn't matter how you set the value or which Model you are manipulating. Transaction apply to everything
     modelFromCode.number.onChange(callback);
     modelFromCode.number._value = 8;
     Model.endTransaction();
