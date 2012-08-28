@@ -6,15 +6,15 @@
  *
  *
  * Features
- * - Simple easy to use and intuitive Model library
+ * - Simple easy to use and intuitive  library
  * - Can save/load Model to/from JSON with/without model meta data
- * - Can register onChange events with any single property or group of properties
+ * - Can register on change events with any single property or group of properties
  * - Model change events bubble up.
  * - Can tie validation methods to models and properties
  * - Can suppress events notification.
  * - Can batch changes into a transaction.
- * - Transaction can be easily Optimized.
- * - Logs error Message to concole when api used incorrectly to help catch bugs
+ * - Transaction can be easily optimized.
+ * - Incorrect uses of api are logged as errors to the console
  *
  *
  * TODO:
@@ -55,19 +55,27 @@
             // used to get around the JSLint warning of creating a function within the while loop below
             var executeCallbacksFunction = function (oldValue, property) {
                 return function (callback){
-                    if (Model.eventOptimization.enableSingleCallbackCall){
-                        if(executedCallbacks.indexOf(callback) === -1) { // Only call callback once
-                            executedCallbacks.push(callback);
-                            callback.call(null, oldValue, property._value, property.getName());
-                        }
-                    } else if(Model.eventOptimization.enableCallbackHashOpimization){
-                         if(!callback.hash || callbackHashs.indexOf(callback.hash) === -1) { // Only call callback once
-                            if (callback.hash) {
-                                callbackHashs.push(callback.hash);
+                    if (Model.eventOptimization.enableSingleCallbackCall || Model.eventOptimization.enableCallbackHashOpimization){
+                        var callbackExecuted = false;
+                        if (Model.eventOptimization.enableSingleCallbackCall){
+                            if(executedCallbacks.indexOf(callback) === -1) { // Only call callback once
+                                executedCallbacks.push(callback);
+                                callback.call(null, oldValue, property._value, property.getName());
+                                callbackExecuted = true;
                             }
-                            callback.call(null, oldValue, property._value, property.getName());
                         }
-                    }else {
+                        if(Model.eventOptimization.enableCallbackHashOpimization){
+                             if(!callback.hash || callbackHashs.indexOf(callback.hash) === -1) { // Only call hash identified callback once
+                                if (callback.hash) {
+                                    callbackHashs.push(callback.hash);
+                                }
+                                if (!callbackExecuted){
+                                    callback.call(null, oldValue, property._value, property.getName());
+                                    callbackExecuted = true;
+                                }
+                            }
+                        }
+                    } else {
                         callback.call(null, oldValue, property._value, property.getName());
                     }
                 };
