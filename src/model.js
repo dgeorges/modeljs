@@ -447,5 +447,11 @@
     };
     Object.seal(Model.eventOptimization);
 
+    var oldModel = window.Model;
+    Model.noConflict = function () {
+        window.Model = oldModel;
+        return this;
+    };
+
     window.Model = Model;
 }(window));

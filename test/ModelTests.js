@@ -489,6 +489,16 @@ test("testEnableCallbackHashOpimization", function (){
     ok(count2 === 3, "Passed");
 });
 
+test("modelNoConflict", function () {
+
+    var myModel = Model.noConflict();
+
+    ok (!Model);
+    ok(myModel);
+    window.Model = myModel; //restore the world
+
+});
+
 test("modlejsTutorial", function (){
 
     //The code below will teach you how to use modeljs by example. It attepts to go though all the features provided in modeljs in logical progression.
@@ -543,7 +553,9 @@ test("modlejsTutorial", function (){
     modelFromCode.createProperty("subModel", modelFromJSON.objProperty2.toJSON());
 
     // the createProperty method can also take options like a validator function
-    modelFromCode.createProperty("positiveNumber", 2, {validator: function (value){return typeof value === 'number' && value > 0;}});
+    modelFromCode.createProperty("positiveNumber", 2, {validator: function (value){
+        return typeof value === 'number' && value > 0;}
+    });
     // Validator functions get run when you try to change the property value.
     // If the value is not valid the validator will return false and the property remains unchanged.
     // Note validators can only be bound to the property at creation time.
@@ -634,8 +646,7 @@ test("modlejsTutorial", function (){
 
     //Finally if your using transaction there is a way to be smart about the callbacks you at the end of the transaction.
     // This feature is still in development, and is unclear of the strategies it will use, but it can be turn on and off via the boolean
-    Model.eventOptimizationEnabled = true; // likely to change in the near future;
-    Model.eventOptimizationEnabled = false;
+
 
 
     /* --- Saving and Loading from saved --- */
