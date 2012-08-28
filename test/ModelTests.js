@@ -345,7 +345,7 @@ test("testModelClone", function (){
 
 });
 
-test("testEventOptimization", function (){
+test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
     var jsonModel = {
             number: 1,
             str: "aString",
@@ -396,10 +396,97 @@ test("testEventOptimization", function (){
     model.subModel.subProp._value = "new subProp value";
     model.subModel.fun._value = "replace function with string";
     Model.endTransaction();
-
+    Model.eventOptimization.suppressPreviousPropertyChangeEvents = false;
     // Is this what I expect with suppressPreviousPropertyChangeEvents on? Should this be 3?
     ok(count === 4, "Passed");
 
+});
+
+test("testSingleCallbackEventOptimization", function (){
+    var jsonModel = {
+            number: 1,
+            str: "aString",
+            bool: true,
+            nil: null,
+            undef: undefined,
+            fun: function () {return "I am a function";},
+            subModel: {
+                subProp: "I am the subProp",
+                fun: function () {return "I am a function";}
+            }
+        };
+
+    var count = 0;
+    function callback(oldValue, newValue, propertyName){
+        count +=1;
+    }
+    var count2 = 0;
+    function callback2(oldValue, newValue, propertyName){
+        count2 +=1;
+    }
+
+    var model = new Model(jsonModel);
+    model.number.onChange(callback);
+    model.subModel.onChange(callback, {listenToChildren: true});
+    model.subModel.subProp.onChange(callback);
+    model.str.onChange(callback2);
+
+    Model.eventOptimization.enableSingleCallbackCall = true;
+
+    Model.startTransaction();
+    model.number._value = 3;
+    model.subModel.subProp._value = "value Changed";
+    model.str._value = "new Value";
+    Model.endTransaction();
+
+    ok(count === 1, "Passed");
+    ok(count2 === 1, "Passed");
+    Model.eventOptimization.enableSingleCallbackCall = false;
+});
+
+test("testEnableCallbackHashOpimization", function (){
+    var jsonModel = {
+            number: 1,
+            str: "aString",
+            bool: true,
+            nil: null,
+            undef: undefined,
+            fun: function () {return "I am a function";},
+            subModel: {
+                subProp: "I am the subProp",
+                fun: function () {return "I am a function";}
+            }
+        };
+
+    var count = 0;
+    function callback(oldValue, newValue, propertyName){
+        count +=1;
+    }
+    callback.hash = "uniqueID";
+    var count2 = 0;
+    function callback2(oldValue, newValue, propertyName){
+        count2 +=1;
+    }
+
+    var model = new Model(jsonModel);
+    model.number.onChange(callback);
+    model.number.onChange(callback2);
+    model.subModel.onChange(callback, {listenToChildren: true});
+    model.subModel.onChange(callback2, {listenToChildren: true});
+    model.subModel.subProp.onChange(callback);
+    model.subModel.subProp.onChange(callback2);
+
+    Model.eventOptimization.enableCallbackHashOpimization = true;
+
+    Model.startTransaction();
+    model.number._value = 3;
+    model.subModel.subProp._value = "value Changed";
+    model.str._value = "new Value";
+    Model.endTransaction();
+    Model.eventOptimization.enableCallbackHashOpimization = false;
+
+    ok(count === 1, "Passed");
+    ok(count2 === 3, "Passed");
 });
 
 test("modlejsTutorial", function (){

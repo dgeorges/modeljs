@@ -13,6 +13,7 @@
  * - Can tie validation methods to models and properties
  * - Can suppress events notification.
  * - Can batch changes into a transaction.
+ * - Transaction can be easily Optimized.
  * - Logs error Message to concole when api used incorrectly to help catch bugs
  *
  *
@@ -46,13 +47,29 @@
             state = {   ACTIVE: "active", TRANSACTION: "transaction"},
             currentState = state.ACTIVE;
 
+        var executedCallbacks = [];
+        var callbackHashs = [];
         function _fireEvent(property, oldValue) {
 
             // This weird executeCallback function is a bit more complicated than it needs to be but is
             // used to get around the JSLint warning of creating a function within the while loop below
             var executeCallbacksFunction = function (oldValue, property) {
                 return function (callback){
-                    callback.call(null, oldValue, property._value, property.getName());
+                    if (Model.eventOptimization.enableSingleCallbackCall){
+                        if(executedCallbacks.indexOf(callback) === -1) { // Only call callback once
+                            executedCallbacks.push(callback);
+                            callback.call(null, oldValue, property._value, property.getName());
+                        }
+                    } else if(Model.eventOptimization.enableCallbackHashOpimization){
+                         if(!callback.hash || callbackHashs.indexOf(callback.hash) === -1) { // Only call callback once
+                            if (callback.hash) {
+                                callbackHashs.push(callback.hash);
+                            }
+                            callback.call(null, oldValue, property._value, property.getName());
+                        }
+                    }else {
+                        callback.call(null, oldValue, property._value, property.getName());
+                    }
                 };
             };
 
@@ -93,6 +110,8 @@
 
         function flushEventQueue() {
 
+            executedCallbacks = []; //reset state
+            callbackHashs = [];
             if(Model.eventOptimization.suppressPreviousPropertyChangeEvents){
                 var optimizedQueue = [];
                 var seenProperties = [];
@@ -414,7 +433,9 @@
     };
 
     Model.eventOptimization = {
-        suppressPreviousPropertyChangeEvents: false
+        suppressPreviousPropertyChangeEvents: false, //Only fires last Property Change of a property during a transaction.
+        enableSingleCallbackCall: false, //will make sure a callback only gets called only once during a transaction. Even if registared with several properties.
+        enableCallbackHashOpimization: false //will make sure a callbacks itentified by .hash only gets called only once during a transaction. Even if registared with several properties.
     };
     Object.seal(Model.eventOptimization);
 
