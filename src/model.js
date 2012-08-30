@@ -1,6 +1,7 @@
 /**
  * Model js - A simple javascript library for creating the Model part of a MVC application.
  * https://github.com/dgeorges/modeljs.git
+ * @project modeljs
  * @version 1.0.0
  * @author Daniel Georges
  *
@@ -152,7 +153,9 @@
 
     /**
      * A given property in the model.
-     *
+     * @class
+     * @constructor
+     * @classdesc
      * @param {[type]} value   property Value
      * @param {[type]} options May contain the following:
      *                         validator - a function to validate the new value is valid before it is assigned.
@@ -207,6 +210,7 @@
 
         this.setValue(value);
     }
+
 
     Property.prototype.getName = function () {
         return this._name;
@@ -293,6 +297,7 @@
 
     /**
      * The model Object that wraps the JSON.
+     *
      * @param {[type]} options May contain the following:
      *                         validator - a function to validate the new value is valid before it is assigned.
      *                         name - name of modei
@@ -321,7 +326,6 @@
         }, this);
     }
     Model.prototype = Object.create(Property.prototype);
-
 
     Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX = "__modeljs__options";
     Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX = /__modeljs__options$/;
@@ -453,5 +457,6 @@
         return this;
     };
 
+    /** @global */
     window.Model = Model;
 }(window));

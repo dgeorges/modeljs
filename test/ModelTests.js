@@ -4,39 +4,14 @@ test("testPrimitiveSaveLoad", function () {
         str : "aString",
         bool : true,
         nil: null,
-        undef: undefined
-        };
+        undef: undefined,
+        fun: function () {return true;}
+    };
 
 
     var m = new Model(jsonModel);
 
-    ok(JSON.stringify(m.toJSON()) === JSON.stringify(jsonModel), "Passed");
-});
-
-test("testPrimitiveSetGet", function () {
-
-    var jsonModel = { number: 1,
-        str : "aString",
-        bool : true,
-        nil: null,
-        undef: undefined
-        };
-
-
-    var m = new Model(jsonModel);
-    ok(m.str._value === jsonModel.str, "Passed");
-    ok(m.number._value === jsonModel.number, "Passed");
-    m.str._value  = 1;
-    m.number._value = "aString";
-
-    var jsonModelExpected = { number: "aString",
-        str : 1,
-        bool : true,
-        nil: null,
-        undef: undefined
-        };
-
-    ok(JSON.stringify(m.toJSON()) === JSON.stringify(jsonModelExpected), "Passed");
+    deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(jsonModel), "Model From JSON and back equal");
 });
 
 test("testObjectsSaveLoad", function () {
@@ -47,10 +22,10 @@ test("testObjectsSaveLoad", function () {
                         }
                     };
     var m = new Model(jsonModel);
-    ok(JSON.stringify(m.toJSON()) === JSON.stringify(jsonModel), "Passed");
+    deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(jsonModel));
 });
 
-test("testFunctionsSaveLoad", function () {
+test("testComplexSaveLoad", function () {
 
     var jsonModel = {   number: 1,
                         str : "aString",
@@ -60,55 +35,80 @@ test("testFunctionsSaveLoad", function () {
                             f: function () {return "I am a function";}
                         }
                     };
-    var jsonXReturnValue = jsonModel.x();
-    var jsonFReturnValue = jsonModel.subModel.f();
+    var jsonXValue = jsonModel.x(),
+        jsonFValue = jsonModel.subModel.f();
 
     var m = new Model(jsonModel);
-    var modelXReturnValue = m.x._value();
-    var modelFReturnValue = m.subModel.f._value();
-    ok(jsonXReturnValue === modelXReturnValue, "Passed");
-    ok(jsonFReturnValue === modelFReturnValue, "Passed");
+    var modelXValue = m.x._value(),
+        modelFValue = m.subModel.f._value();
+
+    equal(jsonXValue, modelXValue, "Function preserved From JSON To Model");
+    equal(jsonFValue, modelFValue, "Function preserved From JSON To Model");
 
     var jsonFromModel = m.toJSON();
 
-    ok(JSON.stringify(jsonFromModel) === JSON.stringify(jsonModel), "Passed");
+    deepEqual(JSON.stringify(jsonFromModel), JSON.stringify(jsonModel), "Complex Model From JSON and back equal");
 
 });
 
-test("testModelPropertyName", function () {
+test("testPrimitiveSetGet", function () {
 
-    var jsonModel = {   number: 1,
-                        str : "aString",
-                        x: function () {return "I am function x";},
-                        subModel: {
-                            str2: "string2",
-                            f: function () {return "I am a function";}
-                        }
-                    };
-    var m = new Model(jsonModel);
-    ok(m.getName() === "/root", "Passed");
-    ok(m.str.getName() === "/root/str", "Passed");
-    ok(m.subModel.getName() === "/root/subModel", "Passed");
-    ok(m.subModel.f.getName() === "/root/subModel/f", "Passed");
-
-    // passing in a name to our model changes the default of root.
-    var m2 = new Model(jsonModel, {name: "test"});
-    ok(m2.getName() === "/test", "Passed");
-    ok(m2.str.getName() === "/test/str", "Passed");
-    ok(m2.subModel.getName() === "/test/subModel", "Passed");
-    ok(m2.subModel.f.getName() === "/test/subModel/f", "Passed");
-
-
-
-});
-
-test("testChangeListenerCallback", function () {
-        var jsonModel = { number: 1,
+    var jsonModel = { number: 1,
         str : "aString",
         bool : true,
         nil: null,
         undef: undefined
-        };
+    };
+
+    var m = new Model(jsonModel);
+    equal(m.str._value, jsonModel.str, "retrieving simple Model values are correct");
+    equal(m.number._value, jsonModel.number, "retrieving simple Model values are correct");
+    // change some values
+    m.str._value  = 1; // use the _value setter
+    m.number._value = "aString";
+    m.bool.setValue(false); // use the setValue method.
+    var jsonModelExpected = { number: "aString",
+        str : 1,
+        bool : false,
+        nil: null,
+        undef: undefined
+    };
+
+    deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(jsonModelExpected), "toJSON method work after model modification");
+});
+
+
+test("testgetNameMethod", function () {
+
+    var jsonModel = {   number: 1,
+                        str : "aString",
+                        x: function () {return "I am function x";},
+                        subModel: {
+                            str2: "string2",
+                            f: function () {return "I am a function";}
+                        }
+                    };
+    var m = new Model(jsonModel);
+    equal(m.getName(), "/root");
+    equal(m.str.getName(), "/root/str");
+    equal(m.subModel.getName(), "/root/subModel");
+    equal(m.subModel.f.getName(), "/root/subModel/f");
+
+    // passing in a name to our model changes the default of root.
+    var m2 = new Model(jsonModel, {name: "test"});
+    equal(m2.getName(), "/test");
+    equal(m2.str.getName(), "/test/str");
+    equal(m2.subModel.getName(), "/test/subModel");
+    equal(m2.subModel.f.getName(), "/test/subModel/f");
+});
+
+test("testOnChangeCallbackWhenSettingToSameValue", function () {
+    var jsonModel = { number: 1,
+        str : "aString",
+        bool : true,
+        nil: null,
+        undef: undefined
+    };
 
     var count = 0;
     var m = new Model(jsonModel);
@@ -120,17 +120,16 @@ test("testChangeListenerCallback", function () {
     m.number._value = 3;
     m.number._value = 3; // value is the same should not fire a change
 
-    ok(count === 2, "Passed");
-
+    equal(count, 2, "onChangeEvent only fires when OldValue != newValue");
 });
 
 
-test("testModelCreationFromScratch", function () {
+test("testModelCreationUsingCreatePropertyMethod", function () {
     var expectedJSON = {
         x: 1,
         y: "y",
         obj: {
-            desc: "a New point"
+            desc: "an obj property name desc"
         },
         obj2: {
             desc: "This is obj2"
@@ -142,14 +141,23 @@ test("testModelCreationFromScratch", function () {
     m.createProperty("y", "y");
 
     var subModel = new Model();
-    subModel.createProperty("desc", "a New point");
+    subModel.createProperty("desc", "an obj property name desc");
+    // Do not directly assign properties like this use createProperty.
     m.obj = subModel;
+    equal(m.obj.getName(), "/root", "assigning property directly like this results in incorrect property name");
+    equal(m.obj._parent, null, "assigning property directly like this results in incorrect parent");
+    delete m.obj;
 
-    // alternate - just pass in JSON
-    m.createProperty("obj2", {desc: "This is obj2"});
+    // Correct way to create a Model sub object
+    m.createProperty("obj", {desc: "an obj property name desc"});
 
+    // Alternative to create an empty Object and than set the value
+    m.createProperty("obj2", {});
+    m.obj2.setValue({
+        desc: "This is obj2"
+    });
 
-    ok(JSON.stringify(m.toJSON()) === JSON.stringify(expectedJSON), "Passed");
+    equal(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Model Creation from api generates correct JSON");
 });
 
 test("testComplexChangePropertyValue", function () {
