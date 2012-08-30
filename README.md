@@ -14,3 +14,11 @@ Features
   - Can batch changes into a transaction.
   - Transaction callbacks can be easily optimized.
   - Incorrect uses of api are logged as errors to the console.
+
+Getting Started
+------------------
+Coming Soon.
+
+Documentation
+------------------
+Coming Soon.
