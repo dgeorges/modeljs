@@ -224,13 +224,13 @@
      *
      * @return {[type]}          The resulting value of the Property
      */
-    Property.prototype.setValue = function (value) {
+    Property.prototype.setValue = function (value, suppressNotifications) {
         var newValue,
-            suppressNotifications = false;
+            suppressOnChangeEvent = suppressNotifications;
 
         if (isObject(value) && value._value) {
             newValue = value._value;
-            suppressNotifications = value.suppressNotifications;
+            suppressOnChangeEvent = value.suppressNotifications;
         } else {
             newValue = value;
         }
@@ -261,7 +261,7 @@
                     }
                 }
 
-                if (!suppressNotifications){
+                if (!suppressOnChangeEvent){
                     eventProxy.fireEvent(this, oldValue);
                 }
             }

@@ -77,7 +77,6 @@ test("testPrimitiveSetGet", function () {
     deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(jsonModelExpected), "toJSON method work after model modification");
 });
 
-
 test("testgetNameMethod", function () {
 
     var jsonModel = {   number: 1,
@@ -151,13 +150,18 @@ test("testModelCreationUsingCreatePropertyMethod", function () {
     // Correct way to create a Model sub object
     m.createProperty("obj", {desc: "an obj property name desc"});
 
-    // Alternative to create an empty Object and than set the value
+    // Alternative is to create an empty Object and use setValue or _value to set it
     m.createProperty("obj2", {});
     m.obj2.setValue({
         desc: "This is obj2"
     });
 
     equal(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Model Creation from api generates correct JSON");
+});
+
+test("testModelMergeMethod", function () {
+    //TODO
+    ok(true);
 });
 
 test("testComplexChangePropertyValue", function () {
@@ -196,7 +200,7 @@ test("testComplexChangePropertyValue", function () {
     // setting a model to an property indirectly should fail
     m.model._value = {key1: "this should not be set", subModel: "setting a model to a property should fail"};
 
-    //setting a model to another model should do a merge
+    //setting a model to another JSON model should do a merge
     m.model._value = {key1: "this is key1's new value", key3: "we have added a key"};
 
 /* This isn't passing yet. Since _parent of property is immutable. Think about it.
@@ -212,13 +216,13 @@ test("testComplexChangePropertyValue", function () {
 });
 
 test("testSuppressNotifications", function () {
-        var jsonModel = {
-            x: 1,
-            y: "y",
-            obj: {
-                desc: "a New point"
-            }
-        };
+    var jsonModel = {
+        x: 1,
+        y: "y",
+        obj: {
+            desc: "a New point"
+        }
+    };
 
     var m = new Model(jsonModel);
     var notified = false;
@@ -228,27 +232,28 @@ test("testSuppressNotifications", function () {
 
     m.x.onChange(callback);
     m.x._value = 2;
-    ok(notified, "Passed");
+    ok(notified, "onChange Callback works");
     notified = false;
     m.x._value = {_value: 4, suppressNotifications: true}; //special object setting
-    ok(!notified, "Passed");
-    ok(m.x._value === 4, "Passed");
+    m.x.setValue(5, true); // better way to set value and suppress notification
+    ok(!notified, "onChange callback suppressed succesfully");
+    equal(m.x._value, 5, "Assignment successful when notification suppressed");
 });
 
 test("testPropertyValidationFunction", function () {
 
-    var validateX = function (value){
+    var onlyPositive = function (value){
         return value > 0;
     };
     var m = new Model();
-    m.createProperty("x", 1, {validator: validateX});
+    m.createProperty("x", 1, {validator: onlyPositive});
     m.createProperty("y", "y");
-    ok(m.x._value === 1, "Passed");
-    m.x._value = 5;
-    ok(m.x._value === 5, "Passed");
-    m.x._value = -1;
-    ok(m.x._value === 5, "Passed");
 
+    equal(m.x._value, 1);
+    m.x._value = 5;
+    equal(m.x._value, 5, "Assignment Passed because validator passed");
+    m.x._value = -1;
+    equal(m.x._value, 5, "Assignment failed because value did not pass validator");
 });
 
 
@@ -497,13 +502,15 @@ test("testEnableCallbackHashOpimization", function (){
     ok(count2 === 3, "Passed");
 });
 
-test("modelNoConflict", function () {
+test("testModelNoConflict", function () {
 
+    ok (Model, "Model exists in global namespace prior to noConflict");
+    var originalModel = Model;
     var myModel = Model.noConflict();
 
-    ok (!Model);
-    ok(myModel);
-    window.Model = myModel; //restore the world
+    ok (!Model, "Model remove from global namespace after noConflict called");
+    equal(myModel, originalModel, "Model returned from noConflict Method");
+    window.Model = myModel; //restore the world so other tests continue to work
 
 });
 
