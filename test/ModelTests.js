@@ -219,7 +219,6 @@ test("testComplexChangePropertyValue", function () {
     //setting a model to another JSON model is correct syntax and should do a merge with keepOldProperties = false;
     m.model._value = {key1: "this is key1's new value", key3: "we have added a key"};
     deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Incorrect sytax for setting does noop");
-
 });
 
 test("testSuppressNotifications", function () {
@@ -524,6 +523,64 @@ test("testEnableCallbackHashOpimization", function (){
 
     equal(count, 1, "Hashed function called once when enableCallbackHashOpimization set");
     equal(count2, 3, " unhashed function called more than once when enableCallbackHashOpimization set");
+});
+
+test("testModelEndTransactionWithOptions", function () {
+    var jsonModel = {
+            number: 1,
+            str: "aString",
+            bool: true,
+            nil: null,
+            undef: undefined,
+            fun: function () {return "I am a function";},
+            subModel: {
+                subProp: "I am the subProp",
+                fun: function () {return "I am a function";}
+            }
+        };
+
+    var count = 0;
+    function callback(oldValue, newValue, propertyName){
+        count +=1;
+    }
+    callback.hash = "uniqueID";
+    var count2 = 0;
+    function callback2(oldValue, newValue, propertyName){
+        count2 +=1;
+    }
+
+    var model = new Model(jsonModel);
+    model.number.onChange(callback);
+    model.number.onChange(callback2);
+    model.subModel.onChange(callback, {listenToChildren: true});
+    model.subModel.onChange(callback2, {listenToChildren: true});
+    model.subModel.subProp.onChange(callback);
+    model.subModel.subProp.onChange(callback2);
+
+    Model.eventOptimization.enableCallbackHashOpimization = true; // to start change defaults
+    Model.eventOptimization.enableSingleCallbackCall = true;
+    Model.eventOptimization.suppressPreviousPropertyChangeEvents = true;
+
+    Model.startTransaction();
+    model.number._value = 3;
+    model.subModel.subProp._value = "value Changed";
+    model.str._value = "new Value";
+    Model.endTransaction({
+        enableCallbackHashOpimization: true,
+        enableSingleCallbackCall: false,
+        suppressPreviousPropertyChangeEvents: false
+    });
+
+    ok(Model.eventOptimization.enableCallbackHashOpimization, "global event setting restore after endTransaction with options");
+    ok(Model.eventOptimization.enableSingleCallbackCall, "global event setting restore after endTransaction with options");
+    ok(Model.eventOptimization.suppressPreviousPropertyChangeEvents, "global event setting restore after endTransaction with options");
+
+
+    equal(count, 1, "Hashed function called once when enableCallbackHashOpimization set");
+    equal(count2, 3, " unhashed function called more than once when enableCallbackHashOpimization set");
+    Model.eventOptimization.enableCallbackHashOpimization = false; // test ended restore defaults
+    Model.eventOptimization.enableSingleCallbackCall = false;
+    Model.eventOptimization.suppressPreviousPropertyChangeEvents = false;
 });
 
 test("testModelNoConflict", function () {

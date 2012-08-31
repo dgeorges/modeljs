@@ -19,9 +19,7 @@
  *
  *
  * TODO:
- *  - Optimize Transaction callbacks, by being smart/removing duplicates etc...
  *  - hook up/create/clean documentation and document methods properly.
- *  - clean up unit tests
  *  - add basic validators that can be reused.
  *  - set up gitHub site
  *  - update browser support
@@ -436,8 +434,24 @@
         eventProxy.startTransaction();
     };
 
-    Model.endTransaction = function () {
+    Model.endTransaction = function (options) {
+        var originalEventOptimization;
+
+        if (options){ // if option override global setting keeping them so they can be restored later
+            originalEventOptimization = JSON.parse(JSON.stringify(Model.eventOptimization));
+            Model.eventOptimization.suppressPreviousPropertyChangeEvents = !!options.suppressPreviousPropertyChangeEvents;
+            Model.eventOptimization.enableSingleCallbackCall = !!options.enableSingleCallbackCall;
+            Model.eventOptimization.enableCallbackHashOpimization = !!options.enableCallbackHashOpimization;
+        }
+
         eventProxy.endTransaction();
+
+        if (options){ //restore global settings
+            Model.eventOptimization.suppressPreviousPropertyChangeEvents = originalEventOptimization.suppressPreviousPropertyChangeEvents;
+            Model.eventOptimization.enableSingleCallbackCall = originalEventOptimization.enableSingleCallbackCall;
+            Model.eventOptimization.enableCallbackHashOpimization = originalEventOptimization.enableCallbackHashOpimization;
+        }
+
     };
 
     Model.inTransaction = function() {
