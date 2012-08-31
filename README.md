@@ -15,10 +15,14 @@ Features
   - Transaction callbacks can be easily optimized.
   - Incorrect uses of api are logged as errors to the console.
 
+Browser Support
+---------------
+modeljs thereotically should work on all browsers that support JavaScript.  It has been tested on IE9, Firefox 14+ and Chrome 21+. To see if it work on a specify browser version of your choice, run the unit tests(test/ModelTest.html). If anything fails please report it so it can be fix. Happy Coding
+
 Getting Started
 ------------------
 Coming Soon.
 
 Documentation
 ------------------
-Coming Soon.
+See <https://github.com/dgeorges/modeljs/wiki/Modeljs-API-Documentation>
