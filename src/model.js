@@ -279,6 +279,7 @@
         } else {
             this._propertyListeners.push(callback);
         }
+        return this;
     };
 
     Property.prototype.hasValidator = function () {
@@ -345,6 +346,7 @@
         } else {
             this[name] = new Property (name, value, this, options);
         }
+        return this;
     };
 
     Model.prototype.clone = function (){
@@ -409,8 +411,8 @@
             Model.endTransaction();
         } else {
             window.console.error("Operation Not Supported: Model assignment not valid. Model not modified");
-            return;
         }
+        return this;
     };
 
     /**
