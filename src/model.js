@@ -348,7 +348,12 @@
     };
 
     Model.prototype.clone = function (){
-        return new Model(this.toJSON(), this._options, this._parent);
+        var myName = this.getName();
+        var options = {
+            name : myName.substring(myName.lastIndexOf("/") + 1)
+            //validator: this._options.validator
+        };
+        return new Model(this.toJSON(true), options);
     };
 
     function mergeLoop (model, json, doModification, keepOldProperties) {
@@ -455,7 +460,7 @@
     };
 
     Model.inTransaction = function() {
-        eventProxy.inTransaction();
+        return eventProxy.inTransaction();
     };
 
     Model.eventOptimization = {

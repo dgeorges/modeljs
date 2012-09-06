@@ -77,7 +77,7 @@ test("testPrimitiveSetGet", function () {
     deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(jsonModelExpected), "toJSON method work after model modification");
 });
 
-test("testgetNameMethod", function () {
+test("testGetNameMethod", function () {
 
     var jsonModel = {   number: 1,
                         str : "aString",
@@ -160,8 +160,37 @@ test("testModelCreationUsingCreatePropertyMethod", function () {
 });
 
 test("testModelMergeMethod", function () {
-    //TODO
-    ok(true);
+     var modelJSON = {
+        x: 1,
+        y: "y",
+        obj: {
+
+            desc: "an obj property name desc"
+        },
+        obj2: {
+            key1: "key1",
+            key2: "key2",
+            subModel : {v1: "value1", v2: "value2"}
+        }
+    };
+
+    var mergeObj = {
+        key1: "new key1Value",
+        key3: "new key"
+    };
+
+    var m = new Model(modelJSON);
+    m.obj2.merge(mergeObj);//keepOldProperties = false
+    ok (!m.obj2.key2, "old properties removed");
+    equal (m.obj2.key1._value, "new key1Value", "existing property overridden");
+    equal (m.obj2.key3._value, "new key", "new property added");
+
+    var m1 = new Model(modelJSON);
+    m1.obj2.merge(mergeObj, true);
+    equal (m1.obj2.key2._value, "key2", "old properties remain");
+    equal (m1.obj2.key1._value, "new key1Value", "existing property overridden");
+    equal (m1.obj2.key3._value, "new key", "new property added");
+
 });
 
 /**
@@ -314,7 +343,9 @@ test("testModelTransactions", function () {
     m.bool._value = true; //should not fire a onChange event since value not changes
     m.str._value = "new value set in transaction";
     ok(!callbackCalled, "onChange Callback not executed till transaction complete");
+    ok(Model.inTransaction(), "Model inTranaction repoting correctly");
     Model.endTransaction();
+    ok(!Model.inTransaction(), "Model inTranaction repoting correctly");
 
     ok(callbackCalled, "onChange Callback called after tranaction ended");
     equal(count, 2, "Expected number of callbacks after transaction completed");
@@ -364,6 +395,11 @@ test("testBubbleUpEvents", function () {
 test("testModelClone", function (){
     var jsonModel = {
             number: 1,
+            number__modeljs__options: {
+                validator: function (value){
+                    return value > 0;
+                }
+            },
             str: "aString",
             bool: true,
             nil: null,
@@ -375,9 +411,26 @@ test("testModelClone", function (){
             }
         };
 
+    var count = 0;
+    function callback(){
+        return count++;
+    }
+
     var model = new Model(jsonModel);
+    model.number.onChange(callback);
     var clone = model.clone();
-    equal(JSON.stringify(model.toJSON()), JSON.stringify(clone.toJSON()), "Model.clone works");
+
+    ok (model.number.hasValidator(), "Model has a validator");
+    ok (clone.number.hasValidator(), "Clone keeps the validator");
+    equal(JSON.stringify(model.toJSON(true)), JSON.stringify(clone.toJSON(true)), "Model.clone looks identical");
+
+    model.number.setValue(-3); // shouldn't pass validator
+    model.number.setValue(3);
+    equal(count, 1, "Callback not cloned");
+    var subModelClone = model.subModel.clone();
+    equal(subModelClone.getName(), "/subModel", "Cloned name adjusted");
+    equal(subModelClone.subProp.getName(), "/subModel/subProp", "Cloned child properties names adjusted");
+
 });
 
 test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
