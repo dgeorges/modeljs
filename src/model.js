@@ -25,7 +25,7 @@
  *  - update browser support
  *
  * BUGS:
- * - The callback executed when listening to modelChange event on one of your childrens needs to refined
+ * - The callback executed when listening to modelChange event on one of your children needs to refined
  *     to make more sense. Right now its the same as a property change.
  */
 
@@ -196,7 +196,7 @@
         });
 
         Object.defineProperty(this, "_value", {
-            get: function () { //ideally would like to override the getter in the Model calss but this will have to do.
+            get: function () { //ideally would like to override the getter in the Model class but this will have to do.
                 if (this instanceof Model) {
                     return this.toJSON();
                 } else {
@@ -314,7 +314,7 @@
 
         Object.keys(jsonModel).forEach(function (name){
 
-            if (name.match(Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX)){
+            if (name.match(Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX)){ // skip special meta data properties
                 return;
             }
 
@@ -338,7 +338,7 @@
      */
     Model.prototype.createProperty = function createProperty(name, value, options) {
         if (value instanceof Model || value instanceof Property){
-            window.console.error("Unsupported Opperation: Try passing the Model/Properties value instead");
+            window.console.error("Unsupported Operation: Try passing the Model/Properties value instead");
         } else if (isObject(value)){
             var modelOptions = options || {};
             modelOptions.name = name;
