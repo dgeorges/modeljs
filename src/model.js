@@ -352,8 +352,8 @@
     Model.prototype.clone = function (){
         var myName = this.getName();
         var options = {
-            name : myName.substring(myName.lastIndexOf("/") + 1)
-            //validator: this._options.validator
+            name : myName.substring(myName.lastIndexOf("/") + 1),
+            validator: this._options.validator
         };
         return new Model(this.toJSON(true), options);
     };
@@ -409,10 +409,11 @@
             Model.startTransaction();
             mergeLoop(this, json, true, keepOldProperties);
             Model.endTransaction();
+            return true;
         } else {
             window.console.error("Operation Not Supported: Model assignment not valid. Model not modified");
+            return false;
         }
-        return this;
     };
 
     /**
