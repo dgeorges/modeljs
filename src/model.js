@@ -1,4 +1,4 @@
-/**
+/*
  * Model js - A simple javascript library for creating the Model part of a MVC application.
  * https://github.com/dgeorges/modeljs.git
  * @project modeljs
@@ -29,6 +29,10 @@
  *     to make more sense. Right now its the same as a property change.
  */
 
+/**
+ Provides the base Model library.
+@module Model
+*/
 (function (window, undefined) {
     "use strict";
 
@@ -39,7 +43,6 @@
 
     /**
      * Centralized place where all Model Events pass through.
-     * @type {Object}
      */
     var eventProxy = function () {
         var eventQueue = [],
@@ -150,12 +153,16 @@
     }();
 
     /**
-     * A given property in the model.
-     * @class
+     * A Property is a name value pair belonging to a Model.
+     *
+     * @class Property
      * @constructor
-     * @classdesc
-     * @param {[type]} value   property Value
-     * @param {[type]} options May contain the following:
+     * @private used internally by the Model.prototype.createProperty method.
+     *
+     * @param {[String]} name    The name of the property
+     * @param {[String, Boolean, Number, null, Function, Object]} value   The Property Value
+     * @param {[Model]} parent  The parent property
+     * @param {[Options]} options The creation options:
      *                         validator - a function to validate the new value is valid before it is assigned.
      */
     function Property (name, value, parent, options) {
@@ -198,21 +205,44 @@
         this.setValue(value);
     }
 
+    /**
+     * Gets the value of the property.
+     *
+     * @method  getValue
+     *
+     * @return {[String, Boolean, Number, null, Function]} The value of the property
+     */
     Property.prototype.getValue = function () {
         return this._myValue;
     };
 
+    /**
+     * The fully qualified name of this. The name is calculated by concatenating the name of the parent, "/", and name of this.
+     *
+     * @example
+     *     defaultModel.getName();              // returns "/root"
+     *     defaultModel.property1.getName();    // returns "/root/property1"
+     *     namedRoot.property1.getName();       // returns "/customName/property1"
+     * For examples see:  <b>testGetNameMethod</b>
+     *
+     * @method  getName
+     *
+     * @return {String} The fully qualified name of this.
+     */
     Property.prototype.getName = function () {
         return this._name;
     };
 
     /**
-     * [getter_setter description]
-     * @param  {[type]} newValue The Value you want to assign to the Property.
-     * @param  {[type]} options  May contain the following:
-     *                           suppressNotifications - boolean indicating if listeners should be notified of change.
+     * Called upon a property or Model to set it's Value. If the setValue is the same as the current value, nothing will happen and no change events will be fired. If the value is different it must pass the validator if there is one.  If it does pass the validator and value is changed, all registered listeners will be notified unless the suppressNotifications option indicates otherwise.
+
+     * @method setValue
+     * @for Property
      *
-     * @return {[type]}          The resulting value of the Property
+     * @param  {[String, Boolean, Number, null, Function, Object]} newValue The Value you want to assign to the Property.
+     * @param  {[Boolean]} suppressNotifications? Indicating if listeners should be notified of change.
+     *
+     * @return {[string, boolean, number, null, function, object]}          The resulting value. If the operation was successful this will be the passed in value otherwise it will be the existing one.
      */
     Property.prototype.setValue = function (value, suppressNotifications) {
         var newValue = value;
@@ -257,10 +287,13 @@
     };
 
     /**
-     * [addChangeCallback description]
-     * @param {Function} callback [description]
-     * @param {[type]}   options May contain the following:
-     *                         listenToChildren - register the listener with any sub property change.
+     * Registers a callback function with the change event of this.
+     *
+     * @method  onChange
+     *
+     * @param {Function} callback The function to be called if the value of this changes. The call back function will be passed the following arguments (oldValue, newValue, propertyName)
+     * @param {Object}   options? May contain the following:
+     *                         listenToChildren {Boolean} - registers the callback with sub property changes as well.
      */
     Property.prototype.onChange = function (callback, options) {
         if (options && options.listenToChildren){
@@ -271,10 +304,25 @@
         return this;
     };
 
+    /**
+     * Determine if this has a validation function associated with it.
+     *
+     * @method hasValidator
+     *
+     * @return {Boolean} True if this has a validator associated with it. False otherwise.
+     */
     Property.prototype.hasValidator = function () {
         return !!this._options.validator;
     };
 
+   /**
+     * Determines if the given value will pass the validation function of this.
+     *
+     * @method  validateValue
+     *
+     * @param  {[String, Boolean, Number, null, Function, Object]} value A value to test against the validation function if it exists.
+     * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
+     */
     Property.prototype.validateValue = function (value) {
         if (this._options.validator){
             return this._options.validator(value);
@@ -283,13 +331,17 @@
     };
     //don't want a set validator function.
 
-    /**
+   /**
      * The model Object that wraps the JSON.
      *
-     * @param {[type]} options May contain the following:
+     * @class Model
+     * @constructor
+     * @extends Property
+     *
+     * @param {Object} json    The json object to be modeled.
+     * @param {Object} options? May contain the following:
      *                         validator - a function to validate the new value is valid before it is assigned.
-     *                         name - name of modei
-     * @param {[type]} json [description]
+     *                         name - name of the Model, defaults to "root"
      */
     function Model (json, options, parent) {
         var jsonModel = json || {} ,
@@ -318,16 +370,27 @@
     Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX = "__modeljs__options";
     Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX = /__modeljs__options$/;
 
+   /**
+     * Gets the value associated with the Model.
+     *
+     * @method  getValue
+     *
+     * @return {Object} The json Object represented by the model
+     */
     Model.prototype.getValue = function() {
         return this.toJSON();
     };
 
     /**
-     * [createProperty description]
-     * @param  {[type]} name    [description]
-     * @param  {[type]} value   [description]
-     * @param  {[type]} options [description]
-     * @return {[type]}         [description]
+     * Creates the property with the given name on this.
+     *
+     * @method  createProperty
+     *
+     * @param  {String} name    Name of the property
+     * @param  {[String, Boolean, Number, null, Function, Object]} value   Property value
+     * @param  {Object} options? A hash of options including:
+     *                           validator {Function} The validator to associate with the new Property.
+     * @return {Model}         Returns this for method chaining
      */
     Model.prototype.createProperty = function createProperty(name, value, options) {
         if (value instanceof Model || value instanceof Property){
@@ -342,6 +405,14 @@
         return this;
     };
 
+    /**
+     * Clones the Model rooted at this keeping all validators that exist, but not keeping attached onChange callbacks.
+     * The name of all properties are adjusted to reflect it's new root.
+     *
+     * @method  clone
+     *
+     * @return {Model}  Returns a new Model object rooted at this, keeping validator but not onChange callbacks.
+     */
     Model.prototype.clone = function (){
         var myName = this.getName();
         var options = {
@@ -395,6 +466,19 @@
         return true;
     }
 
+    /**
+     * Preforms the merge operation on this. The merge opperation will add properties that exist in the merged object
+     * but not in this, remove those that are not found in the merged object (unless keepOldProperties is set to true)
+     * and will call setValue for those that exist in both. Note the operation will log an error to the console, return
+     * false, and not modify the object if any of the setValue operation are not valid. Not valid set operations inclded
+     * those that try to set a value from a property to a model and vise versa.
+     *
+     * @method  merge
+     *
+     * @param  {[Object]} json              The json object to have merged.
+     * @param  {[Boolean]} keepOldProperties? True if you want to keep properties that exist in this but not in the passed in json, Otherwise they will be deleted. Defaults to false.
+     * @return {Model}                   Returns true if merge was successful, false otherwise.
+     */
     Model.prototype.merge = function (json, keepOldProperties) {
         //will merge the properties in json with this. result will be the same as the Object extend.
         //if a property exists in the model but not in the json it will only be kept if keepOldProperties is true.
@@ -409,10 +493,14 @@
         }
     };
 
+
     /**
-     * [toJSON description]
-     * @param  {[type]} includeMetaData indicates if model meta data should be included in the returned JSON
-     * @return {[type]}                 The json representation of the Model.
+     * Retrieves the json representation of this.
+     *
+     * @method  toJSON
+     *
+     * @param  {[Boolean]} includeMetaData? indicates if model meta data should be included in the returned JSON. Defaults to false.
+     * @return {[Object]}                 The json representation of the Model.
      */
     Model.prototype.toJSON = function (includeMetaData) {
         var json = {};
@@ -431,10 +519,38 @@
         return json;
     };
 
+   /**
+     * Begins a transaction. All events will be put into the queued. To be fired when endTransaction is called.
+     *
+     * @for  Model
+     * @method  startTransaction
+     * @static
+     *
+     */
     Model.startTransaction = function () {
         eventProxy.startTransaction();
     };
 
+
+    /**
+     * Ends the current transaction causing all queued up events to be fired according to the global eventOptization settings or the settings passed in if they exist.
+     *
+     * @example
+     *     model.endTransaction(); //uses settings found in Model.eventOptimization
+     *     model.endTransaction({   // override the Model.eventOptimization settings for this transaction
+     *         suppressPreviousPropertyChangeEvents: false,
+     *         enableSingleCallbackCall: true,
+     *         enableCallbackHashOpimization: true
+     *     })
+     *     // tests examples: testSingleCallbackEventOptimization, testEnableCallbackHashOpimization,
+     *     // testModelEndTransactionWithOptions
+     *
+     * @for     Model
+     * @method  endTransaction
+     * @static
+     *
+     * @param  {Object} options? A map of Model.eventOptimization options that you want overridden when clearing this transaction queue.
+     */
     Model.endTransaction = function (options) {
         var originalEventOptimization;
 
@@ -455,18 +571,57 @@
 
     };
 
+    /**
+     * Determines if you are currently in a start/end transaction block.
+     *
+     * @for  Model
+     * @method  inTransaction
+     * @static
+     *
+     * @return {[Boolean]} True if your in a transaction block, false otherwise.
+     */
     Model.inTransaction = function() {
         return eventProxy.inTransaction();
     };
 
     Model.eventOptimization = {
-        suppressPreviousPropertyChangeEvents: false, //Only fires last Property Change of a property during a transaction.
-        enableSingleCallbackCall: false, //will make sure a callback only gets called only once during a transaction. Even if registared with several properties.
-        enableCallbackHashOpimization: false //will make sure a callbacks itentified by .hash only gets called only once during a transaction. Even if registared with several properties.
+        /**
+            Only fires last Property Change of a property during a transaction.
+            @property eventOptimization.suppressPreviousPropertyChangeEvents
+            @default false
+            @static
+            @type {boolean}
+        */
+        suppressPreviousPropertyChangeEvents: false,
+        /**
+            Will make sure a callback only gets called only once during a transaction. Even if registered with several properties.
+            @property eventOptimization.enableSingleCallbackCall
+            @default false
+            @static
+            @type {boolean}
+         **/
+        enableSingleCallbackCall: false,
+        /**
+            Will make sure callbacks identified by .hash only gets called only once during a transaction. Even if registered with several properties.
+            @property eventOptimization.enableCallbackHashOpimization
+            @default false
+            @static
+            @type {boolean}
+        */
+        enableCallbackHashOpimization: false
     };
     Object.seal(Model.eventOptimization);
 
     var oldModel = window.Model;
+    /**
+     * Release control of the global window.Model variable restoring it to its previous value
+     *
+     * @for  Model
+     * @method  noConflict
+     * @static
+     *
+     * @return {[Model]} The window Model variable that was just released.
+     */
     Model.noConflict = function () {
         window.Model = oldModel;
         return this;
