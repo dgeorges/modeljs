@@ -553,7 +553,7 @@
 
     /**
      * Retrieves the json representation of this. This json representation can be used in the Model Constructor to recreate
-     * the same Model object. If you use includeMetaData validators
+     * the same Model object. If you use includeMetaData validator metadata will be included.
      *
      * @example
      * For an example see: <b>testSaveLoadWithMetaData</b>
