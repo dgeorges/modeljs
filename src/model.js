@@ -513,6 +513,9 @@
      * and will call setValue for those that exist in both. Note the operation will log an error to the console, return
      * false, and not modify the object if any of the setValue operation are not valid. Not valid set operations inclded
      * those that try to set a value from a property to a model and vise versa.
+     * 
+     * @example
+     * For an example see: <b>testModelMergeMethod</b>
      *
      * @method  merge
      *
@@ -562,6 +565,9 @@
 
    /**
      * Begins a transaction. All events will be put into the queued. To be fired when endTransaction is called.
+     *
+     * @example
+     * For an examples see <b>testModelTransactions</b>
      *
      * @for  Model
      * @method  startTransaction
@@ -614,6 +620,9 @@
 
     /**
      * Determines if you are currently in a start/end transaction block.
+     *
+     * @example
+     * For an examples see <b>testModelTransactions</b>
      *
      * @for  Model
      * @method  inTransaction
