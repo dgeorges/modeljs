@@ -217,13 +217,14 @@
     };
 
     /**
-     * The fully qualified name of this. The name is calculated by concatenating the name of the parent, "/", and name of this.
+     * The fully qualified name of this. The name is calculated by concatenating the name
+     * of the parent, "/", and name of this.
      *
      * @example
      *     defaultModel.getName();              // returns "/root"
      *     defaultModel.property1.getName();    // returns "/root/property1"
      *     namedRoot.property1.getName();       // returns "/customName/property1"
-     * For examples see:  <b>testGetNameMethod</b>
+     * For more examples see:  <b>testGetNameMethod</b>
      *
      * @method  getName
      *
@@ -234,8 +235,14 @@
     };
 
     /**
-     * Called upon a property or Model to set it's Value. If the setValue is the same as the current value, nothing will happen and no change events will be fired. If the value is different it must pass the validator if there is one.  If it does pass the validator and value is changed, all registered listeners will be notified unless the suppressNotifications option indicates otherwise.
-
+     * Called upon a property or Model to set it's Value. If the setValue is the same as the current value,
+     * nothing will happen and no change events will be fired. If the value is different it must pass
+     * the validator if there is one.  If it does pass the validator and value is changed, all registered
+     * listeners will be notified unless the suppressNotifications option indicates otherwise.
+     *
+     * @example
+     * For more examples see:  <b>testPrimitiveSetGet</b>, <b>testComplexChangePropertyValue</b> and <b>testSuppressNotifications</b>
+     *
      * @method setValue
      * @for Property
      *
@@ -289,6 +296,12 @@
     /**
      * Registers a callback function with the change event of this.
      *
+     * @example
+     *     model.onchange(callback, true); //listens to change events on entire model
+     *     model.property1.onchange(callback) //listen to change on property1 only
+     *     model.subModel.onchange(callback) //listen to change on subModel only. (ie. via model.subModel.setValue(..))
+     * For more examples see:  <b>testOnChangeCallbackWhenSettingToSameValue</b> and <b>testBubbleUpEvents</b>
+     *
      * @method  onChange
      *
      * @param {Function} callback The function to be called if the value of this changes. The call back function will be passed the following arguments (oldValue, newValue, propertyName)
@@ -307,6 +320,9 @@
     /**
      * Determine if this has a validation function associated with it.
      *
+     * @example
+     * For examples see:  <b>testPropertyValidationFunction</b>
+     *
      * @method hasValidator
      *
      * @return {Boolean} True if this has a validator associated with it. False otherwise.
@@ -317,6 +333,9 @@
 
    /**
      * Determines if the given value will pass the validation function of this.
+     *
+     * @example
+     * For examples see:  <b>testPropertyValidationFunction</b>
      *
      * @method  validateValue
      *
@@ -333,6 +352,10 @@
 
    /**
      * The model Object that wraps the JSON.
+     *
+     * @example
+     * For examples see: <b>testPrimitiveSaveLoad</b>,  <b>testObjectsSaveLoad</b>, <b>testComplexSaveLoad</b>
+     * <b>testGetNameMethod</b> and <b>testSaveLoadWithMetaData</b>
      *
      * @class Model
      * @constructor
@@ -371,7 +394,7 @@
     Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX = /__modeljs__options$/;
 
    /**
-     * Gets the value associated with the Model.
+     * Gets the value associated with the Model. This will be a json Object.
      *
      * @method  getValue
      *
@@ -383,6 +406,19 @@
 
     /**
      * Creates the property with the given name on this.
+     *
+     * @example
+     *     var model = new Model();
+     *     model.createProperty("number", 1) // a simple property (model.number)
+     *     .createProperty("subModel", { // a property that is a subModel (model.subModel and model.subModel.str)
+     *         str: "stringProperty"
+     *     })
+     *     .createProperty("positiveNumber", 2, { // a property with a validator (model.positiveNumber)
+     *         validator: function (value) {
+     *             return value > 0;
+     *         }
+     *     }); // Note the method chaining.
+     * For examples see: <b>testModelCreationUsingCreatePropertyMethod</b>
      *
      * @method  createProperty
      *
@@ -408,6 +444,11 @@
     /**
      * Clones the Model rooted at this keeping all validators that exist, but not keeping attached onChange callbacks.
      * The name of all properties are adjusted to reflect it's new root.
+     *
+     * @example
+     *     var newModel = model.clone(); // clone root model
+     *     var clonedSubModel = model.subModel.clone(); // clone subModel
+     * For more examples: <b>testModelClone</b>
      *
      * @method  clone
      *
@@ -542,8 +583,8 @@
      *         enableSingleCallbackCall: true,
      *         enableCallbackHashOpimization: true
      *     })
-     *     // tests examples: testSingleCallbackEventOptimization, testEnableCallbackHashOpimization,
-     *     // testModelEndTransactionWithOptions
+     * For more examples see: <b>testSingleCallbackEventOptimization</b>, <b>testEnableCallbackHashOpimization</b>,
+     *      <b>testModelEndTransactionWithOptions</b>
      *
      * @for     Model
      * @method  endTransaction
@@ -587,6 +628,7 @@
     Model.eventOptimization = {
         /**
             Only fires last Property Change of a property during a transaction.
+            @Example For an example see <b>testSuppressPreviousPropertyChangeEventsEventOptimization</b>
             @property eventOptimization.suppressPreviousPropertyChangeEvents
             @default false
             @static
@@ -595,6 +637,7 @@
         suppressPreviousPropertyChangeEvents: false,
         /**
             Will make sure a callback only gets called only once during a transaction. Even if registered with several properties.
+            @Example For an example see <b>testSingleCallbackEventOptimization</b>
             @property eventOptimization.enableSingleCallbackCall
             @default false
             @static
@@ -603,6 +646,7 @@
         enableSingleCallbackCall: false,
         /**
             Will make sure callbacks identified by .hash only gets called only once during a transaction. Even if registered with several properties.
+            @Example For an example see <b>testEnableCallbackHashOpimization</b>
             @property eventOptimization.enableCallbackHashOpimization
             @default false
             @static
@@ -615,6 +659,11 @@
     var oldModel = window.Model;
     /**
      * Release control of the global window.Model variable restoring it to its previous value
+     *
+     * @Example
+     *     // window.Model is restore to previous value and localModel now holds the window.Model reference
+     *     var localModel = window.Model.noConflict();
+     * For an example see <b>testEnableCallbackHashOpimization</b>
      *
      * @for  Model
      * @method  noConflict

@@ -132,9 +132,11 @@ test("testModelCreationUsingCreatePropertyMethod", function () {
         },
         obj2: {
             desc: "This is obj2"
-        }
+        },
+        positiveNumber: 2
     };
 
+    // use method chaining to create 2 simple properties
     var m = new Model();
     m.createProperty("x", 1)
      .createProperty("y", "y");
@@ -148,8 +150,6 @@ test("testModelCreationUsingCreatePropertyMethod", function () {
     equal(m.obj._parent, null, "assigning property directly like this results in incorrect parent");
     delete m.obj;
 
-
-
     // Correct way to create a Model sub object
     m.createProperty("obj", {desc: "an obj property name desc123"});
     m.obj.setValue(subModel.getValue());
@@ -159,6 +159,14 @@ test("testModelCreationUsingCreatePropertyMethod", function () {
         desc: "This is obj2"
     });
 
+    //createProperty also takes a validator
+    m.createProperty("positiveNumber", 2, { // a property with a validator (model.positiveNumber)
+        validator: function (value) {
+            return value > 0;
+        }
+    });
+    ok(m.positiveNumber.hasValidator(), "'positiveNumber' property was created with a validator");
+    ok (!m.positiveNumber.validateValue(-1), "'positiveNumber' property validator works");
     equal(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Model Creation from api generates correct JSON");
 });
 
@@ -293,13 +301,15 @@ test("testPropertyValidationFunction", function () {
         return value > 0;
     };
     var m = new Model();
-    m.createProperty("x", 1, {validator: onlyPositive});
-    m.createProperty("y", "y");
+    m.createProperty("x", 1, {validator: onlyPositive})
+     .createProperty("y", "y");
 
+    ok(m.x.hasValidator, "Validator exists");
     equal(m.x.getValue(), 1);
     m.x.setValue(5);
     equal(m.x.getValue(), 5, "Assignment Passed because validator passed");
-    m.x.setValue(-1);
+    ok(!m.x.validateValue(-1), "Value should not pass the validator");
+    m.x.setValue(-1); // try it anyways.
     equal(m.x.getValue(), 5, "Assignment failed because value did not pass validator");
 });
 

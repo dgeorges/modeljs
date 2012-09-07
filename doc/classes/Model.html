@@ -98,7 +98,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l334"><code>src\model.js:334</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l353"><code>src\model.js:353</code></a>
         </div>
     
 
@@ -168,7 +168,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l334"><code>src\model.js:334</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l353"><code>src\model.js:353</code></a>
         
         </p>
 
@@ -226,6 +226,15 @@
 
     
 
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>For examples see: <b>testPrimitiveSaveLoad</b>,  <b>testObjectsSaveLoad</b>, <b>testComplexSaveLoad</b>
+<b>testGetNameMethod</b> and <b>testSaveLoadWithMetaData</b></p>
+            </div>
+        </div>
     
 </div>
 
@@ -449,7 +458,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l408"><code>src\model.js:408</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l444"><code>src\model.js:444</code></a>
         
         </p>
 
@@ -481,6 +490,18 @@ The name of all properties are adjusted to reflect it's new root.</p>
         </div>
     
 
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">var newModel = model.clone(); // clone root model
+var clonedSubModel = model.subModel.clone(); // clone subModel
+</code></pre>
+
+<p>For more examples: <b>testModelClone</b></p>
+            </div>
+        </div>
     
 </div>
 
@@ -543,7 +564,7 @@ The name of all properties are adjusted to reflect it's new root.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l384"><code>src\model.js:384</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l407"><code>src\model.js:407</code></a>
         
         </p>
 
@@ -629,6 +650,26 @@ The name of all properties are adjusted to reflect it's new root.</p>
     
 
     
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">var model = new Model();
+model.createProperty("number", 1) // a simple property (model.number)
+.createProperty("subModel", { // a property that is a subModel (model.subModel and model.subModel.str)
+    str: "stringProperty"
+})
+.createProperty("positiveNumber", 2, { // a property with a validator (model.positiveNumber)
+    validator: function (value) {
+        return value &gt; 0;
+    }
+}); // Note the method chaining.
+</code></pre>
+
+<p>For examples see: <b>testModelCreationUsingCreatePropertyMethod</b></p>
+            </div>
+        </div>
+    
 </div>
 
                 
@@ -676,7 +717,7 @@ The name of all properties are adjusted to reflect it's new root.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l535"><code>src\model.js:535</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l576"><code>src\model.js:576</code></a>
         
         </p>
 
@@ -728,9 +769,10 @@ model.endTransaction({   // override the Model.eventOptimization settings for th
     enableSingleCallbackCall: true,
     enableCallbackHashOpimization: true
 })
-// tests examples: testSingleCallbackEventOptimization, testEnableCallbackHashOpimization,
-// testModelEndTransactionWithOptions
 </code></pre>
+
+<p>For more examples see: <b>testSingleCallbackEventOptimization</b>, <b>testEnableCallbackHashOpimization</b>,
+     <b>testModelEndTransactionWithOptions</b></p>
             </div>
         </div>
     
@@ -781,7 +823,8 @@ model.endTransaction({   // override the Model.eventOptimization settings for th
     </div>
 
     <div class="description">
-        <p>The fully qualified name of this. The name is calculated by concatenating the name of the parent, "/", and name of this.</p>
+        <p>The fully qualified name of this. The name is calculated by concatenating the name
+of the parent, "/", and name of this.</p>
     </div>
 
     
@@ -811,7 +854,7 @@ defaultModel.property1.getName();    // returns "/root/property1"
 namedRoot.property1.getName();       // returns "/customName/property1"
 </code></pre>
 
-<p>For examples see:  <b>testGetNameMethod</b></p>
+<p>For more examples see:  <b>testGetNameMethod</b></p>
             </div>
         </div>
     
@@ -854,7 +897,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l373"><code>src\model.js:373</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l396"><code>src\model.js:396</code></a>
         
         </p>
 
@@ -865,7 +908,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
     </div>
 
     <div class="description">
-        <p>Gets the value associated with the Model.</p>
+        <p>Gets the value associated with the Model. This will be a json Object.</p>
     </div>
 
     
@@ -922,7 +965,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l307"><code>src\model.js:307</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l320"><code>src\model.js:320</code></a>
         
         </p>
 
@@ -953,6 +996,14 @@ namedRoot.property1.getName();       // returns "/customName/property1"
         </div>
     
 
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>For examples see:  <b>testPropertyValidationFunction</b></p>
+            </div>
+        </div>
     
 </div>
 
@@ -995,7 +1046,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l574"><code>src\model.js:574</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l615"><code>src\model.js:615</code></a>
         
         </p>
 
@@ -1082,7 +1133,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l469"><code>src\model.js:469</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l510"><code>src\model.js:510</code></a>
         
         </p>
 
@@ -1197,7 +1248,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l616"><code>src\model.js:616</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l660"><code>src\model.js:660</code></a>
         
         </p>
 
@@ -1228,6 +1279,18 @@ those that try to set a value from a property to a model and vise versa.</p>
         </div>
     
 
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">// window.Model is restore to previous value and localModel now holds the window.Model reference
+var localModel = window.Model.noConflict();
+</code></pre>
+
+<p>For an example see <b>testEnableCallbackHashOpimization</b></p>
+            </div>
+        </div>
     
 </div>
 
@@ -1277,7 +1340,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l289"><code>src\model.js:289</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l296"><code>src\model.js:296</code></a>
         
         </p>
 
@@ -1335,6 +1398,19 @@ those that try to set a value from a property to a model and vise versa.</p>
     
 
     
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">model.onchange(callback, true); //listens to change events on entire model
+model.property1.onchange(callback) //listen to change on property1 only
+model.subModel.onchange(callback) //listen to change on subModel only. (ie. via model.subModel.setValue(..))
+</code></pre>
+
+<p>For more examples see:  <b>testOnChangeCallbackWhenSettingToSameValue</b> and <b>testBubbleUpEvents</b></p>
+            </div>
+        </div>
+    
 </div>
 
                 
@@ -1387,7 +1463,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l236"><code>src\model.js:236</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l237"><code>src\model.js:237</code></a>
         
         </p>
 
@@ -1398,7 +1474,10 @@ those that try to set a value from a property to a model and vise versa.</p>
     </div>
 
     <div class="description">
-        <p>Called upon a property or Model to set it's Value. If the setValue is the same as the current value, nothing will happen and no change events will be fired. If the value is different it must pass the validator if there is one.  If it does pass the validator and value is changed, all registered listeners will be notified unless the suppressNotifications option indicates otherwise.</p>
+        <p>Called upon a property or Model to set it's Value. If the setValue is the same as the current value,
+nothing will happen and no change events will be fired. If the value is different it must pass
+the validator if there is one.  If it does pass the validator and value is changed, all registered
+listeners will be notified unless the suppressNotifications option indicates otherwise.</p>
     </div>
 
     
@@ -1457,6 +1536,14 @@ those that try to set a value from a property to a model and vise versa.</p>
     
 
     
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>For more examples see:  <b>testPrimitiveSetGet</b>, <b>testComplexChangePropertyValue</b> and <b>testSuppressNotifications</b></p>
+            </div>
+        </div>
+    
 </div>
 
                 
@@ -1494,7 +1581,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l522"><code>src\model.js:522</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l563"><code>src\model.js:563</code></a>
         
         </p>
 
@@ -1562,7 +1649,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l497"><code>src\model.js:497</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l538"><code>src\model.js:538</code></a>
         
         </p>
 
@@ -1663,7 +1750,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l318"><code>src\model.js:318</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l334"><code>src\model.js:334</code></a>
         
         </p>
 
@@ -1718,6 +1805,14 @@ those that try to set a value from a property to a model and vise versa.</p>
     
 
     
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>For examples see:  <b>testPropertyValidationFunction</b></p>
+            </div>
+        </div>
+    
 </div>
 
                 
@@ -1754,7 +1849,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l604"><code>src\model.js:604</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l647"><code>src\model.js:647</code></a>
         
         </p>
 
@@ -1771,6 +1866,14 @@ those that try to set a value from a property to a model and vise versa.</p>
         <p><strong>Default:</strong> false</p>
     
 
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>For an example see <b>testEnableCallbackHashOpimization</b></p>
+            </div>
+        </div>
     
 
     
@@ -1802,7 +1905,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l596"><code>src\model.js:596</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l638"><code>src\model.js:638</code></a>
         
         </p>
 
@@ -1819,6 +1922,14 @@ those that try to set a value from a property to a model and vise versa.</p>
         <p><strong>Default:</strong> false</p>
     
 
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>For an example see <b>testSingleCallbackEventOptimization</b></p>
+            </div>
+        </div>
     
 
     
@@ -1850,7 +1961,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l588"><code>src\model.js:588</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l629"><code>src\model.js:629</code></a>
         
         </p>
 
@@ -1867,6 +1978,14 @@ those that try to set a value from a property to a model and vise versa.</p>
         <p><strong>Default:</strong> false</p>
     
 
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>For an example see <b>testSuppressPreviousPropertyChangeEventsEventOptimization</b></p>
+            </div>
+        </div>
     
 
     
