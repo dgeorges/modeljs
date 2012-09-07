@@ -41,6 +41,19 @@
         return obj === new Object(obj) && Object.prototype.toString.call(obj) != '[object Function]';
     }
 
+    function isEmptyObject(obj) {
+        if (Object.getOwnPropertyNames) { // only exits on ECMAScript 5 compatible browsers
+            return (Object.getOwnPropertyNames(obj).length === 0);
+        } else {
+            for( var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
     /**
      * Centralized place where all Model Events pass through.
      */
@@ -513,7 +526,7 @@
      * and will call setValue for those that exist in both. Note the operation will log an error to the console, return
      * false, and not modify the object if any of the setValue operation are not valid. Not valid set operations inclded
      * those that try to set a value from a property to a model and vise versa.
-     * 
+     *
      * @example
      * For an example see: <b>testModelMergeMethod</b>
      *
@@ -539,7 +552,11 @@
 
 
     /**
-     * Retrieves the json representation of this.
+     * Retrieves the json representation of this. This json representation can be used in the Model Constructor to recreate
+     * the same Model object. If you use includeMetaData validators
+     *
+     * @example
+     * For an example see: <b>testSaveLoadWithMetaData</b>
      *
      * @method  toJSON
      *
@@ -555,7 +572,7 @@
             } else {
                 var value = this[name].getValue();
                 json[name] = value;
-                if (includeMetaData && this[name]._options){
+                if (includeMetaData && this[name]._options && !isEmptyObject(this[name]._options)){
                     json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX] = this[name]._options;
                 }
             }
