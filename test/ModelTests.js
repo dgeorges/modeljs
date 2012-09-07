@@ -39,8 +39,8 @@ test("testComplexSaveLoad", function () {
         jsonFValue = jsonModel.subModel.f();
 
     var m = new Model(jsonModel);
-    var modelXValue = m.x._value(),
-        modelFValue = m.subModel.f._value();
+    var modelXValue = m.x.getValue()(),
+        modelFValue = m.subModel.f.getValue()();
 
     equal(jsonXValue, modelXValue, "Function preserved From JSON To Model");
     equal(jsonFValue, modelFValue, "Function preserved From JSON To Model");
@@ -61,11 +61,11 @@ test("testPrimitiveSetGet", function () {
     };
 
     var m = new Model(jsonModel);
-    equal(m.str._value, jsonModel.str, "retrieving simple Model values are correct");
-    equal(m.number._value, jsonModel.number, "retrieving simple Model values are correct");
+    equal(m.str.getValue(), jsonModel.str, "retrieving simple Model values are correct");
+    equal(m.number.getValue(), jsonModel.number, "retrieving simple Model values are correct");
     // change some values
-    m.str._value  = 1; // use the _value setter
-    m.number._value = "aString";
+    m.str.setValue(1);
+    m.number.setValue("aString");
     m.bool.setValue(false); // use the setValue method.
     var jsonModelExpected = { number: "aString",
         str : 1,
@@ -115,9 +115,9 @@ test("testOnChangeCallbackWhenSettingToSameValue", function () {
         count++;
     };
     m.number.onChange(f);
-    m.number._value = 2;
-    m.number._value = 3;
-    m.number._value = 3; // value is the same should not fire a change
+    m.number.setValue(2);
+    m.number.setValue(3);
+    m.number.setValue(3); // value is the same should not fire a change
 
     equal(count, 2, "onChangeEvent only fires when OldValue != newValue");
 });
@@ -136,21 +136,24 @@ test("testModelCreationUsingCreatePropertyMethod", function () {
     };
 
     var m = new Model();
-    m.createProperty("x", 1);
-    m.createProperty("y", "y");
+    m.createProperty("x", 1)
+     .createProperty("y", "y");
 
     var subModel = new Model();
     subModel.createProperty("desc", "an obj property name desc");
+
     // Do not directly assign properties like this use createProperty.
     m.obj = subModel;
     equal(m.obj.getName(), "/root", "assigning property directly like this results in incorrect property name");
     equal(m.obj._parent, null, "assigning property directly like this results in incorrect parent");
     delete m.obj;
 
-    // Correct way to create a Model sub object
-    m.createProperty("obj", {desc: "an obj property name desc"});
 
-    // Alternative is to create an empty Object and use setValue or _value to set it
+
+    // Correct way to create a Model sub object
+    m.createProperty("obj", {desc: "an obj property name desc123"});
+    m.obj.setValue(subModel.getValue());
+    // Alternative is to create an empty Object and use setValue to set it
     m.createProperty("obj2", {});
     m.obj2.setValue({
         desc: "This is obj2"
@@ -182,19 +185,19 @@ test("testModelMergeMethod", function () {
     var m = new Model(modelJSON);
     m.obj2.merge(mergeObj);//keepOldProperties = false
     ok (!m.obj2.key2, "old properties removed");
-    equal (m.obj2.key1._value, "new key1Value", "existing property overridden");
-    equal (m.obj2.key3._value, "new key", "new property added");
+    equal (m.obj2.key1.getValue(), "new key1Value", "existing property overridden");
+    equal (m.obj2.key3.getValue(), "new key", "new property added");
 
     var m1 = new Model(modelJSON);
     m1.obj2.merge(mergeObj, true);
-    equal (m1.obj2.key2._value, "key2", "old properties remain");
-    equal (m1.obj2.key1._value, "new key1Value", "existing property overridden");
-    equal (m1.obj2.key3._value, "new key", "new property added");
+    equal (m1.obj2.key2.getValue(), "key2", "old properties remain");
+    equal (m1.obj2.key1.getValue(), "new key1Value", "existing property overridden");
+    equal (m1.obj2.key3.getValue(), "new key", "new property added");
 
 });
 
 /**
- * Shows correct and incorrect ways to use the _value setter.
+ * Shows correct and incorrect ways to use the setValue setter.
  * Note this test will log errors to the console
  * @return {[type]} [description]
  */
@@ -222,31 +225,41 @@ test("testComplexChangePropertyValue", function () {
     var m = new Model(json);
 
     //setting a property to a model should fail.
-    m.property._value = {prop: "this is an obj property", prop2: "this is prop2"};
+    m.property.setValue({prop: "this is an obj property", prop2: "this is prop2"});
 
     //setting a model to a property should fail
-    m.model._value = "new string property";
+    m.model.setValue("new string property");
 
     // setting a property to an object indirectly should fail
-    m.model._value = {key1: "This should not be set",
-                        key2: {prop1:"this is an Object", prop2: "this should fail, since setting key2 to an object"}};
+    m.model.setValue({  key1: "This should not be set",
+                        key2: {
+                            prop1:"this is an Object",
+                            prop2: "this should fail, since setting key2 to an object"
+                        }
+                    });
 
     // setting a model to an property indirectly should fail
-    m.model._value = {key1: "this should not be set", subModel: "setting a model to a property should fail"};
+    m.model.setValue({
+        key1: "this should not be set",
+        subModel: "setting a model to a property should fail"
+    });
 
     console.log("testComplexChangePropertyValue: 4 errors to console expected");
 
 /* Note commented out code is not detected but also incorrect. see testModelCreationUsingCreatePropertyMethod
     var subModel = new Model();
     subModel.createProperty("desc", "This is obj1");
-    m.obj._value = subModel;
+    m.obj.setValue(subModel);
     m.obj = subModel // will also break things because parent not assigned.
  */
 
     deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(json), "Incorrect sytax for setting does noop");
 
     //setting a model to another JSON model is correct syntax and should do a merge with keepOldProperties = false;
-    m.model._value = {key1: "this is key1's new value", key3: "we have added a key"};
+    m.model.setValue({
+        key1: "this is key1's new value",
+        key3: "we have added a key"
+    });
     deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Incorrect sytax for setting does noop");
 });
 
@@ -266,13 +279,12 @@ test("testSuppressNotifications", function () {
     };
 
     m.x.onChange(callback);
-    m.x._value = 2;
+    m.x.setValue(2);
     ok(notified, "onChange Callback works");
     notified = false;
-    m.x._value = {_value: 4, suppressNotifications: true}; //special object setting
     m.x.setValue(5, true); // better way to set value and suppress notification
     ok(!notified, "onChange callback suppressed succesfully");
-    equal(m.x._value, 5, "Assignment successful when notification suppressed");
+    equal(m.x.getValue(), 5, "Assignment successful when notification suppressed");
 });
 
 test("testPropertyValidationFunction", function () {
@@ -284,11 +296,11 @@ test("testPropertyValidationFunction", function () {
     m.createProperty("x", 1, {validator: onlyPositive});
     m.createProperty("y", "y");
 
-    equal(m.x._value, 1);
-    m.x._value = 5;
-    equal(m.x._value, 5, "Assignment Passed because validator passed");
-    m.x._value = -1;
-    equal(m.x._value, 5, "Assignment failed because value did not pass validator");
+    equal(m.x.getValue(), 1);
+    m.x.setValue(5);
+    equal(m.x.getValue(), 5, "Assignment Passed because validator passed");
+    m.x.setValue(-1);
+    equal(m.x.getValue(), 5, "Assignment failed because value did not pass validator");
 });
 
 
@@ -339,9 +351,9 @@ test("testModelTransactions", function () {
     m.str.onChange(callback);
 
     Model.startTransaction();
-    m.number._value = 5;
-    m.bool._value = true; //should not fire a onChange event since value not changes
-    m.str._value = "new value set in transaction";
+    m.number.setValue(5);
+    m.bool.setValue(true); //should not fire a onChange event since value not changes
+    m.str.setValue("new value set in transaction");
     ok(!callbackCalled, "onChange Callback not executed till transaction complete");
     ok(Model.inTransaction(), "Model inTranaction repoting correctly");
     Model.endTransaction();
@@ -378,7 +390,7 @@ test("testBubbleUpEvents", function () {
     m.onChange(callback, {listenToChildren: true});
     m.number.onChange(callback);
 
-    m.number._value = 5;
+    m.number.setValue(5);
 
     ok(callbackCalled, "Passed");
     equal(count, 2, "EventNotification bubbled up correctly");
@@ -386,7 +398,7 @@ test("testBubbleUpEvents", function () {
     count = 0; //reset counter
     callbackCalled = false;
     m.subModel.onChange(callback, {listenToChildren: true});
-    m.subModel.subProp._value = "new value";
+    m.subModel.subProp.setValue("new value");
 
     ok(callbackCalled, "Passed");
     equal(count, 2, "EventNotification bubbled up correctly");
@@ -461,9 +473,9 @@ test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
     Model.eventOptimization.suppressPreviousPropertyChangeEvents = true;
     Model.startTransaction();
     //Lets change number multiple time. should only be called once with last value of change
-    model.number._value = 2;
-    model.number._value = 3;
-    model.number._value = 4;
+    model.number.setValue(2);
+    model.number.setValue(3);
+    model.number.setValue(4);
     Model.endTransaction();
 
     equal(count, 1, "suppressPreviousPropertyChangeEvents does suppress all but 1 onChangeEvent");
@@ -473,17 +485,17 @@ test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
     count = 0; //reset counter
     model.subModel.onChange(callback, {listenToChildren: true});
     Model.startTransaction();
-    model.subModel.subProp._value = "new subProp value1";
-    model.subModel.subProp._value = "new subProp value2";
-    model.subModel.subProp._value = "new subProp value3";
+    model.subModel.subProp.setValue("new subProp value1");
+    model.subModel.subProp.setValue("new subProp value2");
+    model.subModel.subProp.setValue("new subProp value3");
     Model.endTransaction();
 
     equal(count, 1, "suppressPreviousPropertyChangeEvents does suppress all but 1 onChangeEvent");
 
     count = 0;
     Model.startTransaction();
-    model.subModel.subProp._value = "new subProp value";
-    model.subModel.fun._value = "replace function with string";
+    model.subModel.subProp.setValue("new subProp value");
+    model.subModel.fun.setValue("replace function with string");
     Model.endTransaction();
     Model.eventOptimization.suppressPreviousPropertyChangeEvents = false; //restore
 
@@ -523,9 +535,9 @@ test("testSingleCallbackEventOptimization", function (){
     Model.eventOptimization.enableSingleCallbackCall = true;
 
     Model.startTransaction();
-    model.number._value = 3;
-    model.subModel.subProp._value = "value Changed";
-    model.str._value = "new Value";
+    model.number.setValue(3);
+    model.subModel.subProp.setValue("value Changed");
+    model.str.setValue("new Value");
     Model.endTransaction();
 
     equal(count, 1, "onChange callback called once, even though registared on different porperties");
@@ -568,9 +580,9 @@ test("testEnableCallbackHashOpimization", function (){
     Model.eventOptimization.enableCallbackHashOpimization = true;
 
     Model.startTransaction();
-    model.number._value = 3;
-    model.subModel.subProp._value = "value Changed";
-    model.str._value = "new Value";
+    model.number.setValue(3);
+    model.subModel.subProp.setValue("value Changed");
+    model.str.setValue("new Value");
     Model.endTransaction();
     Model.eventOptimization.enableCallbackHashOpimization = false;
 
@@ -615,9 +627,9 @@ test("testModelEndTransactionWithOptions", function () {
     Model.eventOptimization.suppressPreviousPropertyChangeEvents = true;
 
     Model.startTransaction();
-    model.number._value = 3;
-    model.subModel.subProp._value = "value Changed";
-    model.str._value = "new Value";
+    model.number.setValue(3);
+    model.subModel.subProp.setValue("value Changed");
+    model.str.setValue("new Value");
     Model.endTransaction({
         enableCallbackHashOpimization: true,
         enableSingleCallbackCall: false,
@@ -711,47 +723,52 @@ test("modlejsTutorial", function (){
     // Let look at how we can set/change property values
 
     /** --- Model manipulation --- */
-    //getting/setting a model values goes throught the ._value keyword.
     // This is a getter for a Property. it retieves the value 1.
-    var numberPropertyValue = modelFromJSON.numberProperty._value;
+    var numberPropertyValue = modelFromJSON.numberProperty.getValue();
 
     // This is a getter for a Model. It returns a JSON object.
-    var objModelValue = modelFromJSON.objProperty2._value;
+    var objModelValue = modelFromJSON.objProperty2.getValue();
 
     //This sets the Property value to 2;
-    modelFromJSON.numberProperty._value = 2;
+    modelFromJSON.numberProperty.setValue(2);
 
     // This is a setter for Model Objects.
-    modelFromJSON.objProperty2._value = {value1: "new Value1 value", value3: "Adding a new property"};
+    modelFromJSON.objProperty2.setValue({
+        value1: "new Value1 value",
+        value3: "Adding a new property"
+    });
     // The above will effectively add properties that don't exist. change the values of ones that do (keeping validation and listeners untouched)
     // and remove properties that are missing.
 
 
     // We can set the property to anything, but remember it must pass the validator.
-    // This string will fail the positiveNumber validator. _value will still be 2
-    modelFromCode.positiveNumber._value = "a String";
+    // This string will fail the positiveNumber validator. getValue will still be 2
+    modelFromCode.positiveNumber.setValue("a String");
 
     //if you don't like the silent failure you can use these methods to check if a validator exists
     modelFromCode.positiveNumber.hasValidator();
     modelFromCode.positiveNumber.validateValue("a String"); // or even do the test yourself
 
-    // sometimes its desireble to change a value without notifying your listener. You can do this is the special set notation
-    modelFromJSON.numberProperty._value = {_value: 6, suppressNotifications: true};
+    // sometimes its desireble to change a value without notifying your listener. You can do this by using the second argument to setValue
+    modelFromJSON.numberProperty.setValue(6, true);
 
-    // this notation can be used on objects aswell.
-    // Here the property _value indicates the value and the other properties are the options.
-    // suppressNotifications is the only currently accepted options. It does not call any of the registered listeners when it changes the value.
-    modelFromCode.obj._value = {_value: {replacementObj: "replacement obj"},
-        suppressNotifications: true
-    };
-    // Do to this notation, "_value" should not be used as a key.
+    
 
-    // Without the _value keyword in the it will attempt to set the value to a Model type.
-    // This fails. You can not set a Model to a Property or a Property to a Model
-    modelFromJSON.numberProperty._value = {newValue: 6, suppressNotifications: true};
+    // Note: You can not set a Model to a Property or a Property to a Model
+    modelFromJSON.numberProperty.setValue({
+        prop1: 6,
+        prop2: true
+    });
     // Be very careful this can happen within the Object too.
-    modelFromJSON.objProperty._value = {name: {nameObj: "Setting a property to a ModelObj should fail"}};
-    modelFromJSON.objProperty._value = {name: "this is a proptery value change", value: "this trys to replace obj with property"};
+    modelFromJSON.objProperty.setValue({
+        name: {
+            nameObj: "Setting a property to a ModelObj should fail"
+        }
+    });
+    modelFromJSON.objProperty.setValue({
+        name: "this is a proptery value change",
+        value: "this trys to replace obj with property"
+    });
 
     console.log("modlejsTutorial: 3 errors to console expected");
     // The next section will talk about events
@@ -784,11 +801,11 @@ test("modlejsTutorial", function (){
 
     Model.startTransaction();
     //any code in here will not notify it's listeners until Model.endTransaction() is called
-    modelFromJSON.stringProperty._value = "new String Property";
-    modelFromJSON.objProperty.name._value = "new name";
+    modelFromJSON.stringProperty.setValue("new String Property");
+    modelFromJSON.objProperty.name.setValue("new name");
 
     modelFromCode.number.onChange(callback);
-    modelFromCode.number._value = 8;
+    modelFromCode.number.setValue(8);
     Model.endTransaction();
 
     // To check if your in a transaction block you can call

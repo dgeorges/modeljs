@@ -59,7 +59,7 @@
                         if (Model.eventOptimization.enableSingleCallbackCall){
                             if(executedCallbacks.indexOf(callback) === -1) { // Only call callback once
                                 executedCallbacks.push(callback);
-                                callback.call(null, oldValue, property._value, property.getName());
+                                callback.call(null, oldValue, property.getValue(), property.getName());
                                 callbackExecuted = true;
                             }
                         }
@@ -69,13 +69,13 @@
                                     callbackHashs.push(callback.hash);
                                 }
                                 if (!callbackExecuted){
-                                    callback.call(null, oldValue, property._value, property.getName());
+                                    callback.call(null, oldValue, property.getValue(), property.getName());
                                     callbackExecuted = true;
                                 }
                             }
                         }
                     } else {
-                        callback.call(null, oldValue, property._value, property.getName());
+                        callback.call(null, oldValue, property.getValue(), property.getName());
                     }
                 };
             };
@@ -195,20 +195,12 @@
             enumerable: false
         });
 
-        Object.defineProperty(this, "_value", {
-            get: function () { //ideally would like to override the getter in the Model class but this will have to do.
-                if (this instanceof Model) {
-                    return this.toJSON();
-                } else {
-                    return this._myValue;
-                }
-            },
-            set: function (newValue) { this.setValue(newValue);}
-        });
-
         this.setValue(value);
     }
 
+    Property.prototype.getValue = function () {
+        return this._myValue;
+    };
 
     Property.prototype.getName = function () {
         return this._name;
@@ -223,14 +215,13 @@
      * @return {[type]}          The resulting value of the Property
      */
     Property.prototype.setValue = function (value, suppressNotifications) {
-        var newValue,
-            suppressOnChangeEvent = suppressNotifications;
+        var newValue = value;
 
-        if (isObject(value) && value._value) {
-            newValue = value._value;
-            suppressOnChangeEvent = value.suppressNotifications;
-        } else {
-            newValue = value;
+        if (newValue instanceof Property || newValue instanceof Model ) {
+            // this is misleading syntax because other property attributes are not copied like _listener and _parent
+            // so prevent it and provide alternate.
+            window.console.error("Incorrect Syntax: use setValue([property|model].getValue()) instead");
+            return;
         }
 
         // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
@@ -240,13 +231,10 @@
             if (!validationFunction || validationFunction(newValue)){
                 var oldValue = this._myValue;
 
-                if (newValue instanceof Property || newValue instanceof Model ) {
-                    // this is misleading syntax because other property attributes are not copied like _listener and _parent
-                    // so prevent it and provide alternate.
-                    window.console.error("Incorrect Syntax: use ._value = [property|model]._value instead");
-                } else if (isObject(newValue)) {
+                if (isObject(newValue)) {
                     if (!(this instanceof Model)){
                         window.console.error("Not Supported: Can't set the Model value to a property. Delete the model and use createProperty");
+                        return;
                     } else {
                         //This model need to be set to the newValue
                         this.merge(newValue, false);
@@ -254,12 +242,13 @@
                 } else { // newValue is a property
                     if (this instanceof Model){
                         window.console.error("Not Supported: Can't set a Property value to a model. Delete the property and use createProperty");
+                        return;
                     } else {
                         this._myValue = newValue;
                     }
                 }
 
-                if (!suppressOnChangeEvent){
+                if (!suppressNotifications){
                     eventProxy.fireEvent(this, oldValue);
                 }
             }
@@ -329,6 +318,10 @@
     Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX = "__modeljs__options";
     Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX = /__modeljs__options$/;
 
+    Model.prototype.getValue = function() {
+        return this.toJSON();
+    };
+
     /**
      * [createProperty description]
      * @param  {[type]} name    [description]
@@ -377,7 +370,7 @@
                 } else { // right hand side is a property
                     if (!(model[name] instanceof Model)){ // Its not a Model therefore it's a Property
                         if (doModification){
-                            model[name]._value = value;
+                            model[name].setValue(value);
                         }
                     } else {
                         // Trying to assign a property to a Model. This will fail.
@@ -411,7 +404,7 @@
             Model.endTransaction();
             return true;
         } else {
-            window.console.error("Operation Not Supported: Model assignment not valid. Model not modified");
+            window.console.error("Merge operation Not Supported: An assignment was not valid. Model not modified");
             return false;
         }
     };
@@ -428,7 +421,7 @@
             if (property instanceof Model) {
                 json[name] = property.toJSON(includeMetaData);
             } else {
-                var value = this[name]._value;
+                var value = this[name].getValue();
                 json[name] = value;
                 if (includeMetaData && this[name]._options){
                     json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX] = this[name]._options;
