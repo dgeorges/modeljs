@@ -7,7 +7,7 @@
  *
  *
  * Features
- * - Simple easy to use and intuitive  library
+ * - Simple easy to use and intuitive library
  * - Can save/load Model to/from JSON with/without model meta data
  * - Can register on change events with any single property or group of properties
  * - Model change events bubble up.
@@ -16,13 +16,13 @@
  * - Can batch changes into a transaction.
  * - Transaction can be easily optimized.
  * - Incorrect uses of api are logged as errors to the console
- *
+  *
  *
  * TODO:
  *  - hook up/create/clean documentation and document methods properly.
  *  - add basic validators that can be reused.
  *  - set up gitHub site
- *  - update browser support
+ *  - test on IE8
  *
  * BUGS:
  * - The callback executed when listening to modelChange event on one of your children needs to refined
