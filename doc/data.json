@@ -1,0 +1,426 @@
+{
+    "project": {},
+    "files": {
+        "src\\model.js": {
+            "name": "src\\model.js",
+            "modules": {
+                "Model": 1
+            },
+            "classes": {
+                "Property": 1,
+                "Model": 1
+            },
+            "fors": {
+                "Property": 1,
+                "Model": 1
+            },
+            "namespaces": {}
+        }
+    },
+    "modules": {
+        "Model": {
+            "name": "Model",
+            "submodules": {},
+            "classes": {
+                "Property": 1,
+                "Model": 1
+            },
+            "fors": {
+                "Property": 1,
+                "Model": 1
+            },
+            "namespaces": {},
+            "tag": "module",
+            "file": "src\\model.js",
+            "line": 334,
+            "description": "Provides the base Model library."
+        }
+    },
+    "classes": {
+        "Property": {
+            "name": "Property",
+            "shortname": "Property",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Model",
+            "namespace": "",
+            "file": "src\\model.js",
+            "line": 155,
+            "description": "A Property is a name value pair belonging to a Model.",
+            "is_constructor": 1,
+            "access": "private",
+            "tagname": "used internally by the Model.prototype.createProperty method.",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "The name of the property",
+                    "type": "[String]"
+                },
+                {
+                    "name": "value",
+                    "description": "The Property Value",
+                    "type": "[String, Boolean, Number, null, Function, Object]"
+                },
+                {
+                    "name": "parent",
+                    "description": "The parent property",
+                    "type": "[Model]"
+                },
+                {
+                    "name": "options",
+                    "description": "The creation options:\n                        validator - a function to validate the new value is valid before it is assigned.",
+                    "type": "[Options]"
+                }
+            ]
+        },
+        "Model": {
+            "name": "Model",
+            "shortname": "Model",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Model",
+            "namespace": "",
+            "file": "src\\model.js",
+            "line": 334,
+            "description": "The model Object that wraps the JSON.",
+            "is_constructor": 1,
+            "extends": "Property",
+            "params": [
+                {
+                    "name": "json",
+                    "description": "The json object to be modeled.",
+                    "type": "Object"
+                },
+                {
+                    "name": "options?",
+                    "description": "May contain the following:\n                        validator - a function to validate the new value is valid before it is assigned.\n                        name - name of the Model, defaults to \"root\"",
+                    "type": "Object"
+                }
+            ]
+        }
+    },
+    "classitems": [
+        {
+            "file": "src\\model.js",
+            "line": 44,
+            "description": "Centralized place where all Model Events pass through.",
+            "class": "Property",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 208,
+            "description": "Gets the value of the property.",
+            "itemtype": "method",
+            "name": "getValue",
+            "return": {
+                "description": "The value of the property",
+                "type": "[String, Boolean, Number, null, Function]"
+            },
+            "class": "Property",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 219,
+            "description": "The fully qualified name of this. The name is calculated by concatenating the name of the parent, \"/\", and name of this.",
+            "example": [
+                "\n    defaultModel.getName();              // returns \"/root\"\n    defaultModel.property1.getName();    // returns \"/root/property1\"\n    namedRoot.property1.getName();       // returns \"/customName/property1\"\nFor examples see:  <b>testGetNameMethod</b>"
+            ],
+            "itemtype": "method",
+            "name": "getName",
+            "return": {
+                "description": "The fully qualified name of this.",
+                "type": "String"
+            },
+            "class": "Property",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 236,
+            "description": "Called upon a property or Model to set it's Value. If the setValue is the same as the current value, nothing will happen and no change events will be fired. If the value is different it must pass the validator if there is one.  If it does pass the validator and value is changed, all registered listeners will be notified unless the suppressNotifications option indicates otherwise.",
+            "itemtype": "method",
+            "name": "setValue",
+            "params": [
+                {
+                    "name": "newValue",
+                    "description": "The Value you want to assign to the Property.",
+                    "type": "[String, Boolean, Number, null, Function, Object]"
+                },
+                {
+                    "name": "suppressNotifications?",
+                    "description": "Indicating if listeners should be notified of change.",
+                    "type": "[Boolean]"
+                }
+            ],
+            "return": {
+                "description": "The resulting value. If the operation was successful this will be the passed in value otherwise it will be the existing one.",
+                "type": "[string, boolean, number, null, function, object]"
+            },
+            "class": "Property",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 289,
+            "description": "Registers a callback function with the change event of this.",
+            "itemtype": "method",
+            "name": "onChange",
+            "params": [
+                {
+                    "name": "callback",
+                    "description": "The function to be called if the value of this changes. The call back function will be passed the following arguments (oldValue, newValue, propertyName)",
+                    "type": "Function"
+                },
+                {
+                    "name": "options?",
+                    "description": "May contain the following:\n                        listenToChildren {Boolean} - registers the callback with sub property changes as well.",
+                    "type": "Object"
+                }
+            ],
+            "class": "Property",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 307,
+            "description": "Determine if this has a validation function associated with it.",
+            "itemtype": "method",
+            "name": "hasValidator",
+            "return": {
+                "description": "True if this has a validator associated with it. False otherwise.",
+                "type": "Boolean"
+            },
+            "class": "Property",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 318,
+            "description": "Determines if the given value will pass the validation function of this.",
+            "itemtype": "method",
+            "name": "validateValue",
+            "params": [
+                {
+                    "name": "value",
+                    "description": "A value to test against the validation function if it exists.",
+                    "type": "[String, Boolean, Number, null, Function, Object]"
+                }
+            ],
+            "return": {
+                "description": "The result of passing value against the validation function if it exists. True otherwise.",
+                "type": "Boolean"
+            },
+            "class": "Property",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 373,
+            "description": "Gets the value associated with the Model.",
+            "itemtype": "method",
+            "name": "getValue",
+            "return": {
+                "description": "The json Object represented by the model",
+                "type": "Object"
+            },
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 384,
+            "description": "Creates the property with the given name on this.",
+            "itemtype": "method",
+            "name": "createProperty",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the property",
+                    "type": "String"
+                },
+                {
+                    "name": "value",
+                    "description": "Property value",
+                    "type": "[String, Boolean, Number, null, Function, Object]"
+                },
+                {
+                    "name": "options?",
+                    "description": "A hash of options including:\n                          validator {Function} The validator to associate with the new Property.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "Returns this for method chaining",
+                "type": "Model"
+            },
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 408,
+            "description": "Clones the Model rooted at this keeping all validators that exist, but not keeping attached onChange callbacks.\nThe name of all properties are adjusted to reflect it's new root.",
+            "itemtype": "method",
+            "name": "clone",
+            "return": {
+                "description": "Returns a new Model object rooted at this, keeping validator but not onChange callbacks.",
+                "type": "Model"
+            },
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 469,
+            "description": "Preforms the merge operation on this. The merge opperation will add properties that exist in the merged object\nbut not in this, remove those that are not found in the merged object (unless keepOldProperties is set to true)\nand will call setValue for those that exist in both. Note the operation will log an error to the console, return\nfalse, and not modify the object if any of the setValue operation are not valid. Not valid set operations inclded\nthose that try to set a value from a property to a model and vise versa.",
+            "itemtype": "method",
+            "name": "merge",
+            "params": [
+                {
+                    "name": "json",
+                    "description": "The json object to have merged.",
+                    "type": "[Object]"
+                },
+                {
+                    "name": "keepOldProperties?",
+                    "description": "True if you want to keep properties that exist in this but not in the passed in json, Otherwise they will be deleted. Defaults to false.",
+                    "type": "[Boolean]"
+                }
+            ],
+            "return": {
+                "description": "Returns true if merge was successful, false otherwise.",
+                "type": "Model"
+            },
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 497,
+            "description": "Retrieves the json representation of this.",
+            "itemtype": "method",
+            "name": "toJSON",
+            "params": [
+                {
+                    "name": "includeMetaData?",
+                    "description": "indicates if model meta data should be included in the returned JSON. Defaults to false.",
+                    "type": "[Boolean]"
+                }
+            ],
+            "return": {
+                "description": "The json representation of the Model.",
+                "type": "[Object]"
+            },
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 522,
+            "description": "Begins a transaction. All events will be put into the queued. To be fired when endTransaction is called.",
+            "itemtype": "method",
+            "name": "startTransaction",
+            "static": 1,
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 535,
+            "description": "Ends the current transaction causing all queued up events to be fired according to the global eventOptization settings or the settings passed in if they exist.",
+            "example": [
+                "\n    model.endTransaction(); //uses settings found in Model.eventOptimization\n    model.endTransaction({   // override the Model.eventOptimization settings for this transaction\n        suppressPreviousPropertyChangeEvents: false,\n        enableSingleCallbackCall: true,\n        enableCallbackHashOpimization: true\n    })\n    // tests examples: testSingleCallbackEventOptimization, testEnableCallbackHashOpimization,\n    // testModelEndTransactionWithOptions"
+            ],
+            "itemtype": "method",
+            "name": "endTransaction",
+            "static": 1,
+            "params": [
+                {
+                    "name": "options?",
+                    "description": "A map of Model.eventOptimization options that you want overridden when clearing this transaction queue.",
+                    "type": "Object"
+                }
+            ],
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 574,
+            "description": "Determines if you are currently in a start/end transaction block.",
+            "itemtype": "method",
+            "name": "inTransaction",
+            "static": 1,
+            "return": {
+                "description": "True if your in a transaction block, false otherwise.",
+                "type": "[Boolean]"
+            },
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 588,
+            "description": "Only fires last Property Change of a property during a transaction.",
+            "itemtype": "property",
+            "name": "eventOptimization.suppressPreviousPropertyChangeEvents",
+            "default": "false",
+            "static": 1,
+            "type": "{boolean}",
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 596,
+            "description": "Will make sure a callback only gets called only once during a transaction. Even if registered with several properties.",
+            "itemtype": "property",
+            "name": "eventOptimization.enableSingleCallbackCall",
+            "default": "false",
+            "static": 1,
+            "type": "{boolean}",
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 604,
+            "description": "Will make sure callbacks identified by .hash only gets called only once during a transaction. Even if registered with several properties.",
+            "itemtype": "property",
+            "name": "eventOptimization.enableCallbackHashOpimization",
+            "default": "false",
+            "static": 1,
+            "type": "{boolean}",
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 616,
+            "description": "Release control of the global window.Model variable restoring it to its previous value",
+            "itemtype": "method",
+            "name": "noConflict",
+            "static": 1,
+            "return": {
+                "description": "The window Model variable that was just released.",
+                "type": "[Model]"
+            },
+            "class": "Model",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 630,
+            "class": "Model",
+            "module": "Model"
+        }
+    ]
+}
