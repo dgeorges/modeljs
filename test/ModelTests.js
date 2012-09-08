@@ -670,6 +670,39 @@ test("testModelNoConflict", function () {
 
 });
 
+test("testGetMetadataMethod", function (){
+   var expectedJSON = {
+        number: 1,
+        number__modeljs__metadata: {
+            validator: function (value){
+                return value > 0;
+            },
+            customMetaDataProperty: true
+        },
+        str: "strValue with no metadata",
+        str__modeljs__metadata: {
+            addedCustomMetaDataProperty: true
+        }
+    };
+
+    var model = new Model();
+    model.createProperty("number", 1, { // inserting metadata during construction
+        validator: function (value){
+                return value > 0;
+            },
+        customMetaDataProperty: true    //custom metadata property
+    })
+    .createProperty("str", "strValue with no metadata");
+
+    ok(model.number.hasValidator(), "validators are in the metadata");
+    ok(model.number.getMetadata().customMetaDataProperty, "Can retrieve custom metadata set during construction");
+
+    model.str.getMetadata().addedCustomMetaDataProperty = true; //add a metadata property
+    ok(model.str.getMetadata().addedCustomMetaDataProperty, "Can retrieve custom metadata set post construction");
+
+    equal(JSON.stringify(model.toJSON(true)), JSON.stringify(expectedJSON), "metadata serialized correctly");
+});
+
 test("modlejsTutorial", function (){
 
     //The code below will teach you how to use modeljs by example. It attepts to go though all the features provided in modeljs in logical progression.
