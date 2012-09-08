@@ -175,10 +175,10 @@
      * @param {[String]} name    The name of the property
      * @param {[String, Boolean, Number, null, Function, Object]} value   The Property Value
      * @param {[Model]} parent  The parent property
-     * @param {[Options]} options The creation options:
+     * @param {[Object]} metadata The metadata associated with the property:
      *                         validator - a function to validate the new value is valid before it is assigned.
      */
-    function Property (name, value, parent, options) {
+    function Property (name, value, parent, metadata) {
 
         var myName = "/" + name;
         if (parent){
@@ -201,8 +201,8 @@
             writable: true
         });
 
-        Object.defineProperty(this, "_options", {
-            value: options || {},
+        Object.defineProperty(this, "_metadata", {
+            value: metadata || {},
             enumerable: false
         });
 
@@ -276,7 +276,7 @@
 
         // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
         if (newValue !== undefined && newValue !== this._myValue) {
-            var validationFunction = this._options && this._options.validator;
+            var validationFunction = this._metadata && this._metadata.validator;
 
             if (!validationFunction || validationFunction(newValue)){
                 var oldValue = this._myValue;
@@ -341,7 +341,7 @@
      * @return {Boolean} True if this has a validator associated with it. False otherwise.
      */
     Property.prototype.hasValidator = function () {
-        return !!this._options.validator;
+        return !!this._metadata.validator;
     };
 
    /**
@@ -356,8 +356,8 @@
      * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
      */
     Property.prototype.validateValue = function (value) {
-        if (this._options.validator){
-            return this._options.validator(value);
+        if (this._metadata.validator){
+            return this._metadata.validator(value);
         }
         return true;
     };
@@ -375,36 +375,35 @@
      * @extends Property
      *
      * @param {Object} json    The json object to be modeled.
-     * @param {Object} options? May contain the following:
+     * @param {Object} metadata? May contain the following:
      *                         validator - a function to validate the new value is valid before it is assigned.
      *                         name - name of the Model, defaults to "root"
      */
-    function Model (json, options, parent) {
+    function Model (json, metadata, parent) {
         var jsonModel = json || {} ,
-            modelOptions = options|| {},
-            modelName = (modelOptions.name || "root"),
+            modelMetadata = metadata|| {},
+            modelName = (modelMetadata.name || "root"),
             modelParent = parent || null;
 
-        //A Model is in itself a Property so let inherit property
-        // call with empty options for now and this is the value
-        Property.call(this, modelName, jsonModel, modelParent, modelOptions);
+        //A Model is in itself a Property so lets call our supers constructor
+        Property.call(this, modelName, jsonModel, modelParent, modelMetadata);
 
         Object.keys(jsonModel).forEach(function (name){
 
-            if (name.match(Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX)){ // skip special meta data properties
+            if (name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)){ // skip special meta data properties
                 return;
             }
 
             var value = jsonModel[name];
-            var options = json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX];
+            var propertyMetadata = json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
 
-            this.createProperty(name, value, options);
+            this.createProperty(name, value, propertyMetadata);
         }, this);
     }
     Model.prototype = Object.create(Property.prototype);
 
-    Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX = "__modeljs__options";
-    Model.PROPERTY_OPTIONS_SERIALIZED_NAME_REGEX = /__modeljs__options$/;
+    Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX = "__modeljs__metadata";
+    Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX = /__modeljs__metadata$/;
 
    /**
      * Gets the value associated with the Model. This will be a json Object.
@@ -437,19 +436,19 @@
      *
      * @param  {String} name    Name of the property
      * @param  {[String, Boolean, Number, null, Function, Object]} value   Property value
-     * @param  {Object} options? A hash of options including:
+     * @param  {Object} metadata? A hash of metadata including:
      *                           validator {Function} The validator to associate with the new Property.
      * @return {Model}         Returns this for method chaining
      */
-    Model.prototype.createProperty = function createProperty(name, value, options) {
+    Model.prototype.createProperty = function createProperty(name, value, metadata) {
         if (value instanceof Model || value instanceof Property){
             window.console.error("Unsupported Operation: Try passing the Model/Properties value instead");
         } else if (isObject(value)){
-            var modelOptions = options || {};
-            modelOptions.name = name;
-            this[name] = new Model(value, modelOptions, this);
+            var modelMetadata = metadata || {};
+            modelMetadata.name = name;
+            this[name] = new Model(value, modelMetadata, this);
         } else {
-            this[name] = new Property (name, value, this, options);
+            this[name] = new Property (name, value, this, metadata);
         }
         return this;
     };
@@ -471,7 +470,7 @@
         var myName = this.getName();
         var options = {
             name : myName.substring(myName.lastIndexOf("/") + 1),
-            validator: this._options.validator
+            validator: this._metadata.validator
         };
         return new Model(this.toJSON(true), options);
     };
@@ -572,8 +571,8 @@
             } else {
                 var value = this[name].getValue();
                 json[name] = value;
-                if (includeMetaData && this[name]._options && !isEmptyObject(this[name]._options)){
-                    json[name + Model.PROPERTY_OPTIONS_SERIALIZED_NAME_SUFFIX] = this[name]._options;
+                if (includeMetaData && this[name]._metadata && !isEmptyObject(this[name]._metadata)){
+                    json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = this[name]._metadata;
                 }
             }
         }, this);

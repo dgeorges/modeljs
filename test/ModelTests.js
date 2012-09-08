@@ -318,7 +318,7 @@ test("testSaveLoadWithMetaData", function () {
 
     var expectedJSON = {
         x: 1,
-        x__modeljs__options: {
+        x__modeljs__metadata: {
             validator: function (value){
                 return value > 0;
             }
@@ -417,7 +417,7 @@ test("testBubbleUpEvents", function () {
 test("testModelClone", function (){
     var jsonModel = {
             number: 1,
-            number__modeljs__options: {
+            number__modeljs__metadata: {
                 validator: function (value){
                     return value > 0;
                 }
