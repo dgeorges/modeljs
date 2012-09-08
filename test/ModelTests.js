@@ -762,8 +762,6 @@ test("modlejsTutorial", function (){
     // sometimes its desireble to change a value without notifying your listener. You can do this by using the second argument to setValue
     modelFromJSON.numberProperty.setValue(6, true);
 
-    
-
     // Note: You can not set a Model to a Property or a Property to a Model
     modelFromJSON.numberProperty.setValue({
         prop1: 6,

@@ -331,6 +331,18 @@
     };
 
     /**
+     * Retieves the metadata associated with this. The metadata is persisted with the json when you
+     * pass true to the toJSON method (eg. this.toJSON(true). Likewise the metadata will be restored
+     * when creating a model from the very same json. Note: the modeljs framework uses the metadata to
+     * store attibutes assoicated the properties.
+     *
+     * @return {Object} A map of metadata properties associated with this.
+     */
+    Property.prototype.getMetadata = function () {
+            return this._metadata; //TODO should I return a defensive copy?
+    };
+
+    /**
      * Determine if this has a validation function associated with it.
      *
      * @example
