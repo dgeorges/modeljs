@@ -9,6 +9,7 @@
  * Features
  * - Simple easy to use and intuitive library
  * - Can save/load Model to/from JSON with/without model meta data
+ * - Supports models defined by a remote resource with the ability to periodically refresh.
  * - Can register on change events with any single property or group of properties
  * - Model change events bubble up.
  * - Can tie validation methods to models and properties
@@ -16,10 +17,9 @@
  * - Can batch changes into a transaction.
  * - Transaction can be easily optimized.
  * - Incorrect uses of api are logged as errors to the console
-  *
+ * - Support for all major browsers. (IE9+, Firefox4+, Safari 5.1.4+, Chrome 7+, Opera 12+)
  *
  * TODO:
- *  - hook up/create/clean documentation and document methods properly.
  *  - add basic validators that can be reused.
  *  - set up gitHub site
  *  - test on IE8
@@ -211,8 +211,10 @@
      * @param {[String]} name    The name of the property
      * @param {[String, Boolean, Number, null, Function, Object]} value   The Property Value
      * @param {[Model]} parent  The parent property
-     * @param {[Object]} metadata The metadata associated with the property:
-     *                         validator - a function to validate the new value is valid before it is assigned.
+     * @param {[Object]} metadata The metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
+     *                         validator - a function to validate if the new value is valid before it is assigned.
+     *                         url - the resource this model should use to get it's value. Resource must return json. *Must be used with refreshRate*
+     *                         refreshRate - the interval used to query the url for changes. must be > 0. minimal value used is 100. -1 indicates to only fetch value once. *Must be used with url*
      */
     function Property (name, value, parent, metadata) {
 
@@ -424,8 +426,8 @@
      *
      * @param {Object} json    The json object to be modeled.
      * @param {Object} metadata? May contain the following:
-     *                         validator - a function to validate the new value is valid before it is assigned.
      *                         name - name of the Model, defaults to "root"
+     *                         *plus any properties accepted by the createProperty method metadata argument
      */
     function Model (json, metadata, parent) {
         var jsonModel = json || {} ,
@@ -482,10 +484,13 @@
      *
      * @method  createProperty
      *
-     * @param  {String} name    Name of the property
-     * @param  {[String, Boolean, Number, null, Function, Object]} value   Property value
-     * @param  {Object} metadata? A hash of metadata including:
-     *                           validator {Function} The validator to associate with the new Property.
+     * @param {String} name    Name of the property
+     * @param {[String, Boolean, Number, null, Function, Object]} value   Property value
+     * @param {[Object]} metadata? A hash of metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
+     *                         validator {function} - a function to validate if the new value is valid before it is assigned.
+     *                         url {string} - the resource this model should use to get it's value. Resource must return json. *Must be used with refreshRate*
+     *                         refreshRate {number} - the interval used to query the url for changes. must be > 0. minimal value used is 100. -1 indicates to only fetch value once. *Must be used with url*
+     *
      * @return {Model}         Returns this for method chaining
      */
     Model.prototype.createProperty = function createProperty(name, value, metadata) {
