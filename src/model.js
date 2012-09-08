@@ -54,6 +54,35 @@
         }
     }
 
+    var getXHRObject = function () {
+        if (window.XMLHttpRequest) { // Mozilla, Safari, ...
+            return function () {
+                return new XMLHttpRequest();
+            };
+        } else if (window.ActiveXObject) { // IE
+            try {
+                new ActiveXObject("Msxml2.XMLHTTP");
+                return function () {
+                    return new ActiveXObject("Msxml2.XMLHTTP");
+                };
+              }
+            catch (e) {
+                try {
+                    new ActiveXObject("Microsoft.XMLHTTP");
+                    return function () {
+                        return new ActiveXObject("Msxml2.XMLHTTP");
+                    };
+                }
+                catch (e) {
+                    //do nothing
+                }
+            }
+        }
+
+        window.log.error("Could not create an XMLHTTPRequestObject Remote Model will fail");
+        return undefined;
+    }();
+
     /**
      * Centralized place where all Model Events pass through.
      */
