@@ -17,7 +17,7 @@
  * - Can batch changes into a transaction.
  * - Transaction can be easily optimized.
  * - Incorrect uses of api are logged as errors to the console
- * - Support for all major browsers. (IE9+, Firefox4+, Safari 5.1.4+, Chrome 7+, Opera 12+)
+ * - Browser Support for IE9, Firefox 4+, Safari 5.1.4+, Chrome 7+, Opera 12+
  *
  * TODO:
  *  - add basic validators that can be reused.
