@@ -703,6 +703,35 @@ test("testGetMetadataMethod", function (){
     equal(JSON.stringify(model.toJSON(true)), JSON.stringify(expectedJSON), "metadata serialized correctly");
 });
 
+asyncTest("remoteModel", function () {
+
+    expect(3);
+    var test = new Model();
+    test.createProperty ("remoteModel", {prop1: "defaultValue"}, {
+        url: "http://localhost:8080/modeljs/test/remoteModel.json",
+        shouldSaveData: false, // ?? figure this out should it be on all properties
+        refreshRate: -1, // -1 means fetch once.
+        validator: function() {
+            return true;
+        }
+    });
+
+    var onChangeRegistered = false;
+    function callback () {
+        onChangeRegistered = true;
+    }
+    test.remoteModel.onChange(callback);
+
+    ok(!test.remoteModel.count, "remoteModel count property DNE");
+    setTimeout(function () {
+        start();
+        ok(test.remoteModel.count, "remoteModel was modified to have a count property");
+        ok(onChangeRegistered, "onChange callback fired on remote Model");
+
+    }, 2000);
+
+});
+
 test("modlejsTutorial", function (){
 
     //The code below will teach you how to use modeljs by example. It attepts to go though all the features provided in modeljs in logical progression.

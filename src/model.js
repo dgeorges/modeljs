@@ -54,6 +54,13 @@
         }
     }
 
+    function isValidDate(d) {
+        if ( Object.prototype.toString.call(d) !== "[object Date]" ){
+            return false;
+        }
+        return !isNaN(d.getTime());
+    }
+
     var getXHRObject = function () {
         if (window.XMLHttpRequest) { // Mozilla, Safari, ...
             return function () {
@@ -360,10 +367,10 @@
     };
 
     /**
-     * Retieves the metadata associated with this. The metadata is persisted with the json when you
+     * Retrieves the metadata associated with this. The metadata is persisted with the json when you
      * pass true to the toJSON method (eg. this.toJSON(true). Likewise the metadata will be restored
      * when creating a model from the very same json. Note: the modeljs framework uses the metadata to
-     * store attibutes assoicated the properties.
+     * store attributes associated the properties.
      *
      * @return {Object} A map of metadata properties associated with this.
      */
@@ -488,6 +495,11 @@
             var modelMetadata = metadata || {};
             modelMetadata.name = name;
             this[name] = new Model(value, modelMetadata, this);
+
+            if (modelMetadata.url && modelMetadata.refreshRate){
+                makeRemoteRequest(this[name]);
+            }
+
         } else {
             this[name] = new Property (name, value, this, metadata);
         }
@@ -505,7 +517,7 @@
      *
      * @method  clone
      *
-     * @return {Model}  Returns a new Model object rooted at this, keeping validator but not onChange callbacks.
+     * @return {Model}  Returns a new Model object rooted at this, keeping any metadata but no onChange listeners.
      */
     Model.prototype.clone = function (){
         var myName = this.getName();
@@ -515,6 +527,67 @@
         };
         return new Model(this.toJSON(true), options);
     };
+
+    function retrieveRemoteRequest(xhr, property, xhrProgressEvent) {
+        if (xhr.readyState === 4){
+
+            if (xhr.status !== 200) {
+                window.console.warn("Retrying remote request for " + property.getName() + " due to return status of " + xhr.status);
+                makeRemoteRequest(property);  // retry request...
+                return;
+            }
+
+            if (xhr.responseType !== "json" && xhr.responseType !== "") {
+                window.console.error("Remote model (" + property. getName() + ") must return JSON. Not retrying.");
+                return;
+            }
+
+            //look into ArrayBuffer
+            var jsonResponse = {};
+            try {
+                jsonResponse = JSON.parse(xhr.response);
+            } catch (e) {
+                window.console.error("Unable to parse remote Model request for " + property.getName());
+                //should retry? makeRemoteRequest(property);
+            }
+
+            //use response header Last-Modified time stamp to determine if we should call setValue
+            var responseLastModifiedDate = xhr.getResponseHeader("Last-Modified") && new Date(xhr.getResponseHeader("Last-Modified"));
+            if (responseLastModifiedDate && isValidDate(responseLastModifiedDate)) {
+                var metadata = property.getMetadata();
+                var propertyLastModified = metadata.lastModified && new Date(metadata.lastModified);
+                if (!propertyLastModified || !isValidDate(propertyLastModified) ||  // my last Modified date isn't valid
+                    Date.parse(responseLastModifiedDate) > Date.parse(propertyLastModified) ){ //  or it is and it's stale
+
+                    property.setValue(jsonResponse);
+                    metadata.lastModified = responseLastModifiedDate;
+                } else {
+                    // fetch data hasn't changed.
+                }
+            } else { // no last Modified date in response header, always setValue
+                property.setValue(jsonResponse);
+            }
+
+            if (property.getMetadata().refreshRate > 0) {// relaunch request..
+                makeRemoteRequest(property);
+            }
+        }
+    }
+
+    //TODO: This should be a helper function not a prototype method.
+    function makeRemoteRequest (property) {
+
+        var refreshRate = Math.max(100, property.getMetadata().refreshRate);
+        setTimeout(function(property) {
+            var httpRequest = getXHRObject();
+            httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
+            //httpRequest.orgin = "localhost:8080";
+            //httpRequest.setRequestHeader
+            httpRequest.open('GET', property.getMetadata().url);
+            httpRequest.send();
+
+        }.bind(null, property), refreshRate);
+    }
 
     function mergeLoop (model, json, doModification, keepOldProperties) {
 
@@ -561,7 +634,7 @@
     }
 
     /**
-     * Preforms the merge operation on this. The merge opperation will add properties that exist in the merged object
+     * Preforms the merge operation on this. The merge operation will add properties that exist in the merged object
      * but not in this, remove those that are not found in the merged object (unless keepOldProperties is set to true)
      * and will call setValue for those that exist in both. Note the operation will log an error to the console, return
      * false, and not modify the object if any of the setValue operation are not valid. Not valid set operations inclded
