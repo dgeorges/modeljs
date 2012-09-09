@@ -90,6 +90,66 @@
         return undefined;
     }();
 
+    function retrieveRemoteRequest(xhr, property, xhrProgressEvent) {
+        if (xhr.readyState === 4){
+
+            if (xhr.status !== 200) {
+                window.console.warn("Retrying remote request for " + property.getName() + " due to return status of " + xhr.status);
+                makeRemoteRequest(property);  // retry request...
+                return;
+            }
+
+            if (xhr.responseType !== "json" && xhr.responseType !== "") {
+                window.console.error("Remote model (" + property. getName() + ") must return JSON. Not retrying.");
+                return;
+            }
+
+            //look into ArrayBuffer
+            var jsonResponse = {};
+            try {
+                jsonResponse = JSON.parse(xhr.response);
+            } catch (e) {
+                window.console.error("Unable to parse remote Model request for " + property.getName());
+                //should retry? makeRemoteRequest(property);
+            }
+
+            //use response header Last-Modified time stamp to determine if we should call setValue
+            var responseLastModifiedDate = xhr.getResponseHeader("Last-Modified") && new Date(xhr.getResponseHeader("Last-Modified"));
+            if (responseLastModifiedDate && isValidDate(responseLastModifiedDate)) {
+                var metadata = property.getMetadata();
+                var propertyLastModified = metadata.lastModified && new Date(metadata.lastModified);
+                if (!propertyLastModified || !isValidDate(propertyLastModified) ||  // my last Modified date isn't valid
+                    Date.parse(responseLastModifiedDate) > Date.parse(propertyLastModified) ){ //  or it is and it's stale
+
+                    property.setValue(jsonResponse);
+                    metadata.lastModified = responseLastModifiedDate;
+                } else {
+                    // fetch data hasn't changed.
+                }
+            } else { // no last Modified date in response header, always setValue
+                property.setValue(jsonResponse);
+            }
+
+            if (property.getMetadata().refreshRate > 0) {// relaunch request..
+                makeRemoteRequest(property);
+            }
+        }
+    }
+
+    function makeRemoteRequest (property) {
+
+        var refreshRate = Math.max(100, property.getMetadata().refreshRate);
+        setTimeout(function(property) {
+            var httpRequest = getXHRObject();
+            httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
+            //httpRequest.orgin = "localhost:8080";
+            //httpRequest.setRequestHeader
+            httpRequest.open('GET', property.getMetadata().url);
+            httpRequest.send();
+
+        }.bind(null, property), refreshRate);
+    }
+
     /**
      * Centralized place where all Model Events pass through.
      */
@@ -538,67 +598,6 @@
         };
         return new Model(this.toJSON(true), options);
     };
-
-    function retrieveRemoteRequest(xhr, property, xhrProgressEvent) {
-        if (xhr.readyState === 4){
-
-            if (xhr.status !== 200) {
-                window.console.warn("Retrying remote request for " + property.getName() + " due to return status of " + xhr.status);
-                makeRemoteRequest(property);  // retry request...
-                return;
-            }
-
-            if (xhr.responseType !== "json" && xhr.responseType !== "") {
-                window.console.error("Remote model (" + property. getName() + ") must return JSON. Not retrying.");
-                return;
-            }
-
-            //look into ArrayBuffer
-            var jsonResponse = {};
-            try {
-                jsonResponse = JSON.parse(xhr.response);
-            } catch (e) {
-                window.console.error("Unable to parse remote Model request for " + property.getName());
-                //should retry? makeRemoteRequest(property);
-            }
-
-            //use response header Last-Modified time stamp to determine if we should call setValue
-            var responseLastModifiedDate = xhr.getResponseHeader("Last-Modified") && new Date(xhr.getResponseHeader("Last-Modified"));
-            if (responseLastModifiedDate && isValidDate(responseLastModifiedDate)) {
-                var metadata = property.getMetadata();
-                var propertyLastModified = metadata.lastModified && new Date(metadata.lastModified);
-                if (!propertyLastModified || !isValidDate(propertyLastModified) ||  // my last Modified date isn't valid
-                    Date.parse(responseLastModifiedDate) > Date.parse(propertyLastModified) ){ //  or it is and it's stale
-
-                    property.setValue(jsonResponse);
-                    metadata.lastModified = responseLastModifiedDate;
-                } else {
-                    // fetch data hasn't changed.
-                }
-            } else { // no last Modified date in response header, always setValue
-                property.setValue(jsonResponse);
-            }
-
-            if (property.getMetadata().refreshRate > 0) {// relaunch request..
-                makeRemoteRequest(property);
-            }
-        }
-    }
-
-    //TODO: This should be a helper function not a prototype method.
-    function makeRemoteRequest (property) {
-
-        var refreshRate = Math.max(100, property.getMetadata().refreshRate);
-        setTimeout(function(property) {
-            var httpRequest = getXHRObject();
-            httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
-            //httpRequest.orgin = "localhost:8080";
-            //httpRequest.setRequestHeader
-            httpRequest.open('GET', property.getMetadata().url);
-            httpRequest.send();
-
-        }.bind(null, property), refreshRate);
-    }
 
     function mergeLoop (model, json, doModification, keepOldProperties) {
 
