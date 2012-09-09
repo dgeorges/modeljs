@@ -545,6 +545,20 @@
     };
 
     &#x2F;**
+     * Removes the property from the Model.
+     *
+     * @param  {[type]} notifyListeners [description]
+     * @return {[type]}                 [description]
+     *&#x2F;
+    Property.prototype.destroy = function (notifyListeners) {
+        var myName = this.getName().substring(this.getName().lastIndexOf(&#x27;&#x2F;&#x27;) + 1);
+        delete this._parent[myName];
+
+        &#x2F;&#x2F;TODO fire events
+        &#x2F;&#x2F;update jsdoc with @method and full description
+    };
+
+    &#x2F;**
      * Retrieves the metadata associated with this. The metadata is persisted with the json when you
      * pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
      * when creating a model from the very same json. Note: the modeljs framework uses the metadata to

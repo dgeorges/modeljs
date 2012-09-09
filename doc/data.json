@@ -32,7 +32,7 @@
             "namespaces": {},
             "tag": "module",
             "file": "src\\model.js",
-            "line": 504,
+            "line": 518,
             "description": "Provides the base Model library."
         }
     },
@@ -87,7 +87,7 @@
             "module": "Model",
             "namespace": "",
             "file": "src\\model.js",
-            "line": 504,
+            "line": 518,
             "description": "The model Object that wraps the JSON.",
             "example": [
                 "\nFor examples see: <b>testPrimitiveSaveLoad</b>,  <b>testObjectsSaveLoad</b>, <b>testComplexSaveLoad</b>\n<b>testGetNameMethod</b> and <b>testSaveLoadWithMetaData</b>"
@@ -200,6 +200,24 @@
         {
             "file": "src\\model.js",
             "line": 455,
+            "description": "Removes the property from the Model.",
+            "params": [
+                {
+                    "name": "notifyListeners",
+                    "description": "[description]",
+                    "type": "[type]"
+                }
+            ],
+            "return": {
+                "description": "[description]",
+                "type": "[type]"
+            },
+            "class": "Property",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 469,
             "description": "Retrieves the metadata associated with this. The metadata is persisted with the json when you\npass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored\nwhen creating a model from the very same json. Note: the modeljs framework uses the metadata to\nstore attributes associated the properties that is uses. As a result the following keys have\nspecial meaning and should not be used. <b>[validator, name, url, refreshRate]</b>",
             "itemtype": "method",
             "name": "getMetadata",
@@ -212,7 +230,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 470,
+            "line": 484,
             "description": "Determine if this has a validation function associated with it.",
             "example": [
                 "\nFor examples see:  <b>testPropertyValidationFunction</b>"
@@ -228,7 +246,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 485,
+            "line": 499,
             "description": "Determines if the given value will pass the validation function of this.",
             "example": [
                 "\nFor examples see:  <b>testPropertyValidationFunction</b>"
@@ -251,7 +269,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 550,
+            "line": 564,
             "description": "Gets the value associated with the Model. This will be a json Object.",
             "itemtype": "method",
             "name": "getValue",
@@ -264,7 +282,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 561,
+            "line": 575,
             "description": "Creates the property with the given name on this.",
             "example": [
                 "\n    var model = new Model();\n    model.createProperty(\"number\", 1) // a simple property (model.number)\n    .createProperty(\"subModel\", { // a property that is a subModel (model.subModel and model.subModel.str)\n        str: \"stringProperty\"\n    })\n    .createProperty(\"positiveNumber\", 2, { // a property with a validator (model.positiveNumber)\n        validator: function (value) {\n            return value > 0;\n        }\n    }); // Note the method chaining.\nFor examples see: <b>testModelCreationUsingCreatePropertyMethod</b>"
@@ -297,7 +315,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 615,
+            "line": 629,
             "description": "Clones the Model rooted at this keeping all validators that exist, but not keeping attached onChange callbacks.\nThe name of all properties are adjusted to reflect it's new root.",
             "example": [
                 "\n    var newModel = model.clone(); // clone root model\n    var clonedSubModel = model.subModel.clone(); // clone subModel\nFor more examples: <b>testModelClone</b>"
@@ -313,7 +331,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 681,
+            "line": 695,
             "description": "Preforms the merge operation on this. The merge operation will add properties that exist in the merged object\nbut not in this, remove those that are not found in the merged object (unless keepOldProperties is set to true)\nand will call setValue for those that exist in both. Note the operation will log an error to the console, return\nfalse, and not modify the object if any of the setValue operation are not valid. Not valid set operations inclded\nthose that try to set a value from a property to a model and vise versa.",
             "example": [
                 "\nFor an example see: <b>testModelMergeMethod</b>"
@@ -341,7 +359,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 712,
+            "line": 726,
             "description": "Retrieves the json representation of this. This json representation can be used in the Model Constructor to recreate\nthe same Model object. If you use includeMetaData validator metadata will be included.",
             "example": [
                 "\nFor an example see: <b>testSaveLoadWithMetaData</b>"
@@ -364,7 +382,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 751,
+            "line": 765,
             "description": "Begins a transaction. All events will be put into the queued. To be fired when endTransaction is called.",
             "example": [
                 "\nFor an examples see <b>testModelTransactions</b>"
@@ -377,7 +395,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 767,
+            "line": 781,
             "description": "Ends the current transaction causing all queued up events to be fired according to the global eventOptization settings or the settings passed in if they exist.",
             "example": [
                 "\n    model.endTransaction(); //uses settings found in Model.eventOptimization\n    model.endTransaction({   // override the Model.eventOptimization settings for this transaction\n        suppressPreviousPropertyChangeEvents: false,\n        enableSingleCallbackCall: true,\n        enableCallbackHashOpimization: true\n    })\nFor more examples see: <b>testSingleCallbackEventOptimization</b>, <b>testEnableCallbackHashOpimization</b>,\n     <b>testModelEndTransactionWithOptions</b>"
@@ -397,7 +415,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 806,
+            "line": 820,
             "description": "Determines if you are currently in a start/end transaction block.",
             "example": [
                 "\nFor an examples see <b>testModelTransactions</b>"
@@ -414,7 +432,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 823,
+            "line": 837,
             "description": "Only fires last Property Change of a property during a transaction.",
             "example": [
                 " For an example see <b>testSuppressPreviousPropertyChangeEventsEventOptimization</b>"
@@ -429,7 +447,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 832,
+            "line": 846,
             "description": "Will make sure a callback only gets called only once during a transaction. Even if registered with several properties.",
             "example": [
                 " For an example see <b>testSingleCallbackEventOptimization</b>"
@@ -444,7 +462,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 841,
+            "line": 855,
             "description": "Will make sure callbacks identified by .hash only gets called only once during a transaction. Even if registered with several properties.",
             "example": [
                 " For an example see <b>testEnableCallbackHashOpimization</b>"
@@ -459,7 +477,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 854,
+            "line": 868,
             "description": "Release control of the global window.Model variable restoring it to its previous value",
             "example": [
                 "\n    // window.Model is restore to previous value and localModel now holds the window.Model reference\n    var localModel = window.Model.noConflict();\nFor an example see <b>testEnableCallbackHashOpimization</b>"
@@ -476,7 +494,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 873,
+            "line": 887,
             "class": "Model",
             "module": "Model"
         }
