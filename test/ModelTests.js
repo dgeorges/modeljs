@@ -317,7 +317,7 @@ test("testPropertyValidationFunction", function () {
 test("testSaveLoadWithMetaData", function () {
 
     var expectedJSON = {
-        x: 1,
+        x: {num: 1},
         x__modeljs__metadata: {
             validator: function (value){
                 return value > 0;
@@ -330,7 +330,7 @@ test("testSaveLoadWithMetaData", function () {
     };
 
     var m = new Model();
-    m.createProperty("x", 1, {validator: validateX});
+    m.createProperty("x", {num: 1}, {validator: validateX});
 
     equal(JSON.stringify(m.toJSON(true)), JSON.stringify(expectedJSON), "JSON with metadata is as expected");
 
@@ -703,13 +703,75 @@ test("testGetMetadataMethod", function (){
     equal(JSON.stringify(model.toJSON(true)), JSON.stringify(expectedJSON), "metadata serialized correctly");
 });
 
-asyncTest("remoteModel", function () {
+test("testDoNotPresist", function (){
+   var jsonModel = {
+            number: 1,
+            str: "aString",
+            bool: true,
+            nil: null,
+            undef: undefined,
+            fun: function () {return "I am a function";},
+            subModel: {
+                subProp: "I am the subProp",
+                fun: function () {return "I am a function";},
+                obj: {
+                    num: 1,
+                    num2: 2
+                }
+            }
+        };
+
+    var model = new Model(jsonModel);
+    equal(JSON.stringify(model.toJSON(true)), JSON.stringify(jsonModel), "metadata serialized correctly");
+
+    var doNotPresistNumberPropertyJSON = {
+            number: null,
+            number__modeljs__metadata: {
+                doNotPresist: true
+            },
+            str: "aString",
+            bool: true,
+            nil: null,
+            undef: undefined,
+            fun: function () {return "I am a function";},
+            subModel: {
+                subProp: "I am the subProp",
+                fun: function () {return "I am a function";},
+                obj: {
+                    num: 1,
+                    num2: 2
+                }
+            }
+        };
+
+    model.number.getMetadata().doNotPresist = true;
+    equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPresistNumberPropertyJSON), "metadata serialized correctly");
+    delete model.number.getMetadata().doNotPresist; // restore original
+
+    var doNotPresistObjectPropertyJSON = {
+            number: 1,
+            str: "aString",
+            bool: true,
+            nil: null,
+            undef: undefined,
+            fun: function () {return "I am a function";},
+            subModel: {},
+            subModel__modeljs__metadata: {
+                doNotPresist: true
+            }
+        };
+
+    model.subModel.getMetadata().doNotPresist = true;
+    equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPresistObjectPropertyJSON), "metadata serialized correctly");
+});
+
+asyncTest("remoteModel", function () { //This test depends on a local server serving remoteModel.json
 
     expect(3);
     var test = new Model();
     test.createProperty ("remoteModel", {prop1: "defaultValue"}, {
         url: "http://localhost:8080/modeljs/test/remoteModel.json",
-        shouldSaveData: false, // ?? figure this out should it be on all properties
+        doNotPresist: true,
         refreshRate: -1, // -1 means fetch once.
         validator: function() {
             return true;

@@ -95,7 +95,7 @@
 
             if (xhr.status !== 200) {
                 window.console.warn("Retrying remote request for " + property.getName() + " due to return status of " + xhr.status);
-                makeRemoteRequest(property);  // retry request...
+                //makeRemoteRequest(property);  // retry request...
                 return;
             }
 
@@ -498,6 +498,10 @@
             modelName = (modelMetadata.name || "root"),
             modelParent = parent || null;
 
+        if (modelMetadata.name){ // name is not part of the metadata.
+            delete modelMetadata.name;
+        }
+
         //A Model is in itself a Property so lets call our supers constructor
         Property.call(this, modelName, jsonModel, modelParent, modelMetadata);
 
@@ -556,7 +560,10 @@
      *                             url {String} - the resource this model should use to get it's value. Resource must return json. *Must be used with refreshRate*
      *                         </li><li>
      *                             refreshRate {Number} - the interval used to query the url for changes. must be > 0. minimal value used is 100. -1 indicates to only fetch value once. *Must be used with url*
-     *                         </li></ul>
+     *                         </li><li>
+     *                             doNotPresist {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+     *                         </li>
+     *                         </ul>
      * @return {Model}         Returns this for method chaining
      */
     Model.prototype.createProperty = function createProperty(name, value, metadata) {
@@ -691,12 +698,22 @@
         Object.keys(this).forEach( function (name){
             var property = this[name];
             if (property instanceof Model) {
-                json[name] = property.toJSON(includeMetaData);
+                if (property.getMetadata().doNotPresist) {
+                    json[name] = {};
+                } else {
+                    json[name] = property.toJSON(includeMetaData);
+                }
+                if (includeMetaData && !isEmptyObject(property.getMetadata())){
+                    json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+                }
             } else {
-                var value = this[name].getValue();
-                json[name] = value;
-                if (includeMetaData && this[name]._metadata && !isEmptyObject(this[name]._metadata)){
-                    json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = this[name]._metadata;
+                if (property.getMetadata().doNotPresist) {
+                    json[name] = null;
+                } else {
+                    json[name] = property.getValue();
+                }
+                if (includeMetaData && !isEmptyObject(property.getMetadata())){
+                    json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
                 }
             }
         }, this);
