@@ -170,6 +170,26 @@ test("testModelCreationUsingCreatePropertyMethod", function () {
     equal(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Model Creation from api generates correct JSON");
 });
 
+test("testPropertyDestroyMethod", function() {
+
+    var jsonModel = {   number: 1,
+                        str : "aString",
+                        x: function () {return "I am function x";},
+                        subModel: {
+                            str2: "string2",
+                            f: function () {return "I am a function";}
+                        }
+                    };
+    var model = new Model(jsonModel);
+    ok(model.number);
+    model.number.destroy();
+    ok(!model.number, "number Property no longer exists it was destroyed");
+
+    model.subModel.destroy();
+    ok(!model.subModel, "SubModel Property no longer exists it was destroyed");
+
+});
+
 test("testModelMergeMethod", function () {
      var modelJSON = {
         x: 1,
