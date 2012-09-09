@@ -98,7 +98,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l419"><code>src\model.js:419</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l504"><code>src\model.js:504</code></a>
         </div>
     
 
@@ -168,7 +168,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l419"><code>src\model.js:419</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l504"><code>src\model.js:504</code></a>
         
         </p>
 
@@ -465,7 +465,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l520"><code>src\model.js:520</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l615"><code>src\model.js:615</code></a>
         
         </p>
 
@@ -571,7 +571,7 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l472"><code>src\model.js:472</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l561"><code>src\model.js:561</code></a>
         
         </p>
 
@@ -637,7 +637,13 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
                             url {String} - the resource this model should use to get it's value. Resource must return json. <em>Must be used with refreshRate</em>
                         </li><li>
                             refreshRate {Number} - the interval used to query the url for changes. must be > 0. minimal value used is 100. -1 indicates to only fetch value once. <em>Must be used with url</em>
-                        </li></ul></p>
+                        </li><li>
+                            doNotPresist {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+                        </li>
+                        <li>
+                            isJSONPurl {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string "$jsonpCallback" where the jsonp callback function should be inserted.
+                        </li>
+                        </ul></p>
                     </div>
 
                     
@@ -730,7 +736,7 @@ model.createProperty("number", 1) // a simple property (model.number)
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l723"><code>src\model.js:723</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l767"><code>src\model.js:767</code></a>
         
         </p>
 
@@ -825,7 +831,7 @@ model.endTransaction({   // override the Model.eventOptimization settings for th
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l371"><code>src\model.js:371</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l455"><code>src\model.js:455</code></a>
         
         </p>
 
@@ -897,7 +903,7 @@ special meaning and should not be used. <b>[validator, name, url, refreshRate]</
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l270"><code>src\model.js:270</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l355"><code>src\model.js:355</code></a>
         
         </p>
 
@@ -982,7 +988,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l461"><code>src\model.js:461</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l550"><code>src\model.js:550</code></a>
         
         </p>
 
@@ -1050,7 +1056,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l386"><code>src\model.js:386</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l470"><code>src\model.js:470</code></a>
         
         </p>
 
@@ -1131,7 +1137,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l762"><code>src\model.js:762</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l806"><code>src\model.js:806</code></a>
         
         </p>
 
@@ -1226,7 +1232,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l647"><code>src\model.js:647</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l681"><code>src\model.js:681</code></a>
         
         </p>
 
@@ -1349,7 +1355,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l810"><code>src\model.js:810</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l854"><code>src\model.js:854</code></a>
         
         </p>
 
@@ -1441,7 +1447,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l347"><code>src\model.js:347</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l431"><code>src\model.js:431</code></a>
         
         </p>
 
@@ -1564,7 +1570,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l288"><code>src\model.js:288</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l373"><code>src\model.js:373</code></a>
         
         </p>
 
@@ -1682,7 +1688,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l707"><code>src\model.js:707</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l751"><code>src\model.js:751</code></a>
         
         </p>
 
@@ -1758,7 +1764,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l678"><code>src\model.js:678</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l712"><code>src\model.js:712</code></a>
         
         </p>
 
@@ -1868,7 +1874,7 @@ the same Model object. If you use includeMetaData validator metadata will be inc
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l400"><code>src\model.js:400</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l485"><code>src\model.js:485</code></a>
         
         </p>
 
@@ -1967,7 +1973,7 @@ the same Model object. If you use includeMetaData validator metadata will be inc
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l797"><code>src\model.js:797</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l841"><code>src\model.js:841</code></a>
         
         </p>
 
@@ -2023,7 +2029,7 @@ the same Model object. If you use includeMetaData validator metadata will be inc
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l788"><code>src\model.js:788</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l832"><code>src\model.js:832</code></a>
         
         </p>
 
@@ -2079,7 +2085,7 @@ the same Model object. If you use includeMetaData validator metadata will be inc
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l779"><code>src\model.js:779</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l823"><code>src\model.js:823</code></a>
         
         </p>
 

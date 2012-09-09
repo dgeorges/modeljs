@@ -102,6 +102,7 @@
  * - Simple easy to use and intuitive library
  * - Can save&#x2F;load Model to&#x2F;from JSON with&#x2F;without model meta data
  * - Supports models defined by a remote resource with the ability to periodically refresh.
+ * - remote model has option to use JSONP in the event of CORS issues
  * - Can register on change events with any single property or group of properties
  * - Model change events bubble up.
  * - Can tie validation methods to models and properties
@@ -112,13 +113,13 @@
  * - Browser Support for IE9, Firefox 4+, Safari 5.1.4+, Chrome 7+, Opera 12+
  *
  * TODO:
- *  - add basic validators that can be reused.
- *  - set up gitHub site
  *  - test on IE8
+ *  - think about adding a model binding ability
+ *  - create a sample app.
+ *  - put sample code on github
  *
  * BUGS:
- * - The callback executed when listening to modelChange event on one of your children needs to refined
- *     to make more sense. Right now its the same as a property change.
+ * - Think about improving the onChange callback?
  *&#x2F;
 
 &#x2F;**
@@ -181,6 +182,90 @@
         window.log.error(&quot;Could not create an XMLHTTPRequestObject Remote Model will fail&quot;);
         return undefined;
     }();
+
+    function retrieveRemoteRequest(xhr, property, xhrProgressEvent) {
+        if (xhr.readyState === 4){
+
+            if (xhr.status !== 200) {
+                window.console.warn(&quot;Retrying remote request for &quot; + property.getName() + &quot; due to return status of &quot; + xhr.status);
+                &#x2F;&#x2F;makeRemoteRequest(property);  &#x2F;&#x2F; retry request...
+                return;
+            }
+
+            if (xhr.responseType !== &quot;json&quot; &amp;&amp; xhr.responseType !== &quot;&quot;) {
+                window.console.error(&quot;Remote model (&quot; + property. getName() + &quot;) must return JSON. Not retrying.&quot;);
+                return;
+            }
+
+            &#x2F;&#x2F;look into ArrayBuffer
+            var jsonResponse = {};
+            try {
+                jsonResponse = JSON.parse(xhr.response);
+            } catch (e) {
+                window.console.error(&quot;Unable to parse remote Model request for &quot; + property.getName());
+                &#x2F;&#x2F;should retry? makeRemoteRequest(property);
+            }
+
+            &#x2F;&#x2F;use response header Last-Modified time stamp to determine if we should call setValue
+            var responseLastModifiedDate = xhr.getResponseHeader(&quot;Last-Modified&quot;) &amp;&amp; new Date(xhr.getResponseHeader(&quot;Last-Modified&quot;));
+            if (responseLastModifiedDate &amp;&amp; isValidDate(responseLastModifiedDate)) {
+                var metadata = property.getMetadata();
+                var propertyLastModified = metadata.lastModified &amp;&amp; new Date(metadata.lastModified);
+                if (!propertyLastModified || !isValidDate(propertyLastModified) ||  &#x2F;&#x2F; my last Modified date isn&#x27;t valid
+                    Date.parse(responseLastModifiedDate) &gt; Date.parse(propertyLastModified) ){ &#x2F;&#x2F;  or it is and it&#x27;s stale
+
+                    property.setValue(jsonResponse);
+                    metadata.lastModified = responseLastModifiedDate;
+                } else {
+                    &#x2F;&#x2F; fetch data hasn&#x27;t changed.
+                }
+            } else { &#x2F;&#x2F; no last Modified date in response header, always setValue
+                property.setValue(jsonResponse);
+            }
+
+            if (property.getMetadata().refreshRate &gt; 0) {&#x2F;&#x2F; relaunch request..
+                makeRemoteRequest(property);
+            }
+        }
+    }
+
+    function makeRemoteRequest (property) {
+
+        var refreshRate = Math.max(100, property.getMetadata().refreshRate);
+        setTimeout(function(property) {
+            var url = property.getMetadata().url;
+            if (property.getMetadata().isJSONPurl){
+                var uniqueCallback = generateJSONPCallback(property);
+                url = url.replace(&quot;$jsonpCallback&quot;, uniqueCallback);
+                makeJSONPRequest(url);
+            } else {
+                var httpRequest = getXHRObject();
+                httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
+                &#x2F;&#x2F;httpRequest.orgin = &quot;localhost:8080&quot;;
+                &#x2F;&#x2F;httpRequest.setRequestHeader
+                httpRequest.open(&#x27;GET&#x27;, url);
+                httpRequest.send();
+            }
+
+        }.bind(null, property), refreshRate);
+    }
+
+    function makeJSONPRequest (url) {
+        var scriptTag = document.createElement(&quot;SCRIPT&quot;);
+        scriptTag.type = &#x27;text&#x2F;javascript&#x27;;
+        scriptTag.src = url;
+        document.getElementsByTagName(&#x27;head&#x27;)[0].appendChild(scriptTag);
+    }
+
+    var callbackId = 0;
+    function generateJSONPCallback(property){
+        var fnName = &quot;modeljsJSONPCallback&quot; + callbackId++;
+        window[fnName] = function (property, json) {
+            property.setValue(json);
+            delete window[fnName];
+        }.bind(null, property);
+        return fnName;
+    }
 
     &#x2F;**
      * Centralized place where all Model Events pass through.
@@ -406,9 +491,8 @@
 
         &#x2F;&#x2F; Note: this disallows setting a property to undefined. Only when it&#x27;s first created can it be undefined.
         if (newValue !== undefined &amp;&amp; newValue !== this._myValue) {
-            var validationFunction = this._metadata &amp;&amp; this._metadata.validator;
 
-            if (!validationFunction || validationFunction(newValue)){
+            if (!this.hasValidator() || this.validateValue(newValue)){
                 var oldValue = this._myValue;
 
                 if (isObject(newValue)) {
@@ -486,7 +570,8 @@
      * @return {Boolean} True if this has a validator associated with it. False otherwise.
      *&#x2F;
     Property.prototype.hasValidator = function () {
-        return !!this._metadata.validator;
+        return !!this._metadata.validator &amp;&amp;
+            Object.prototype.toString.call(this._metadata.validator) === &#x27;[object Function]&#x27;;
     };
 
    &#x2F;**
@@ -529,6 +614,10 @@
             modelMetadata = metadata|| {},
             modelName = (modelMetadata.name || &quot;root&quot;),
             modelParent = parent || null;
+
+        if (modelMetadata.name){ &#x2F;&#x2F; name is not part of the metadata.
+            delete modelMetadata.name;
+        }
 
         &#x2F;&#x2F;A Model is in itself a Property so lets call our supers constructor
         Property.call(this, modelName, jsonModel, modelParent, modelMetadata);
@@ -588,7 +677,13 @@
      *                             url {String} - the resource this model should use to get it&#x27;s value. Resource must return json. *Must be used with refreshRate*
      *                         &lt;&#x2F;li&gt;&lt;li&gt;
      *                             refreshRate {Number} - the interval used to query the url for changes. must be &gt; 0. minimal value used is 100. -1 indicates to only fetch value once. *Must be used with url*
-     *                         &lt;&#x2F;li&gt;&lt;&#x2F;ul&gt;
+     *                         &lt;&#x2F;li&gt;&lt;li&gt;
+     *                             doNotPresist {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+     *                         &lt;&#x2F;li&gt;
+     *                         &lt;li&gt;
+     *                             isJSONPurl {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string &quot;$jsonpCallback&quot; where the jsonp callback function should be inserted.
+     *                         &lt;&#x2F;li&gt;
+     *                         &lt;&#x2F;ul&gt;
      * @return {Model}         Returns this for method chaining
      *&#x2F;
     Model.prototype.createProperty = function createProperty(name, value, metadata) {
@@ -630,67 +725,6 @@
         };
         return new Model(this.toJSON(true), options);
     };
-
-    function retrieveRemoteRequest(xhr, property, xhrProgressEvent) {
-        if (xhr.readyState === 4){
-
-            if (xhr.status !== 200) {
-                window.console.warn(&quot;Retrying remote request for &quot; + property.getName() + &quot; due to return status of &quot; + xhr.status);
-                makeRemoteRequest(property);  &#x2F;&#x2F; retry request...
-                return;
-            }
-
-            if (xhr.responseType !== &quot;json&quot; &amp;&amp; xhr.responseType !== &quot;&quot;) {
-                window.console.error(&quot;Remote model (&quot; + property. getName() + &quot;) must return JSON. Not retrying.&quot;);
-                return;
-            }
-
-            &#x2F;&#x2F;look into ArrayBuffer
-            var jsonResponse = {};
-            try {
-                jsonResponse = JSON.parse(xhr.response);
-            } catch (e) {
-                window.console.error(&quot;Unable to parse remote Model request for &quot; + property.getName());
-                &#x2F;&#x2F;should retry? makeRemoteRequest(property);
-            }
-
-            &#x2F;&#x2F;use response header Last-Modified time stamp to determine if we should call setValue
-            var responseLastModifiedDate = xhr.getResponseHeader(&quot;Last-Modified&quot;) &amp;&amp; new Date(xhr.getResponseHeader(&quot;Last-Modified&quot;));
-            if (responseLastModifiedDate &amp;&amp; isValidDate(responseLastModifiedDate)) {
-                var metadata = property.getMetadata();
-                var propertyLastModified = metadata.lastModified &amp;&amp; new Date(metadata.lastModified);
-                if (!propertyLastModified || !isValidDate(propertyLastModified) ||  &#x2F;&#x2F; my last Modified date isn&#x27;t valid
-                    Date.parse(responseLastModifiedDate) &gt; Date.parse(propertyLastModified) ){ &#x2F;&#x2F;  or it is and it&#x27;s stale
-
-                    property.setValue(jsonResponse);
-                    metadata.lastModified = responseLastModifiedDate;
-                } else {
-                    &#x2F;&#x2F; fetch data hasn&#x27;t changed.
-                }
-            } else { &#x2F;&#x2F; no last Modified date in response header, always setValue
-                property.setValue(jsonResponse);
-            }
-
-            if (property.getMetadata().refreshRate &gt; 0) {&#x2F;&#x2F; relaunch request..
-                makeRemoteRequest(property);
-            }
-        }
-    }
-
-    &#x2F;&#x2F;TODO: This should be a helper function not a prototype method.
-    function makeRemoteRequest (property) {
-
-        var refreshRate = Math.max(100, property.getMetadata().refreshRate);
-        setTimeout(function(property) {
-            var httpRequest = getXHRObject();
-            httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
-            &#x2F;&#x2F;httpRequest.orgin = &quot;localhost:8080&quot;;
-            &#x2F;&#x2F;httpRequest.setRequestHeader
-            httpRequest.open(&#x27;GET&#x27;, property.getMetadata().url);
-            httpRequest.send();
-
-        }.bind(null, property), refreshRate);
-    }
 
     function mergeLoop (model, json, doModification, keepOldProperties) {
 
@@ -784,12 +818,22 @@
         Object.keys(this).forEach( function (name){
             var property = this[name];
             if (property instanceof Model) {
-                json[name] = property.toJSON(includeMetaData);
+                if (property.getMetadata().doNotPresist) {
+                    json[name] = {};
+                } else {
+                    json[name] = property.toJSON(includeMetaData);
+                }
+                if (includeMetaData &amp;&amp; !isEmptyObject(property.getMetadata())){
+                    json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+                }
             } else {
-                var value = this[name].getValue();
-                json[name] = value;
-                if (includeMetaData &amp;&amp; this[name]._metadata &amp;&amp; !isEmptyObject(this[name]._metadata)){
-                    json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = this[name]._metadata;
+                if (property.getMetadata().doNotPresist) {
+                    json[name] = null;
+                } else {
+                    json[name] = property.getValue();
+                }
+                if (includeMetaData &amp;&amp; !isEmptyObject(property.getMetadata())){
+                    json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
                 }
             }
         }, this);
