@@ -10,6 +10,7 @@
  * - Simple easy to use and intuitive library
  * - Can save/load Model to/from JSON with/without model meta data
  * - Supports models defined by a remote resource with the ability to periodically refresh.
+ * - remote model has option to use JSONP in the event of CORS issues
  * - Can register on change events with any single property or group of properties
  * - Model change events bubble up.
  * - Can tie validation methods to models and properties
@@ -20,13 +21,13 @@
  * - Browser Support for IE9, Firefox 4+, Safari 5.1.4+, Chrome 7+, Opera 12+
  *
  * TODO:
- *  - add basic validators that can be reused.
- *  - set up gitHub site
  *  - test on IE8
+ *  - think about adding a model binding ability
+ *  - create a sample app.
+ *  - put sample code on github
  *
  * BUGS:
- * - The callback executed when listening to modelChange event on one of your children needs to refined
- *     to make more sense. Right now its the same as a property change.
+ * - Think about improving the onChange callback?
  */
 
 /**

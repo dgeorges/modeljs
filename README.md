@@ -7,7 +7,8 @@ Features
 --------------------
   - Simple easy to use and intuitive library
   - Can save/load Model to/from JSON with/without model meta data
-  - Supports models defined by a remote resource with the ability to periodically refresh.
+  - Supports models defined by a remote resource with the ability to periodically refresh
+  - remote model has option to use JSONP in the event of CORS issues
   - Can register on change events with any single property or group of properties
   - Model change events bubble up.
   - Can tie validation methods to models and properties
