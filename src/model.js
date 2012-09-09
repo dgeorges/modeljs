@@ -143,9 +143,9 @@
         setTimeout(function(property) {
             var url = property.getMetadata().url;
             if (property.getMetadata().isJSONPurl){
-                var uniqueCallback = generateJSONPCallback(property);
-                url = url.replace("$jsonpCallback", uniqueCallback);
-                makeJSONPRequest(url);
+                var uniqueCallbackId = generateJSONPCallback(property);
+                url = url.replace("$jsonpCallback", uniqueCallbackId);
+                makeJSONPRequest(url, uniqueCallbackId);
             } else {
                 var httpRequest = getXHRObject();
                 httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
@@ -158,8 +158,9 @@
         }.bind(null, property), refreshRate);
     }
 
-    function makeJSONPRequest (url) {
+    function makeJSONPRequest (url, id) {
         var scriptTag = document.createElement("SCRIPT");
+        scriptTag.id = id;
         scriptTag.type = 'text/javascript';
         scriptTag.src = url;
         document.getElementsByTagName('head')[0].appendChild(scriptTag);
@@ -168,9 +169,11 @@
     var callbackId = 0;
     function generateJSONPCallback(property){
         var fnName = "modeljsJSONPCallback" + callbackId++;
-        window[fnName] = function (property, json) {
+        window[fnName] = function (property, json) { //create global callback
             property.setValue(json);
-            delete window[fnName];
+            var scriptElement = document.getElementById(fnName);
+            document.getElementsByTagName('head')[0].removeChild(scriptElement); //remove callback script
+            delete window[fnName]; // remove global callback method
         }.bind(null, property);
         return fnName;
     }
