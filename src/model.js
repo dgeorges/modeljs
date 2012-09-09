@@ -140,14 +140,38 @@
 
         var refreshRate = Math.max(100, property.getMetadata().refreshRate);
         setTimeout(function(property) {
-            var httpRequest = getXHRObject();
-            httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
-            //httpRequest.orgin = "localhost:8080";
-            //httpRequest.setRequestHeader
-            httpRequest.open('GET', property.getMetadata().url);
-            httpRequest.send();
+            var url = property.getMetadata().url;
+            if (property.getMetadata().isJSONPurl){
+                var uniqueCallback = generateJSONPCallback(property);
+                url = url.replace("$jsonpCallback", uniqueCallback);
+                makeJSONPRequest(url);
+            } else {
+                var httpRequest = getXHRObject();
+                httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
+                //httpRequest.orgin = "localhost:8080";
+                //httpRequest.setRequestHeader
+                httpRequest.open('GET', url);
+                httpRequest.send();
+            }
 
         }.bind(null, property), refreshRate);
+    }
+
+    function makeJSONPRequest (url) {
+        var scriptTag = document.createElement("SCRIPT");
+        scriptTag.type = 'text/javascript';
+        scriptTag.src = url;
+        document.getElementsByTagName('head')[0].appendChild(scriptTag);
+    }
+
+    var callbackId = 0;
+    function generateJSONPCallback(property){
+        var fnName = "modeljsJSONPCallback" + callbackId++;
+        window[fnName] = function (property, json) {
+            property.setValue(json);
+            delete window[fnName];
+        }.bind(null, property);
+        return fnName;
     }
 
     /**
@@ -562,6 +586,9 @@
      *                             refreshRate {Number} - the interval used to query the url for changes. must be > 0. minimal value used is 100. -1 indicates to only fetch value once. *Must be used with url*
      *                         </li><li>
      *                             doNotPresist {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+     *                         </li>
+     *                         <li>
+     *                             isJSONPurl {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string "$jsonpCallback" where the jsonp callback function should be inserted.
      *                         </li>
      *                         </ul>
      * @return {Model}         Returns this for method chaining

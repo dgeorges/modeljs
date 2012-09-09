@@ -765,21 +765,22 @@ test("testDoNotPresist", function (){
     equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPresistObjectPropertyJSON), "metadata serialized correctly");
 });
 
-asyncTest("remoteModel", function () { //This test depends on a local server serving remoteModel.json
+asyncTest("remoteModel", function () {
 
     expect(3);
     var test = new Model();
     test.createProperty ("remoteModel", {prop1: "defaultValue"}, {
-        url: "http://localhost:8080/modeljs/test/remoteModel.json",
+        url: "http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback",
         doNotPresist: true,
         refreshRate: -1, // -1 means fetch once.
+        isJSONPurl: true,
         validator: function() {
             return true;
         }
     });
 
     var onChangeRegistered = false;
-    function callback () {
+    function callback (oldValue, newValue, prop) {
         onChangeRegistered = true;
     }
     test.remoteModel.onChange(callback);
@@ -787,7 +788,7 @@ asyncTest("remoteModel", function () { //This test depends on a local server ser
     ok(!test.remoteModel.count, "remoteModel count property DNE");
     setTimeout(function () {
         start();
-        ok(test.remoteModel.count, "remoteModel was modified to have a count property");
+        ok(test.remoteModel.query, "remoteModel was modified to have a count property");
         ok(onChangeRegistered, "onChange callback fired on remote Model");
 
     }, 2000);
