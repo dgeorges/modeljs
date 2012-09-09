@@ -399,9 +399,8 @@
 
         // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
         if (newValue !== undefined && newValue !== this._myValue) {
-            var validationFunction = this._metadata && this._metadata.validator;
 
-            if (!validationFunction || validationFunction(newValue)){
+            if (!this.hasValidator() || this.validateValue(newValue)){
                 var oldValue = this._myValue;
 
                 if (isObject(newValue)) {
@@ -479,7 +478,8 @@
      * @return {Boolean} True if this has a validator associated with it. False otherwise.
      */
     Property.prototype.hasValidator = function () {
-        return !!this._metadata.validator;
+        return !!this._metadata.validator &&
+            Object.prototype.toString.call(this._metadata.validator) === '[object Function]';
     };
 
    /**
