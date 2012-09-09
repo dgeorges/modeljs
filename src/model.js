@@ -181,11 +181,12 @@
     var eventProxy = function () {
         var eventQueue = [],
             state = {   ACTIVE: "active", TRANSACTION: "transaction"},
+            eventType = {CHANGE: "change", CREATE: "create", DESTROY: "destroy"},
             currentState = state.ACTIVE;
 
         var executedCallbacks = [];
         var callbackHashs = [];
-        function _fireEvent(property, oldValue) {
+        function _fireChangeEvent(property, oldValue) {
 
             // This weird executeCallback function is a bit more complicated than it needs to be but is
             // used to get around the JSLint warning of creating a function within the while loop below
@@ -232,11 +233,12 @@
             }
         }
 
-        function fireEvent (property, oldValue) {
+        function fireChangeEvent (property, oldValue) {
             if (currentState === state.ACTIVE){
-                _fireEvent(property, oldValue);
+                _fireChangeEvent(property, oldValue);
             } else { //place event on queue to be called at a later time.
                 eventQueue.push({
+                    eventType: eventType.CHANGE,
                     property: property,
                     oldValue: oldValue
                 });
@@ -273,13 +275,17 @@
             }
 
             eventQueue.forEach( function (event){
-                _fireEvent(event.property, event.oldValue);
+                if (event.eventType === eventType.CHANGE){
+                    _fireChangeEvent(event.property, event.oldValue);
+                } else {
+                    window.console.error("Unknown event");
+                }
             });
             eventQueue = [];
         }
 
         return {
-            fireEvent: fireEvent,
+            fireChangeEvent: fireChangeEvent,
             startTransaction: changeState.bind(null, state.TRANSACTION),
             endTransaction: changeState.bind(null, state.ACTIVE),
             inTransaction: function () { return currentState === state.TRANSACTION;}
@@ -421,7 +427,7 @@
                 }
 
                 if (!suppressNotifications){
-                    eventProxy.fireEvent(this, oldValue);
+                    eventProxy.fireChangeEvent(this, oldValue);
                 }
             }
         }
@@ -462,7 +468,7 @@
         var myName = this.getName().substring(this.getName().lastIndexOf('/') + 1);
         delete this._parent[myName];
 
-        //TODO fire events
+        //TODO fire delete events
         //update jsdoc with @method and full description
     };
 
