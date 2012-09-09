@@ -101,6 +101,7 @@
  * Features
  * - Simple easy to use and intuitive library
  * - Can save&#x2F;load Model to&#x2F;from JSON with&#x2F;without model meta data
+ * - Supports models defined by a remote resource with the ability to periodically refresh.
  * - Can register on change events with any single property or group of properties
  * - Model change events bubble up.
  * - Can tie validation methods to models and properties
@@ -108,10 +109,9 @@
  * - Can batch changes into a transaction.
  * - Transaction can be easily optimized.
  * - Incorrect uses of api are logged as errors to the console
-  *
+ * - Browser Support for IE9, Firefox 4+, Safari 5.1.4+, Chrome 7+, Opera 12+
  *
  * TODO:
- *  - hook up&#x2F;create&#x2F;clean documentation and document methods properly.
  *  - add basic validators that can be reused.
  *  - set up gitHub site
  *  - test on IE8
@@ -145,6 +145,42 @@
             return true;
         }
     }
+
+    function isValidDate(d) {
+        if ( Object.prototype.toString.call(d) !== &quot;[object Date]&quot; ){
+            return false;
+        }
+        return !isNaN(d.getTime());
+    }
+
+    var getXHRObject = function () {
+        if (window.XMLHttpRequest) { &#x2F;&#x2F; Mozilla, Safari, ...
+            return function () {
+                return new XMLHttpRequest();
+            };
+        } else if (window.ActiveXObject) { &#x2F;&#x2F; IE
+            try {
+                new ActiveXObject(&quot;Msxml2.XMLHTTP&quot;);
+                return function () {
+                    return new ActiveXObject(&quot;Msxml2.XMLHTTP&quot;);
+                };
+              }
+            catch (e) {
+                try {
+                    new ActiveXObject(&quot;Microsoft.XMLHTTP&quot;);
+                    return function () {
+                        return new ActiveXObject(&quot;Msxml2.XMLHTTP&quot;);
+                    };
+                }
+                catch (e) {
+                    &#x2F;&#x2F;do nothing
+                }
+            }
+        }
+
+        window.log.error(&quot;Could not create an XMLHTTPRequestObject Remote Model will fail&quot;);
+        return undefined;
+    }();
 
     &#x2F;**
      * Centralized place where all Model Events pass through.
@@ -267,8 +303,10 @@
      * @param {[String]} name    The name of the property
      * @param {[String, Boolean, Number, null, Function, Object]} value   The Property Value
      * @param {[Model]} parent  The parent property
-     * @param {[Object]} metadata The metadata associated with the property:
-     *                         validator - a function to validate the new value is valid before it is assigned.
+     * @param {[Object]} metadata The metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
+     *                         validator - a function to validate if the new value is valid before it is assigned.
+     *                         url - the resource this model should use to get it&#x27;s value. Resource must return json. *Must be used with refreshRate*
+     *                         refreshRate - the interval used to query the url for changes. must be &gt; 0. minimal value used is 100. -1 indicates to only fetch value once. *Must be used with url*
      *&#x2F;
     function Property (name, value, parent, metadata) {
 
@@ -423,6 +461,21 @@
     };
 
     &#x2F;**
+     * Retrieves the metadata associated with this. The metadata is persisted with the json when you
+     * pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
+     * when creating a model from the very same json. Note: the modeljs framework uses the metadata to
+     * store attributes associated the properties that is uses. As a result the following keys have
+     * special meaning and should not be used. &lt;b&gt;[validator, name, url, refreshRate]&lt;&#x2F;b&gt;
+     *
+     * @method  getMetadata
+     *
+     * @return {Object} A map of metadata properties associated with this.
+     *&#x2F;
+    Property.prototype.getMetadata = function () {
+            return this._metadata; &#x2F;&#x2F;TODO should I return a defensive copy?
+    };
+
+    &#x2F;**
      * Determine if this has a validation function associated with it.
      *
      * @example
@@ -468,8 +521,8 @@
      *
      * @param {Object} json    The json object to be modeled.
      * @param {Object} metadata? May contain the following:
-     *                         validator - a function to validate the new value is valid before it is assigned.
      *                         name - name of the Model, defaults to &quot;root&quot;
+     *                         *plus any properties accepted by the createProperty method metadata argument
      *&#x2F;
     function Model (json, metadata, parent) {
         var jsonModel = json || {} ,
@@ -526,10 +579,16 @@
      *
      * @method  createProperty
      *
-     * @param  {String} name    Name of the property
-     * @param  {[String, Boolean, Number, null, Function, Object]} value   Property value
-     * @param  {Object} metadata? A hash of metadata including:
-     *                           validator {Function} The validator to associate with the new Property.
+     * @param {String} name    Name of the property
+     * @param {[String, Boolean, Number, null, Function, Object]} value   Property value
+     * @param {[Object]} metadata? A hash of metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
+     *                         &lt;ul&gt;&lt;li&gt;
+     *                             validator {Function} - a function to validate if the new value is valid before it is assigned.
+     *                         &lt;&#x2F;li&gt;&lt;li&gt;
+     *                             url {String} - the resource this model should use to get it&#x27;s value. Resource must return json. *Must be used with refreshRate*
+     *                         &lt;&#x2F;li&gt;&lt;li&gt;
+     *                             refreshRate {Number} - the interval used to query the url for changes. must be &gt; 0. minimal value used is 100. -1 indicates to only fetch value once. *Must be used with url*
+     *                         &lt;&#x2F;li&gt;&lt;&#x2F;ul&gt;
      * @return {Model}         Returns this for method chaining
      *&#x2F;
     Model.prototype.createProperty = function createProperty(name, value, metadata) {
@@ -539,6 +598,11 @@
             var modelMetadata = metadata || {};
             modelMetadata.name = name;
             this[name] = new Model(value, modelMetadata, this);
+
+            if (modelMetadata.url &amp;&amp; modelMetadata.refreshRate){
+                makeRemoteRequest(this[name]);
+            }
+
         } else {
             this[name] = new Property (name, value, this, metadata);
         }
@@ -556,7 +620,7 @@
      *
      * @method  clone
      *
-     * @return {Model}  Returns a new Model object rooted at this, keeping validator but not onChange callbacks.
+     * @return {Model}  Returns a new Model object rooted at this, keeping any metadata but no onChange listeners.
      *&#x2F;
     Model.prototype.clone = function (){
         var myName = this.getName();
@@ -566,6 +630,67 @@
         };
         return new Model(this.toJSON(true), options);
     };
+
+    function retrieveRemoteRequest(xhr, property, xhrProgressEvent) {
+        if (xhr.readyState === 4){
+
+            if (xhr.status !== 200) {
+                window.console.warn(&quot;Retrying remote request for &quot; + property.getName() + &quot; due to return status of &quot; + xhr.status);
+                makeRemoteRequest(property);  &#x2F;&#x2F; retry request...
+                return;
+            }
+
+            if (xhr.responseType !== &quot;json&quot; &amp;&amp; xhr.responseType !== &quot;&quot;) {
+                window.console.error(&quot;Remote model (&quot; + property. getName() + &quot;) must return JSON. Not retrying.&quot;);
+                return;
+            }
+
+            &#x2F;&#x2F;look into ArrayBuffer
+            var jsonResponse = {};
+            try {
+                jsonResponse = JSON.parse(xhr.response);
+            } catch (e) {
+                window.console.error(&quot;Unable to parse remote Model request for &quot; + property.getName());
+                &#x2F;&#x2F;should retry? makeRemoteRequest(property);
+            }
+
+            &#x2F;&#x2F;use response header Last-Modified time stamp to determine if we should call setValue
+            var responseLastModifiedDate = xhr.getResponseHeader(&quot;Last-Modified&quot;) &amp;&amp; new Date(xhr.getResponseHeader(&quot;Last-Modified&quot;));
+            if (responseLastModifiedDate &amp;&amp; isValidDate(responseLastModifiedDate)) {
+                var metadata = property.getMetadata();
+                var propertyLastModified = metadata.lastModified &amp;&amp; new Date(metadata.lastModified);
+                if (!propertyLastModified || !isValidDate(propertyLastModified) ||  &#x2F;&#x2F; my last Modified date isn&#x27;t valid
+                    Date.parse(responseLastModifiedDate) &gt; Date.parse(propertyLastModified) ){ &#x2F;&#x2F;  or it is and it&#x27;s stale
+
+                    property.setValue(jsonResponse);
+                    metadata.lastModified = responseLastModifiedDate;
+                } else {
+                    &#x2F;&#x2F; fetch data hasn&#x27;t changed.
+                }
+            } else { &#x2F;&#x2F; no last Modified date in response header, always setValue
+                property.setValue(jsonResponse);
+            }
+
+            if (property.getMetadata().refreshRate &gt; 0) {&#x2F;&#x2F; relaunch request..
+                makeRemoteRequest(property);
+            }
+        }
+    }
+
+    &#x2F;&#x2F;TODO: This should be a helper function not a prototype method.
+    function makeRemoteRequest (property) {
+
+        var refreshRate = Math.max(100, property.getMetadata().refreshRate);
+        setTimeout(function(property) {
+            var httpRequest = getXHRObject();
+            httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
+            &#x2F;&#x2F;httpRequest.orgin = &quot;localhost:8080&quot;;
+            &#x2F;&#x2F;httpRequest.setRequestHeader
+            httpRequest.open(&#x27;GET&#x27;, property.getMetadata().url);
+            httpRequest.send();
+
+        }.bind(null, property), refreshRate);
+    }
 
     function mergeLoop (model, json, doModification, keepOldProperties) {
 
@@ -612,7 +737,7 @@
     }
 
     &#x2F;**
-     * Preforms the merge operation on this. The merge opperation will add properties that exist in the merged object
+     * Preforms the merge operation on this. The merge operation will add properties that exist in the merged object
      * but not in this, remove those that are not found in the merged object (unless keepOldProperties is set to true)
      * and will call setValue for those that exist in both. Note the operation will log an error to the console, return
      * false, and not modify the object if any of the setValue operation are not valid. Not valid set operations inclded

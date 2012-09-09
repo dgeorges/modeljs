@@ -370,9 +370,12 @@
 
     /**
      * Retrieves the metadata associated with this. The metadata is persisted with the json when you
-     * pass true to the toJSON method (eg. this.toJSON(true). Likewise the metadata will be restored
+     * pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
      * when creating a model from the very same json. Note: the modeljs framework uses the metadata to
-     * store attributes associated the properties.
+     * store attributes associated the properties that is uses. As a result the following keys have
+     * special meaning and should not be used. <b>[validator, name, url, refreshRate]</b>
+     *
+     * @method  getMetadata
      *
      * @return {Object} A map of metadata properties associated with this.
      */
@@ -487,10 +490,13 @@
      * @param {String} name    Name of the property
      * @param {[String, Boolean, Number, null, Function, Object]} value   Property value
      * @param {[Object]} metadata? A hash of metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
-     *                         validator {function} - a function to validate if the new value is valid before it is assigned.
-     *                         url {string} - the resource this model should use to get it's value. Resource must return json. *Must be used with refreshRate*
-     *                         refreshRate {number} - the interval used to query the url for changes. must be > 0. minimal value used is 100. -1 indicates to only fetch value once. *Must be used with url*
-     *
+     *                         <ul><li>
+     *                             validator {Function} - a function to validate if the new value is valid before it is assigned.
+     *                         </li><li>
+     *                             url {String} - the resource this model should use to get it's value. Resource must return json. *Must be used with refreshRate*
+     *                         </li><li>
+     *                             refreshRate {Number} - the interval used to query the url for changes. must be > 0. minimal value used is 100. -1 indicates to only fetch value once. *Must be used with url*
+     *                         </li></ul>
      * @return {Model}         Returns this for method chaining
      */
     Model.prototype.createProperty = function createProperty(name, value, metadata) {

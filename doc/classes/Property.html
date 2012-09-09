@@ -94,7 +94,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l168"><code>src\model.js:168</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l204"><code>src\model.js:204</code></a>
         </div>
     
 
@@ -178,7 +178,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l168"><code>src\model.js:168</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l204"><code>src\model.js:204</code></a>
         
         </p>
 
@@ -252,8 +252,10 @@
                     
 
                     <div class="param-description">
-                        <p>The metadata associated with the property:
-                        validator - a function to validate the new value is valid before it is assigned.</p>
+                        <p>The metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
+                        validator - a function to validate if the new value is valid before it is assigned.
+                        url - the resource this model should use to get it's value. Resource must return json. <em>Must be used with refreshRate</em>
+                        refreshRate - the interval used to query the url for changes. must be > 0. minimal value used is 100. -1 indicates to only fetch value once. <em>Must be used with url</em></p>
                     </div>
 
                     
@@ -292,6 +294,13 @@
                     <h3>Methods</h3>
 
                     <ul class="index-list methods">
+                        
+                            <li class="index-item method">
+                                <a href="#method_getMetadata">getMetadata</a>
+
+                                
+                                
+                            </li>
                         
                             <li class="index-item method">
                                 <a href="#method_getName">getName</a>
@@ -351,6 +360,81 @@
                 <h2 class="off-left">Methods</h2>
 
                 
+                    <div id="method_getMetadata" class="method item">
+    <h3 class="name"><code>getMetadata</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">Object</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l371"><code>src\model.js:371</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Retrieves the metadata associated with this. The metadata is persisted with the json when you
+pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
+when creating a model from the very same json. Note: the modeljs framework uses the metadata to
+store attributes associated the properties that is uses. As a result the following keys have
+special meaning and should not be used. <b>[validator, name, url, refreshRate]</b></p>
+    </div>
+
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">Object</span>:
+                    
+                    A map of metadata properties associated with this.
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
                     <div id="method_getName" class="method item">
     <h3 class="name"><code>getName</code></h3>
 
@@ -387,7 +471,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l232"><code>src\model.js:232</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l270"><code>src\model.js:270</code></a>
         
         </p>
 
@@ -472,7 +556,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l221"><code>src\model.js:221</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l259"><code>src\model.js:259</code></a>
         
         </p>
 
@@ -543,7 +627,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l333"><code>src\model.js:333</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l386"><code>src\model.js:386</code></a>
         
         </p>
 
@@ -634,7 +718,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l309"><code>src\model.js:309</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l347"><code>src\model.js:347</code></a>
         
         </p>
 
@@ -760,7 +844,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l250"><code>src\model.js:250</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l288"><code>src\model.js:288</code></a>
         
         </p>
 
@@ -890,7 +974,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l347"><code>src\model.js:347</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l400"><code>src\model.js:400</code></a>
         
         </p>
 
