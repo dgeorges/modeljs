@@ -172,18 +172,27 @@ test("testModelCreationUsingCreatePropertyMethod", function () {
 
 test("testPropertyDestroyMethod", function() {
 
-    var jsonModel = {   number: 1,
-                        str : "aString",
-                        x: function () {return "I am function x";},
-                        subModel: {
-                            str2: "string2",
-                            f: function () {return "I am a function";}
-                        }
-                    };
+    var jsonModel = {   
+        number: 1,
+        str : "aString",
+        x: function () {return "I am function x";},
+        subModel: {
+            str2: "string2",
+            f: function () {return "I am a function";}
+        }
+    };
+
+    var deleteCallbackCalled = false;
+    function deleteCallback(oldValue, property) {
+        deleteCallbackCalled = true;
+    }
+
     var model = new Model(jsonModel);
     ok(model.number);
+    model.number.onDestroy(deleteCallback);
     model.number.destroy();
     ok(!model.number, "number Property no longer exists it was destroyed");
+    ok(deleteCallbackCalled, "destroy callback called");
 
     model.subModel.destroy();
     ok(!model.subModel, "SubModel Property no longer exists it was destroyed");

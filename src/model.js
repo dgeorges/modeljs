@@ -25,6 +25,7 @@
  *  - think about adding a model binding ability
  *  - create a sample app.
  *  - put sample code on github
+ *  - ability for custom events?
  *
  * BUGS:
  * - Think about improving the onChange callback?
@@ -200,7 +201,7 @@
                         if (Model.eventOptimization.enableSingleCallbackCall){
                             if(executedCallbacks.indexOf(callback) === -1) { // Only call callback once
                                 executedCallbacks.push(callback);
-                                callback.call(null, oldValue, property.getValue(), property.getName());
+                                callback.call(property, oldValue, property.getValue(), property.getName());
                                 callbackExecuted = true;
                             }
                         }
@@ -210,18 +211,18 @@
                                     callbackHashs.push(callback.hash);
                                 }
                                 if (!callbackExecuted){
-                                    callback.call(null, oldValue, property.getValue(), property.getName());
+                                    callback.call(property, oldValue, property.getValue(), property.getName());
                                     callbackExecuted = true;
                                 }
                             }
                         }
                     } else {
-                        callback.call(null, oldValue, property.getValue(), property.getName());
+                        callback.call(property, oldValue, property.getValue(), property.getName());
                     }
                 };
             };
 
-            var allPropertyListeners = property._propertyListeners.concat(property._modelListeners);
+            var allPropertyListeners = property._eventListeners.propertyChange.concat(property._eventListeners.modelChange);
             allPropertyListeners.forEach(
                 executeCallbacksFunction(oldValue, property)
             );
@@ -229,19 +230,30 @@
             var propertyParent = property._parent;
             while (propertyParent){
 
-                propertyParent._modelListeners.forEach( // when we bubble the event we only notify modelListeners
+                propertyParent._eventListeners.modelChange.forEach( // when we bubble the event we only notify modelListeners
                     executeCallbacksFunction(oldValue, propertyParent)
                 );
                 propertyParent = propertyParent._parent;
             }
         }
 
-        function fireChangeEvent (property, oldValue) {
-            if (currentState === state.ACTIVE){
-                _fireChangeEvent(property, oldValue);
+        function _fireDeleteEvent(property){
+            property._eventListeners.destroy.forEach( function (callback) {
+                callback.call(property, property.getValue(), property.getName());
+            });
+                //executeCallbacksFunction(property.getValue(), property)
+        }
+
+        function fireEvent (eventName, property, oldValue) {
+            if (currentState === state.ACTIVE){ // fire event now.
+                if (eventName === eventType.CHANGE){
+                    _fireChangeEvent(property, oldValue);
+                } else if (eventName === eventType.DESTROY){
+                    _fireDeleteEvent(property);
+                }
             } else { //place event on queue to be called at a later time.
                 eventQueue.push({
-                    eventType: eventType.CHANGE,
+                    eventType: eventName,
                     property: property,
                     oldValue: oldValue
                 });
@@ -288,7 +300,8 @@
         }
 
         return {
-            fireChangeEvent: fireChangeEvent,
+            fireChangeEvent: fireEvent.bind(null, eventType.CHANGE),
+            fireDestroyEvent: fireEvent.bind(null, eventType.DESTROY),
             startTransaction: changeState.bind(null, state.TRANSACTION),
             endTransaction: changeState.bind(null, state.ACTIVE),
             inTransaction: function () { return currentState === state.TRANSACTION;}
@@ -338,12 +351,13 @@
             enumerable: false
         });
 
-        Object.defineProperty(this, "_propertyListeners", {
-            value: [],
-            enumerable: false
-        });
-         Object.defineProperty(this, "_modelListeners", {
-            value: [],
+        Object.defineProperty(this, "_eventListeners", {
+            value: { //map of eventName to listener array
+                propertyChange: [],
+                modelChange: [],
+                destroy: [],
+                create: []
+            },
             enumerable: false
         });
 
@@ -454,26 +468,34 @@
      */
     Property.prototype.onChange = function (callback, options) {
         if (options && options.listenToChildren){
-            this._modelListeners.push(callback);
+            this._eventListeners.modelChange.push(callback);
         } else {
-            this._propertyListeners.push(callback);
+            this._eventListeners.propertyChange.push(callback);
         }
         return this;
     };
 
     /**
-     * Removes the property from the Model.
+     * Removes the property and its children if any from the Model. The Destroy event will be fired.
      *
-     * @param  {[type]} notifyListeners [description]
-     * @return {[type]}                 [description]
+     * @method  destroy
+     *
+     * @return {Property}   The deleted Property.
      */
-    Property.prototype.destroy = function (notifyListeners) {
+    Property.prototype.destroy = function () {
         var myName = this.getName().substring(this.getName().lastIndexOf('/') + 1);
         delete this._parent[myName];
 
-        //TODO fire delete events
-        //update jsdoc with @method and full description
+        eventProxy.fireDestroyEvent(this);
+
+        return this;
     };
+
+    Property.prototype.onDestroy = function (callback) {
+        this._eventListeners.destroy.push(callback);
+        return this;
+    };
+
 
     /**
      * Retrieves the metadata associated with this. The metadata is persisted with the json when you
@@ -487,7 +509,7 @@
      * @return {Object} A map of metadata properties associated with this.
      */
     Property.prototype.getMetadata = function () {
-            return this._metadata; //TODO should I return a defensive copy?
+        return this._metadata; //TODO should I return a defensive copy?
     };
 
     /**
