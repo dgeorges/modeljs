@@ -190,7 +190,7 @@
 
         var executedCallbacks = [];
         var callbackHashs = [];
-        function _fireChangeEvent(property, oldValue) {
+        function _fireEvent(eventName, property, oldValue) {
 
             // This weird executeCallback function is a bit more complicated than it needs to be but is
             // used to get around the JSLint warning of creating a function within the while loop below
@@ -222,38 +222,34 @@
                 };
             };
 
-            var allPropertyListeners = property._eventListeners.propertyChange.concat(property._eventListeners.modelChange);
-            allPropertyListeners.forEach(
-                executeCallbacksFunction(oldValue, property)
-            );
-
-            var propertyParent = property._parent;
-            while (propertyParent){
-
-                propertyParent._eventListeners.modelChange.forEach( // when we bubble the event we only notify modelListeners
-                    executeCallbacksFunction(oldValue, propertyParent)
+            if (eventName === eventType.CHANGE){ // Change is a special event it can propergate and it passes it old value
+                var allPropertyListeners = property._eventListeners.propertyChange.concat(property._eventListeners.modelChange);
+                allPropertyListeners.forEach(
+                    executeCallbacksFunction(oldValue, property)
                 );
-                propertyParent = propertyParent._parent;
-            }
-        }
 
-        function _fireDeleteEvent(property){
-            property._eventListeners.destroy.forEach( function (callback) {
-                callback.call(property, property.getValue(), property.getName());
-            });
-                //executeCallbacksFunction(property.getValue(), property)
+                var propertyParent = property._parent;
+                while (propertyParent){
+
+                    propertyParent._eventListeners.modelChange.forEach( // when we bubble the event we only notify modelListeners
+                        executeCallbacksFunction(oldValue, propertyParent)
+                    );
+                    propertyParent = propertyParent._parent;
+                }
+            } else {
+                var eventListeners = property._eventListeners[eventName] || [];
+                eventListeners.forEach(
+                    executeCallbacksFunction(oldValue, property)
+                );
+            }
         }
 
         function fireEvent (eventName, property, oldValue) {
             if (currentState === state.ACTIVE){ // fire event now.
-                if (eventName === eventType.CHANGE){
-                    _fireChangeEvent(property, oldValue);
-                } else if (eventName === eventType.DESTROY){
-                    _fireDeleteEvent(property);
-                }
+                _fireEvent(eventName, property, oldValue);
             } else { //place event on queue to be called at a later time.
                 eventQueue.push({
-                    eventType: eventName,
+                    eventName: eventName,
                     property: property,
                     oldValue: oldValue
                 });
@@ -290,13 +286,9 @@
             }
 
             eventQueue.forEach( function (event){
-                if (event.eventType === eventType.CHANGE){
-                    _fireChangeEvent(event.property, event.oldValue);
-                } else {
-                    window.console.error("Unknown event");
-                }
+                _fireEvent(event.eventName, event.property, event.oldValue);
             });
-            eventQueue = [];
+            eventQueue = []; //Queue has been flushed
         }
 
         return {
@@ -486,7 +478,7 @@
         var myName = this.getName().substring(this.getName().lastIndexOf('/') + 1);
         delete this._parent[myName];
 
-        eventProxy.fireDestroyEvent(this);
+        eventProxy.fireDestroyEvent(this/* oldvalue*/);
 
         return this;
     };
