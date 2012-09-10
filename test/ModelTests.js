@@ -172,7 +172,7 @@ test("testModelCreationUsingCreatePropertyMethod", function () {
 
 test("testPropertyDestroyMethod", function() {
 
-    var jsonModel = {   
+    var jsonModel = {
         number: 1,
         str : "aString",
         x: function () {return "I am function x";},

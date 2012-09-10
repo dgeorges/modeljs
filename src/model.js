@@ -755,11 +755,13 @@
 
 
     /**
-     * Retrieves the json representation of this. This json representation can be used in the Model Constructor to recreate
-     * the same Model object. If you use includeMetaData validator metadata will be included.
+     * Retrieves the json representation of this. This json representation can be used in the Model Constructor
+     * to recreate the same Model object. If you use includeMetaData validator metadata will be included.
+     * Properties that have the doNotPresist flag in it's metadata will have it's value nullified. This means
+     * properties will have the value set to 'undefined' while models will be set to an empty object ({}).
      *
      * @example
-     * For an example see: <b>testSaveLoadWithMetaData</b>
+     * For an example see: <b>testSaveLoadWithMetaData</b> and <b>testDoNotPresist</b>
      *
      * @method  toJSON
      *
