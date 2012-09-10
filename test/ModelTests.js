@@ -111,7 +111,7 @@ test("testOnChangeCallbackWhenSettingToSameValue", function () {
 
     var count = 0;
     var m = new Model(jsonModel);
-    var f = function (oldValue, newValue) {
+    var f = function (property, oldValue) {
         count++;
     };
     m.number.onChange(f);
@@ -183,7 +183,7 @@ test("testPropertyDestroyMethod", function() {
     };
 
     var deleteCallbackCalled = false;
-    function deleteCallback(oldValue, property) {
+    function deleteCallback(property) {
         deleteCallbackCalled = true;
     }
 
@@ -311,7 +311,7 @@ test("testSuppressNotifications", function () {
 
     var m = new Model(jsonModel);
     var notified = false;
-    var callback = function (oldValue, newValue) {
+    var callback = function (property, oldValue) {
         notified = true;
     };
 
@@ -379,7 +379,7 @@ test("testModelTransactions", function () {
 
     var callbackCalled = false;
     var count = 0;
-    var callback = function (oldValue, newValue, propertyName) {
+    var callback = function (property, oldValue) {
         callbackCalled = true;
         count++;
     };
@@ -420,7 +420,7 @@ test("testBubbleUpEvents", function () {
 
     var callbackCalled = false;
     var count = 0;
-    var callback = function (oldValue, newValue, propertyName) {
+    var callback = function (property, oldValue) {
         callbackCalled = true;
         count++;
     };
@@ -500,9 +500,9 @@ test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
 
     var count = 0;
     var callbackNewValue;
-    function callback(oldValue, newValue, propertyName){
+    function callback(property, oldValue){
         count +=1;
-        callbackNewValue = newValue;
+        callbackNewValue = property.getValue();
     }
 
     var model = new Model(jsonModel);
@@ -557,11 +557,11 @@ test("testSingleCallbackEventOptimization", function (){
         };
 
     var count = 0;
-    function callback(oldValue, newValue, propertyName){
+    function callback(property, oldValue){
         count +=1;
     }
     var count2 = 0;
-    function callback2(oldValue, newValue, propertyName){
+    function callback2(property, oldValue){
         count2 +=1;
     }
 
@@ -599,12 +599,12 @@ test("testEnableCallbackHashOpimization", function (){
         };
 
     var count = 0;
-    function callback(oldValue, newValue, propertyName){
+    function callback(property, oldValue){
         count +=1;
     }
     callback.hash = "uniqueID";
     var count2 = 0;
-    function callback2(oldValue, newValue, propertyName){
+    function callback2(property, oldValue){
         count2 +=1;
     }
 
@@ -644,12 +644,12 @@ test("testModelEndTransactionWithOptions", function () {
         };
 
     var count = 0;
-    function callback(oldValue, newValue, propertyName){
+    function callback(property, oldValue){
         count +=1;
     }
     callback.hash = "uniqueID";
     var count2 = 0;
-    function callback2(oldValue, newValue, propertyName){
+    function callback2(property, oldValue){
         count2 +=1;
     }
 
@@ -732,6 +732,36 @@ test("testGetMetadataMethod", function (){
     equal(JSON.stringify(model.toJSON(true)), JSON.stringify(expectedJSON), "metadata serialized correctly");
 });
 
+
+test("testCustomEvent", function (){
+   var jsonModel = {
+        number: 1,
+        str: "aString",
+        bool: true,
+        nil: null,
+        undef: undefined,
+        fun: function () {return "I am a function";},
+        subModel: {
+            subProp: "I am the subProp",
+            fun: function () {return "I am a function";}
+        }
+    };
+    var model = new Model(jsonModel);
+
+    var callbackCalled = 0;
+    function callback (arg1, arg2, arg3) {
+        callbackCalled++;
+    }
+
+    model.str.registerListener("foo", callback);
+    ok(callbackCalled === 0);
+    model.str.trigger("bar");
+    ok(callbackCalled === 0);
+    model.str.trigger("foo");
+    ok(callbackCalled === 1);
+
+ });
+
 test("testDoNotPresist", function (){
    var jsonModel = {
             number: 1,
@@ -809,7 +839,7 @@ asyncTest("remoteModel", function () {
     });
 
     var onChangeRegistered = false;
-    function callback (oldValue, newValue, prop) {
+    function callback (property, oldValue) {
         onChangeRegistered = true;
     }
     test.remoteModel.onChange(callback);
@@ -940,7 +970,7 @@ test("modlejsTutorial", function (){
     // using modeljs the you can listen to when any model property value changes by registaring a callback.
     // below is a example of registaring a callback to numberProperty
     var callbackCount = 0;
-    function callback (oldValue, newValue){
+    function callback (property, oldValue){
         callbackCount+=1;
     }
     modelFromJSON.numberProperty.onChange(callback);

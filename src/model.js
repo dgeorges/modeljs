@@ -194,14 +194,14 @@
 
             // This weird executeCallback function is a bit more complicated than it needs to be but is
             // used to get around the JSLint warning of creating a function within the while loop below
-            var executeCallbacksFunction = function (oldValue, property) {
+            var executeCallbacksFunction = function (oldValue, changedProperty, listenerProperty) {
                 return function (callback){
                     if (Model.eventOptimization.enableSingleCallbackCall || Model.eventOptimization.enableCallbackHashOpimization){
                         var callbackExecuted = false;
                         if (Model.eventOptimization.enableSingleCallbackCall){
                             if(executedCallbacks.indexOf(callback) === -1) { // Only call callback once
                                 executedCallbacks.push(callback);
-                                callback.call(property, oldValue, property.getValue(), property.getName());
+                                callback.call(listenerProperty, property, oldValue);
                                 callbackExecuted = true;
                             }
                         }
@@ -211,13 +211,13 @@
                                     callbackHashs.push(callback.hash);
                                 }
                                 if (!callbackExecuted){
-                                    callback.call(property, oldValue, property.getValue(), property.getName());
+                                    callback.call(listenerProperty, property, oldValue);
                                     callbackExecuted = true;
                                 }
                             }
                         }
                     } else {
-                        callback.call(property, oldValue, property.getValue(), property.getName());
+                        callback.call(listenerProperty, property, oldValue);
                     }
                 };
             };
@@ -225,21 +225,21 @@
             if (eventName === eventType.CHANGE){ // Change is a special event it can propergate and it passes it old value
                 var allPropertyListeners = property._eventListeners.propertyChange.concat(property._eventListeners.modelChange);
                 allPropertyListeners.forEach(
-                    executeCallbacksFunction(oldValue, property)
+                    executeCallbacksFunction(oldValue, property, property)
                 );
 
                 var propertyParent = property._parent;
                 while (propertyParent){
 
                     propertyParent._eventListeners.modelChange.forEach( // when we bubble the event we only notify modelListeners
-                        executeCallbacksFunction(oldValue, propertyParent)
+                        executeCallbacksFunction(oldValue, property, propertyParent) //which property do we want to pass?
                     );
                     propertyParent = propertyParent._parent;
                 }
             } else {
                 var eventListeners = property._eventListeners[eventName] || [];
                 eventListeners.forEach(
-                    executeCallbacksFunction(oldValue, property)
+                    executeCallbacksFunction(oldValue, property, property)
                 );
             }
         }
@@ -292,8 +292,8 @@
         }
 
         return {
-            fireChangeEvent: fireEvent.bind(null, eventType.CHANGE),
-            fireDestroyEvent: fireEvent.bind(null, eventType.DESTROY),
+            fireEvent: fireEvent,
+            eventType: eventType,
             startTransaction: changeState.bind(null, state.TRANSACTION),
             endTransaction: changeState.bind(null, state.ACTIVE),
             inTransaction: function () { return currentState === state.TRANSACTION;}
@@ -436,7 +436,8 @@
                 }
 
                 if (!suppressNotifications){
-                    eventProxy.fireChangeEvent(this, oldValue);
+                    eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
+                    //eventProxy.fireChangeEvent(this, oldValue);
                 }
             }
         }
@@ -478,7 +479,8 @@
         var myName = this.getName().substring(this.getName().lastIndexOf('/') + 1);
         delete this._parent[myName];
 
-        eventProxy.fireDestroyEvent(this/* oldvalue*/);
+        //eventProxy.fireDestroyEvent(this/* oldvalue*/);
+        eventProxy.fireEvent(eventProxy.eventType.DESTROY, this);
 
         return this;
     };
@@ -488,6 +490,17 @@
         return this;
     };
 
+    Property.prototype.trigger = function (eventName) {
+        //Should this restrict custom types
+        eventProxy.fireEvent(eventName, this);
+    };
+
+    Property.prototype.registerListener = function (eventName, listener){
+        if (!this._eventListeners[eventName]){
+            this._eventListeners[eventName] = [];
+        }
+        this._eventListeners[eventName].push(listener);
+    };
 
     /**
      * Retrieves the metadata associated with this. The metadata is persisted with the json when you
