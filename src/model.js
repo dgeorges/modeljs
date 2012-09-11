@@ -8,7 +8,9 @@
  *
  * Features
  * - Simple easy to use and intuitive library
- * - Can save/load Model to/from JSON with/without model meta data
+ * - Can save/load Model to/from JSON with/without model meta-data
+ * - Can flag any property value to not be presisted to JSON
+ * - Can attach custom meta-data to properties
  * - Supports models defined by a remote resource with the ability to periodically refresh.
  * - remote model has option to use JSONP in the event of CORS issues
  * - Can register on change events with any single property or group of properties
@@ -88,7 +90,7 @@
             }
         }
 
-        window.log.error("Could not create an XMLHTTPRequestObject Remote Model will fail");
+        window.log.error("Could not create an XMLHTTPRequestObject Remote Model requests will fail");
         return undefined;
     }();
 
@@ -185,23 +187,23 @@
     var eventProxy = function () {
         var eventQueue = [],
             state = {   ACTIVE: "active", TRANSACTION: "transaction"},
-            eventType = {CHANGE: "change", CREATE: "create", DESTROY: "destroy"},
+            eventType = {CHANGE: "change", CREATE: "create", DESTROY: "destroy", CHILD_CREATED: "childCreated"},
             currentState = state.ACTIVE;
 
         var executedCallbacks = [];
         var callbackHashs = [];
-        function _fireEvent(eventName, property, oldValue) {
+        function _fireEvent(eventName, property, eventArg) {
 
             // This weird executeCallback function is a bit more complicated than it needs to be but is
             // used to get around the JSLint warning of creating a function within the while loop below
-            var executeCallbacksFunction = function (oldValue, changedProperty, listenerProperty) {
+            var executeCallbacksFunction = function (changedProperty, listenerProperty, arg) {
                 return function (callback){
                     if (Model.eventOptimization.enableSingleCallbackCall || Model.eventOptimization.enableCallbackHashOpimization){
                         var callbackExecuted = false;
                         if (Model.eventOptimization.enableSingleCallbackCall){
                             if(executedCallbacks.indexOf(callback) === -1) { // Only call callback once
                                 executedCallbacks.push(callback);
-                                callback.call(listenerProperty, property, oldValue);
+                                callback.call(listenerProperty, changedProperty, arg);
                                 callbackExecuted = true;
                             }
                         }
@@ -211,47 +213,69 @@
                                     callbackHashs.push(callback.hash);
                                 }
                                 if (!callbackExecuted){
-                                    callback.call(listenerProperty, property, oldValue);
+                                    callback.call(listenerProperty, changedProperty, arg);
                                     callbackExecuted = true;
                                 }
                             }
                         }
                     } else {
-                        callback.call(listenerProperty, property, oldValue);
+                        callback.call(listenerProperty, changedProperty, arg);
                     }
                 };
             };
 
-            if (eventName === eventType.CHANGE){ // Change is a special event it can propergate and it passes it old value
+            var propertyParent = property._parent;
+            var eventListeners = property._eventListeners[eventName] || [];
+            if (eventName === eventType.CHANGE){ // Change is a special event it can propergate and it's eventArg is the oldValue
                 var allPropertyListeners = property._eventListeners.propertyChange.concat(property._eventListeners.modelChange);
                 allPropertyListeners.forEach(
-                    executeCallbacksFunction(oldValue, property, property)
+                    executeCallbacksFunction(property, property, eventArg)
                 );
 
-                var propertyParent = property._parent;
                 while (propertyParent){
 
                     propertyParent._eventListeners.modelChange.forEach( // when we bubble the event we only notify modelListeners
-                        executeCallbacksFunction(oldValue, property, propertyParent) //which property do we want to pass?
+                        executeCallbacksFunction(property, propertyParent, eventArg)
                     );
                     propertyParent = propertyParent._parent;
                 }
-            } else {
-                var eventListeners = property._eventListeners[eventName] || [];
+            } else if (eventName === eventType.DESTROY){ //destroy also notifies its parent childDestroyed listeners
                 eventListeners.forEach(
-                    executeCallbacksFunction(oldValue, property, property)
+                    executeCallbacksFunction(property, property, eventArg)
+                );
+
+                if (propertyParent) {
+                    var childDestroyedListeners = propertyParent._eventListeners.childDestroyed || [];
+                    childDestroyedListeners.forEach(
+                        executeCallbacksFunction(property, propertyParent, eventArg)
+                    );
+                }
+            } else if (eventName === eventType.CHILD_CREATED){ // special event why?
+                eventListeners.forEach(
+                    executeCallbacksFunction(property, property, eventArg)
+                );
+
+                if (propertyParent) {
+                    var childCreatedListeners = propertyParent._eventListeners.childCreated || [];
+                    childCreatedListeners.forEach(
+                        executeCallbacksFunction(property, propertyParent, eventArg)
+                    );
+                }
+            } else {
+                eventListeners.forEach(
+                    executeCallbacksFunction(property, property, eventArg)
                 );
             }
         }
 
-        function fireEvent (eventName, property, oldValue) {
+        function fireEvent (eventName, property, customArg) {
             if (currentState === state.ACTIVE){ // fire event now.
-                _fireEvent(eventName, property, oldValue);
+                _fireEvent(eventName, property, customArg);
             } else { //place event on queue to be called at a later time.
                 eventQueue.push({
                     eventName: eventName,
                     property: property,
-                    oldValue: oldValue
+                    customArg: customArg
                 });
             }
         }
@@ -286,7 +310,7 @@
             }
 
             eventQueue.forEach( function (event){
-                _fireEvent(event.eventName, event.property, event.oldValue);
+                _fireEvent(event.eventName, event.property, event.customArg);
             });
             eventQueue = []; //Queue has been flushed
         }
@@ -346,9 +370,10 @@
         Object.defineProperty(this, "_eventListeners", {
             value: { //map of eventName to listener array
                 propertyChange: [],
-                modelChange: [],
-                destroy: [],
-                create: []
+                modelChange: [], //model "children" changed come from property change and listenToChildren true.
+                childCreated: [],
+                childDestroyed: [], // child destroyed comes from destroy
+                destroy: []
             },
             enumerable: false
         });
@@ -490,16 +515,56 @@
         return this;
     };
 
-    Property.prototype.trigger = function (eventName) {
+    /**
+     * Trigger the given event on this.
+     *
+     * @param  {String} eventName The name of the event.
+     * @param  {[string, boolean, number, null, function, object]} eventArg? An optional parameter to pass to the event handler
+     * @return {Property}           Returns this for Object chaining.
+     */
+    Property.prototype.trigger = function (eventName, eventArg) {
         //Should this restrict custom types
-        eventProxy.fireEvent(eventName, this);
+        eventProxy.fireEvent(eventName, this, eventArg);
+        return this;
     };
 
-    Property.prototype.registerListener = function (eventName, listener){
-        if (!this._eventListeners[eventName]){
-            this._eventListeners[eventName] = [];
-        }
-        this._eventListeners[eventName].push(listener);
+    /**
+     * Registers the given callback with the given events on this.
+     *
+     * @param  {String} events     One or more space seperated eventNames
+     * @param  {Function} callback  The function to execute when the given event is triggered
+     * @return {Property}          Returns this for Object chaining.
+     */
+    Property.prototype.on = function (events, callback){
+        var eventNames = events.split(' ');
+        eventNames.forEach(function(eventName){
+            if (!this._eventListeners[eventName]){
+                this._eventListeners[eventName] = [];
+            }
+            this._eventListeners[eventName].push(callback);
+        }, this);
+
+        return this;
+    };
+
+    /**
+     * Removes all instances of the given callback with the given events on this.
+     *
+     * @param  {String} events  One or more space seperated eventNames
+     * @param  {Function} callback The function to remove
+     * @return {Property}         Returns this for Object chaining.
+     */
+    Property.prototype.off = function (events, callback) {
+        var eventNames = events.split(' ');
+        eventNames.forEach(function(eventName){
+            if (this._eventListeners[eventName]){
+                this._eventListeners[eventName] = this._eventListeners[eventName].filter(function (element, index, array) {
+                    return element !== callback;
+                });
+            }
+        }, this);
+
+        return this;
     };
 
     /**
@@ -507,7 +572,7 @@
      * pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
      * when creating a model from the very same json. Note: the modeljs framework uses the metadata to
      * store attributes associated the properties that is uses. As a result the following keys have
-     * special meaning and should not be used. <b>[validator, name, url, refreshRate]</b>
+     * special meaning and should not be used. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]</b>
      *
      * @method  getMetadata
      *
@@ -647,6 +712,7 @@
     Model.prototype.createProperty = function createProperty(name, value, metadata) {
         if (value instanceof Model || value instanceof Property){
             window.console.error("Unsupported Operation: Try passing the Model/Properties value instead");
+            return;
         } else if (isObject(value)){
             var modelMetadata = metadata || {};
             modelMetadata.name = name;
@@ -659,6 +725,7 @@
         } else {
             this[name] = new Property (name, value, this, metadata);
         }
+        this.trigger("childCreated", this[name]);
         return this;
     };
 
@@ -721,7 +788,9 @@
         if (!keepOldProperties && doModification){
             for (var modelProp in model) {
                 if (!json[modelProp]){
-                    delete model[modelProp];
+                    if (model[modelProp] instanceof Property){
+                        model[modelProp].destroy();
+                    }
                 }
             }
         }

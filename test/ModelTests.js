@@ -219,18 +219,31 @@ test("testModelMergeMethod", function () {
         key3: "new key"
     };
 
+    var callbackCount = 0;
+    function callback (property, arg){
+        callbackCount++;
+    }
+
     var m = new Model(modelJSON);
+    m.obj2.key2.onDestroy(callback); // 1 callback
+    m.obj2.on("childCreated childDestroyed", callback); // 3 callbacks
+
     m.obj2.merge(mergeObj);//keepOldProperties = false
     ok (!m.obj2.key2, "old properties removed");
     equal (m.obj2.key1.getValue(), "new key1Value", "existing property overridden");
     equal (m.obj2.key3.getValue(), "new key", "new property added");
+    equal (callbackCount, 4, "new property added");
 
+    callbackCount = 0; //reset Callback
     var m1 = new Model(modelJSON);
+    m1.obj2.key2.onDestroy(callback);
+    m1.obj2.on("childCreated childDestroyed", callback); //1 callback for create
+
     m1.obj2.merge(mergeObj, true);
     equal (m1.obj2.key2.getValue(), "key2", "old properties remain");
     equal (m1.obj2.key1.getValue(), "new key1Value", "existing property overridden");
     equal (m1.obj2.key3.getValue(), "new key", "new property added");
-
+    equal (callbackCount, 1, "new property added");
 });
 
 /**
@@ -732,7 +745,6 @@ test("testGetMetadataMethod", function (){
     equal(JSON.stringify(model.toJSON(true)), JSON.stringify(expectedJSON), "metadata serialized correctly");
 });
 
-
 test("testCustomEvent", function (){
    var jsonModel = {
         number: 1,
@@ -749,16 +761,64 @@ test("testCustomEvent", function (){
     var model = new Model(jsonModel);
 
     var callbackCalled = 0;
-    function callback (arg1, arg2, arg3) {
+    function callback (property, arg) {
+        callbackCalled++;
+        equal(arg, "bar", "correct argument passed to callback");
+        equal(property, model.str, "callback property argument is the property event was triggered on");
+        equal(this, model.str, "callback this is the property event was triggered on");
+    }
+
+    model.str.on("foo", callback);
+    ok(callbackCalled === 0);
+    model.str.trigger("bar", "bar");
+    ok(callbackCalled === 0);
+    model.str.trigger("foo", "bar");
+    ok(callbackCalled === 1);
+
+    callbackCalled = 0;
+    function numberCallback (property, arg) {
         callbackCalled++;
     }
 
-    model.str.registerListener("foo", callback);
-    ok(callbackCalled === 0);
-    model.str.trigger("bar");
-    ok(callbackCalled === 0);
-    model.str.trigger("foo");
-    ok(callbackCalled === 1);
+    model.number.on("foo", numberCallback); //registar same callback twice
+    model.number.on("foo", numberCallback);
+    model.number.trigger("foo", "bar");
+    ok(callbackCalled === 2, "same event registered twice");
+
+    callbackCalled = 0;
+    model.number.off("foo", numberCallback); // should remove everything
+    model.number.trigger("foo", "bar");
+    ok(callbackCalled === 0, "same event registered twice");
+ });
+
+test("testChildCreatedEvent", function (){
+   var jsonModel = {
+        number: 1,
+        str: "aString",
+        bool: true,
+        nil: null,
+        undef: undefined,
+        fun: function () {return "I am a function";},
+        subModel: {
+            subProp: "I am the subProp",
+            fun: function () {return "I am a function";}
+        }
+    };
+
+    var callbackCalled = false;
+    function callback (property, arg){
+        equal(JSON.stringify(this.toJSON()), JSON.stringify(model.toJSON()), "creteChildCallback this equals model listener attached too");
+        equal(JSON.stringify(property.toJSON()), JSON.stringify(model.toJSON()), "creteChildCallback property argument equals model listener attached too");
+        equal(JSON.stringify(arg.getValue()), JSON.stringify(model.newProp.getValue()), "creteChildCallback arg argument equals newly created property");
+
+        callbackCalled = true;
+    }
+
+    var model = new Model(jsonModel);
+    model.on("childCreated", callback);
+    model.createProperty("newProp", "string Prop");
+
+    ok(callbackCalled, "childCreate callback called");
 
  });
 
