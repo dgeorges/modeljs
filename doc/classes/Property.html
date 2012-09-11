@@ -94,7 +94,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l289"><code>src\model.js:289</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l327"><code>src\model.js:327</code></a>
         </div>
     
 
@@ -178,7 +178,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l289"><code>src\model.js:289</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l327"><code>src\model.js:327</code></a>
         
         </p>
 
@@ -296,6 +296,13 @@
                     <ul class="index-list methods">
                         
                             <li class="index-item method">
+                                <a href="#method_destroy">destroy</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_getMetadata">getMetadata</a>
 
                                 
@@ -324,6 +331,20 @@
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_off">off</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_on">on</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_onChange">onChange</a>
 
                                 
@@ -332,6 +353,13 @@
                         
                             <li class="index-item method">
                                 <a href="#method_setValue">setValue</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_trigger">trigger</a>
 
                                 
                                 
@@ -358,6 +386,78 @@
         
             <div id="methods" class="api-class-tabpanel">
                 <h2 class="off-left">Methods</h2>
+
+                
+                    <div id="method_destroy" class="method item">
+    <h3 class="name"><code>destroy</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l496"><code>src\model.js:496</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Removes the property and its children if any from the Model. This will fire the destroy event on this and
+the childDestroyed event on the parent.</p>
+    </div>
+
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>:
+                    
+                    The deleted Property.
+                
+            </div>
+        </div>
+    
+
+    
+</div>
 
                 
                     <div id="method_getMetadata" class="method item">
@@ -396,7 +496,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l469"><code>src\model.js:469</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l577"><code>src\model.js:577</code></a>
         
         </p>
 
@@ -411,7 +511,7 @@
 pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
 when creating a model from the very same json. Note: the modeljs framework uses the metadata to
 store attributes associated the properties that is uses. As a result the following keys have
-special meaning and should not be used. <b>[validator, name, url, refreshRate]</b></p>
+special meaning and should not be used. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]</b></p>
     </div>
 
     
@@ -471,7 +571,7 @@ special meaning and should not be used. <b>[validator, name, url, refreshRate]</
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l355"><code>src\model.js:355</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l395"><code>src\model.js:395</code></a>
         
         </p>
 
@@ -556,7 +656,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l344"><code>src\model.js:344</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l384"><code>src\model.js:384</code></a>
         
         </p>
 
@@ -627,7 +727,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l484"><code>src\model.js:484</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l592"><code>src\model.js:592</code></a>
         
         </p>
 
@@ -666,6 +766,256 @@ namedRoot.property1.getName();       // returns "/customName/property1"
                 <p>For examples see:  <b>testPropertyValidationFunction</b></p>
             </div>
         </div>
+    
+</div>
+
+                
+                    <div id="method_off" class="method item">
+    <h3 class="name"><code>off</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>events</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>callback</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l555"><code>src\model.js:555</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Removes all instances of the given callback with the given events on this.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">events</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>One or more space seperated eventNames</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">callback</code>
+                        <span class="type">Function</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The function to remove</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>:
+                    
+                    Returns this for Object chaining.
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
+                    <div id="method_on" class="method item">
+    <h3 class="name"><code>on</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>events</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>callback</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l534"><code>src\model.js:534</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Registers the given callback with the given events on this.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">events</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>One or more space seperated eventNames</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">callback</code>
+                        <span class="type">Function</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The function to execute when the given event is triggered</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>:
+                    
+                    Returns this for Object chaining.
+                
+            </div>
+        </div>
+    
+
     
 </div>
 
@@ -718,7 +1068,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l431"><code>src\model.js:431</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l472"><code>src\model.js:472</code></a>
         
         </p>
 
@@ -844,7 +1194,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l373"><code>src\model.js:373</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l413"><code>src\model.js:413</code></a>
         
         </p>
 
@@ -928,6 +1278,131 @@ listeners will be notified unless the suppressNotifications option indicates oth
 </div>
 
                 
+                    <div id="method_trigger" class="method item">
+    <h3 class="name"><code>trigger</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>eventName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>eventArg?</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l519"><code>src\model.js:519</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Trigger the given event on this.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">eventName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The name of the event.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">eventArg?</code>
+                        <span class="type">string, boolean, number, null, function, object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>An optional parameter to pass to the event handler</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>:
+                    
+                    Returns this for Object chaining.
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
                     <div id="method_validateValue" class="method item">
     <h3 class="name"><code>validateValue</code></h3>
 
@@ -974,7 +1449,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l499"><code>src\model.js:499</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l607"><code>src\model.js:607</code></a>
         
         </p>
 

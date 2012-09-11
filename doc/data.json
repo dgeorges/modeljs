@@ -32,7 +32,7 @@
             "namespaces": {},
             "tag": "module",
             "file": "src\\model.js",
-            "line": 518,
+            "line": 626,
             "description": "Provides the base Model library."
         }
     },
@@ -48,7 +48,7 @@
             "module": "Model",
             "namespace": "",
             "file": "src\\model.js",
-            "line": 289,
+            "line": 327,
             "description": "A Property is a name value pair belonging to a Model.",
             "is_constructor": 1,
             "access": "private",
@@ -87,7 +87,7 @@
             "module": "Model",
             "namespace": "",
             "file": "src\\model.js",
-            "line": 518,
+            "line": 626,
             "description": "The model Object that wraps the JSON.",
             "example": [
                 "\nFor examples see: <b>testPrimitiveSaveLoad</b>,  <b>testObjectsSaveLoad</b>, <b>testComplexSaveLoad</b>\n<b>testGetNameMethod</b> and <b>testSaveLoadWithMetaData</b>"
@@ -111,14 +111,14 @@
     "classitems": [
         {
             "file": "src\\model.js",
-            "line": 178,
+            "line": 184,
             "description": "Centralized place where all Model Events pass through.",
             "class": "Property",
             "module": "Model"
         },
         {
             "file": "src\\model.js",
-            "line": 344,
+            "line": 384,
             "description": "Gets the value of the property.",
             "itemtype": "method",
             "name": "getValue",
@@ -131,7 +131,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 355,
+            "line": 395,
             "description": "The fully qualified name of this. The name is calculated by concatenating the name\nof the parent, \"/\", and name of this.",
             "example": [
                 "\n    defaultModel.getName();              // returns \"/root\"\n    defaultModel.property1.getName();    // returns \"/root/property1\"\n    namedRoot.property1.getName();       // returns \"/customName/property1\"\nFor more examples see:  <b>testGetNameMethod</b>"
@@ -147,7 +147,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 373,
+            "line": 413,
             "description": "Called upon a property or Model to set it's Value. If the setValue is the same as the current value,\nnothing will happen and no change events will be fired. If the value is different it must pass\nthe validator if there is one.  If it does pass the validator and value is changed, all registered\nlisteners will be notified unless the suppressNotifications option indicates otherwise.",
             "example": [
                 "\nFor more examples see:  <b>testPrimitiveSetGet</b>, <b>testComplexChangePropertyValue</b> and <b>testSuppressNotifications</b>"
@@ -175,7 +175,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 431,
+            "line": 472,
             "description": "Registers a callback function with the change event of this.",
             "example": [
                 "\n    model.onchange(callback, true); //listens to change events on entire model\n    model.property1.onchange(callback) //listen to change on property1 only\n    model.subModel.onchange(callback) //listen to change on subModel only. (ie. via model.subModel.setValue(..))\nFor more examples see:  <b>testOnChangeCallbackWhenSettingToSameValue</b> and <b>testBubbleUpEvents</b>"
@@ -199,26 +199,96 @@
         },
         {
             "file": "src\\model.js",
-            "line": 455,
-            "description": "Removes the property from the Model.",
-            "params": [
-                {
-                    "name": "notifyListeners",
-                    "description": "[description]",
-                    "type": "[type]"
-                }
-            ],
+            "line": 496,
+            "description": "Removes the property and its children if any from the Model. This will fire the destroy event on this and\nthe childDestroyed event on the parent.",
+            "itemtype": "method",
+            "name": "destroy",
             "return": {
-                "description": "[description]",
-                "type": "[type]"
+                "description": "The deleted Property.",
+                "type": "Property"
             },
             "class": "Property",
             "module": "Model"
         },
         {
             "file": "src\\model.js",
-            "line": 469,
-            "description": "Retrieves the metadata associated with this. The metadata is persisted with the json when you\npass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored\nwhen creating a model from the very same json. Note: the modeljs framework uses the metadata to\nstore attributes associated the properties that is uses. As a result the following keys have\nspecial meaning and should not be used. <b>[validator, name, url, refreshRate]</b>",
+            "line": 519,
+            "description": "Trigger the given event on this.",
+            "itemtype": "method",
+            "name": "trigger",
+            "params": [
+                {
+                    "name": "eventName",
+                    "description": "The name of the event.",
+                    "type": "String"
+                },
+                {
+                    "name": "eventArg?",
+                    "description": "An optional parameter to pass to the event handler",
+                    "type": "[string, boolean, number, null, function, object]"
+                }
+            ],
+            "return": {
+                "description": "Returns this for Object chaining.",
+                "type": "Property"
+            },
+            "class": "Property",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 534,
+            "description": "Registers the given callback with the given events on this.",
+            "itemtype": "method",
+            "name": "on",
+            "params": [
+                {
+                    "name": "events",
+                    "description": "One or more space seperated eventNames",
+                    "type": "String"
+                },
+                {
+                    "name": "callback",
+                    "description": "The function to execute when the given event is triggered",
+                    "type": "Function"
+                }
+            ],
+            "return": {
+                "description": "Returns this for Object chaining.",
+                "type": "Property"
+            },
+            "class": "Property",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 555,
+            "description": "Removes all instances of the given callback with the given events on this.",
+            "itemtype": "method",
+            "name": "off",
+            "params": [
+                {
+                    "name": "events",
+                    "description": "One or more space seperated eventNames",
+                    "type": "String"
+                },
+                {
+                    "name": "callback",
+                    "description": "The function to remove",
+                    "type": "Function"
+                }
+            ],
+            "return": {
+                "description": "Returns this for Object chaining.",
+                "type": "Property"
+            },
+            "class": "Property",
+            "module": "Model"
+        },
+        {
+            "file": "src\\model.js",
+            "line": 577,
+            "description": "Retrieves the metadata associated with this. The metadata is persisted with the json when you\npass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored\nwhen creating a model from the very same json. Note: the modeljs framework uses the metadata to\nstore attributes associated the properties that is uses. As a result the following keys have\nspecial meaning and should not be used. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]</b>",
             "itemtype": "method",
             "name": "getMetadata",
             "return": {
@@ -230,7 +300,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 484,
+            "line": 592,
             "description": "Determine if this has a validation function associated with it.",
             "example": [
                 "\nFor examples see:  <b>testPropertyValidationFunction</b>"
@@ -246,7 +316,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 499,
+            "line": 607,
             "description": "Determines if the given value will pass the validation function of this.",
             "example": [
                 "\nFor examples see:  <b>testPropertyValidationFunction</b>"
@@ -269,7 +339,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 564,
+            "line": 672,
             "description": "Gets the value associated with the Model. This will be a json Object.",
             "itemtype": "method",
             "name": "getValue",
@@ -282,8 +352,8 @@
         },
         {
             "file": "src\\model.js",
-            "line": 575,
-            "description": "Creates the property with the given name on this.",
+            "line": 683,
+            "description": "Creates the property with the given name on this. This will fire the childCreated event on the parent.",
             "example": [
                 "\n    var model = new Model();\n    model.createProperty(\"number\", 1) // a simple property (model.number)\n    .createProperty(\"subModel\", { // a property that is a subModel (model.subModel and model.subModel.str)\n        str: \"stringProperty\"\n    })\n    .createProperty(\"positiveNumber\", 2, { // a property with a validator (model.positiveNumber)\n        validator: function (value) {\n            return value > 0;\n        }\n    }); // Note the method chaining.\nFor examples see: <b>testModelCreationUsingCreatePropertyMethod</b>"
             ],
@@ -315,7 +385,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 629,
+            "line": 739,
             "description": "Clones the Model rooted at this keeping all validators that exist, but not keeping attached onChange callbacks.\nThe name of all properties are adjusted to reflect it's new root.",
             "example": [
                 "\n    var newModel = model.clone(); // clone root model\n    var clonedSubModel = model.subModel.clone(); // clone subModel\nFor more examples: <b>testModelClone</b>"
@@ -331,7 +401,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 695,
+            "line": 807,
             "description": "Preforms the merge operation on this. The merge operation will add properties that exist in the merged object\nbut not in this, remove those that are not found in the merged object (unless keepOldProperties is set to true)\nand will call setValue for those that exist in both. Note the operation will log an error to the console, return\nfalse, and not modify the object if any of the setValue operation are not valid. Not valid set operations inclded\nthose that try to set a value from a property to a model and vise versa.",
             "example": [
                 "\nFor an example see: <b>testModelMergeMethod</b>"
@@ -359,10 +429,10 @@
         },
         {
             "file": "src\\model.js",
-            "line": 726,
-            "description": "Retrieves the json representation of this. This json representation can be used in the Model Constructor to recreate\nthe same Model object. If you use includeMetaData validator metadata will be included.",
+            "line": 838,
+            "description": "Retrieves the json representation of this. This json representation can be used in the Model Constructor\nto recreate the same Model object. If you use includeMetaData validator metadata will be included.\nProperties that have the doNotPresist flag in it's metadata will have it's value nullified. This means\nproperties will have the value set to 'undefined' while models will be set to an empty object ({}).",
             "example": [
-                "\nFor an example see: <b>testSaveLoadWithMetaData</b>"
+                "\nFor an example see: <b>testSaveLoadWithMetaData</b> and <b>testDoNotPresist</b>"
             ],
             "itemtype": "method",
             "name": "toJSON",
@@ -382,7 +452,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 765,
+            "line": 879,
             "description": "Begins a transaction. All events will be put into the queued. To be fired when endTransaction is called.",
             "example": [
                 "\nFor an examples see <b>testModelTransactions</b>"
@@ -395,7 +465,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 781,
+            "line": 895,
             "description": "Ends the current transaction causing all queued up events to be fired according to the global eventOptization settings or the settings passed in if they exist.",
             "example": [
                 "\n    model.endTransaction(); //uses settings found in Model.eventOptimization\n    model.endTransaction({   // override the Model.eventOptimization settings for this transaction\n        suppressPreviousPropertyChangeEvents: false,\n        enableSingleCallbackCall: true,\n        enableCallbackHashOpimization: true\n    })\nFor more examples see: <b>testSingleCallbackEventOptimization</b>, <b>testEnableCallbackHashOpimization</b>,\n     <b>testModelEndTransactionWithOptions</b>"
@@ -415,7 +485,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 820,
+            "line": 934,
             "description": "Determines if you are currently in a start/end transaction block.",
             "example": [
                 "\nFor an examples see <b>testModelTransactions</b>"
@@ -432,7 +502,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 837,
+            "line": 951,
             "description": "Only fires last Property Change of a property during a transaction.",
             "example": [
                 " For an example see <b>testSuppressPreviousPropertyChangeEventsEventOptimization</b>"
@@ -447,7 +517,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 846,
+            "line": 960,
             "description": "Will make sure a callback only gets called only once during a transaction. Even if registered with several properties.",
             "example": [
                 " For an example see <b>testSingleCallbackEventOptimization</b>"
@@ -462,7 +532,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 855,
+            "line": 969,
             "description": "Will make sure callbacks identified by .hash only gets called only once during a transaction. Even if registered with several properties.",
             "example": [
                 " For an example see <b>testEnableCallbackHashOpimization</b>"
@@ -477,7 +547,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 868,
+            "line": 982,
             "description": "Release control of the global window.Model variable restoring it to its previous value",
             "example": [
                 "\n    // window.Model is restore to previous value and localModel now holds the window.Model reference\n    var localModel = window.Model.noConflict();\nFor an example see <b>testEnableCallbackHashOpimization</b>"
@@ -494,7 +564,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 887,
+            "line": 1001,
             "class": "Model",
             "module": "Model"
         }

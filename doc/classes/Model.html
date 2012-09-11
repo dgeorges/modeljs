@@ -98,7 +98,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l518"><code>src\model.js:518</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l626"><code>src\model.js:626</code></a>
         </div>
     
 
@@ -168,7 +168,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l518"><code>src\model.js:518</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l626"><code>src\model.js:626</code></a>
         
         </p>
 
@@ -279,6 +279,13 @@
                                 
                             </li>
                         
+                            <li class="index-item method inherited">
+                                <a href="#method_destroy">destroy</a>
+
+                                
+                                
+                            </li>
+                        
                             <li class="index-item method">
                                 <a href="#method_endTransaction">endTransaction</a>
 
@@ -342,6 +349,20 @@
                             </li>
                         
                             <li class="index-item method inherited">
+                                <a href="#method_off">off</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method inherited">
+                                <a href="#method_on">on</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method inherited">
                                 <a href="#method_onChange">onChange</a>
 
                                 
@@ -366,6 +387,13 @@
                         
                             <li class="index-item method">
                                 <a href="#method_toJSON">toJSON</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method inherited">
+                                <a href="#method_trigger">trigger</a>
 
                                 
                                 
@@ -465,7 +493,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l629"><code>src\model.js:629</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l739"><code>src\model.js:739</code></a>
         
         </p>
 
@@ -571,7 +599,7 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l575"><code>src\model.js:575</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l683"><code>src\model.js:683</code></a>
         
         </p>
 
@@ -582,7 +610,7 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
     </div>
 
     <div class="description">
-        <p>Creates the property with the given name on this.</p>
+        <p>Creates the property with the given name on this. This will fire the childCreated event on the parent.</p>
     </div>
 
     
@@ -692,6 +720,75 @@ model.createProperty("number", 1) // a simple property (model.number)
 </div>
 
                 
+                    <div id="method_destroy" class="method item inherited">
+    <h3 class="name"><code>destroy</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_destroy">Property</a>:
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l496"><code>src\model.js:496</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Removes the property and its children if any from the Model. This will fire the destroy event on this and
+the childDestroyed event on the parent.</p>
+    </div>
+
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>:
+                    
+                    The deleted Property.
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
                     <div id="method_endTransaction" class="method item">
     <h3 class="name"><code>endTransaction</code></h3>
 
@@ -736,7 +833,7 @@ model.createProperty("number", 1) // a simple property (model.number)
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l781"><code>src\model.js:781</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l895"><code>src\model.js:895</code></a>
         
         </p>
 
@@ -831,7 +928,7 @@ model.endTransaction({   // override the Model.eventOptimization settings for th
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l469"><code>src\model.js:469</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l577"><code>src\model.js:577</code></a>
         
         </p>
 
@@ -846,7 +943,7 @@ model.endTransaction({   // override the Model.eventOptimization settings for th
 pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
 when creating a model from the very same json. Note: the modeljs framework uses the metadata to
 store attributes associated the properties that is uses. As a result the following keys have
-special meaning and should not be used. <b>[validator, name, url, refreshRate]</b></p>
+special meaning and should not be used. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]</b></p>
     </div>
 
     
@@ -903,7 +1000,7 @@ special meaning and should not be used. <b>[validator, name, url, refreshRate]</
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l355"><code>src\model.js:355</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l395"><code>src\model.js:395</code></a>
         
         </p>
 
@@ -988,7 +1085,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l564"><code>src\model.js:564</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l672"><code>src\model.js:672</code></a>
         
         </p>
 
@@ -1056,7 +1153,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l484"><code>src\model.js:484</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l592"><code>src\model.js:592</code></a>
         
         </p>
 
@@ -1137,7 +1234,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l820"><code>src\model.js:820</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l934"><code>src\model.js:934</code></a>
         
         </p>
 
@@ -1232,7 +1329,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l695"><code>src\model.js:695</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l807"><code>src\model.js:807</code></a>
         
         </p>
 
@@ -1355,7 +1452,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l868"><code>src\model.js:868</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l982"><code>src\model.js:982</code></a>
         
         </p>
 
@@ -1398,6 +1495,250 @@ var localModel = window.Model.noConflict();
 <p>For an example see <b>testEnableCallbackHashOpimization</b></p>
             </div>
         </div>
+    
+</div>
+
+                
+                    <div id="method_off" class="method item inherited">
+    <h3 class="name"><code>off</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>events</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>callback</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_off">Property</a>:
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l555"><code>src\model.js:555</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Removes all instances of the given callback with the given events on this.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">events</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>One or more space seperated eventNames</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">callback</code>
+                        <span class="type">Function</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The function to remove</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>:
+                    
+                    Returns this for Object chaining.
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
+                    <div id="method_on" class="method item inherited">
+    <h3 class="name"><code>on</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>events</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>callback</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_on">Property</a>:
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l534"><code>src\model.js:534</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Registers the given callback with the given events on this.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">events</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>One or more space seperated eventNames</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">callback</code>
+                        <span class="type">Function</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The function to execute when the given event is triggered</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>:
+                    
+                    Returns this for Object chaining.
+                
+            </div>
+        </div>
+    
+
     
 </div>
 
@@ -1447,7 +1788,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l431"><code>src\model.js:431</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l472"><code>src\model.js:472</code></a>
         
         </p>
 
@@ -1570,7 +1911,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l373"><code>src\model.js:373</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l413"><code>src\model.js:413</code></a>
         
         </p>
 
@@ -1688,7 +2029,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l765"><code>src\model.js:765</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l879"><code>src\model.js:879</code></a>
         
         </p>
 
@@ -1764,7 +2105,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l726"><code>src\model.js:726</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l838"><code>src\model.js:838</code></a>
         
         </p>
 
@@ -1775,8 +2116,10 @@ listeners will be notified unless the suppressNotifications option indicates oth
     </div>
 
     <div class="description">
-        <p>Retrieves the json representation of this. This json representation can be used in the Model Constructor to recreate
-the same Model object. If you use includeMetaData validator metadata will be included.</p>
+        <p>Retrieves the json representation of this. This json representation can be used in the Model Constructor
+to recreate the same Model object. If you use includeMetaData validator metadata will be included.
+Properties that have the doNotPresist flag in it's metadata will have it's value nullified. This means
+properties will have the value set to 'undefined' while models will be set to an empty object ({}).</p>
     </div>
 
     
@@ -1824,9 +2167,131 @@ the same Model object. If you use includeMetaData validator metadata will be inc
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>For an example see: <b>testSaveLoadWithMetaData</b></p>
+                <p>For an example see: <b>testSaveLoadWithMetaData</b> and <b>testDoNotPresist</b></p>
             </div>
         </div>
+    
+</div>
+
+                
+                    <div id="method_trigger" class="method item inherited">
+    <h3 class="name"><code>trigger</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>eventName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>eventArg?</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_trigger">Property</a>:
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l519"><code>src\model.js:519</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Trigger the given event on this.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">eventName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The name of the event.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">eventArg?</code>
+                        <span class="type">string, boolean, number, null, function, object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>An optional parameter to pass to the event handler</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>:
+                    
+                    Returns this for Object chaining.
+                
+            </div>
+        </div>
+    
+
     
 </div>
 
@@ -1874,7 +2339,7 @@ the same Model object. If you use includeMetaData validator metadata will be inc
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l499"><code>src\model.js:499</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l607"><code>src\model.js:607</code></a>
         
         </p>
 
@@ -1973,7 +2438,7 @@ the same Model object. If you use includeMetaData validator metadata will be inc
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l855"><code>src\model.js:855</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l969"><code>src\model.js:969</code></a>
         
         </p>
 
@@ -2029,7 +2494,7 @@ the same Model object. If you use includeMetaData validator metadata will be inc
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l846"><code>src\model.js:846</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l960"><code>src\model.js:960</code></a>
         
         </p>
 
@@ -2085,7 +2550,7 @@ the same Model object. If you use includeMetaData validator metadata will be inc
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l837"><code>src\model.js:837</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l951"><code>src\model.js:951</code></a>
         
         </p>
 

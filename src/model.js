@@ -517,7 +517,9 @@
     };
 
     /**
-     * Trigger the given event on this.
+     * Triggers the given event on this.
+     *
+     * @method  trigger
      *
      * @param  {String} eventName The name of the event.
      * @param  {[string, boolean, number, null, function, object]} eventArg? An optional parameter to pass to the event handler
@@ -531,6 +533,8 @@
 
     /**
      * Registers the given callback with the given events on this.
+     *
+     * @method  on
      *
      * @param  {String} events     One or more space seperated eventNames
      * @param  {Function} callback  The function to execute when the given event is triggered
@@ -550,6 +554,8 @@
 
     /**
      * Removes all instances of the given callback with the given events on this.
+     *
+     * @method off
      *
      * @param  {String} events  One or more space seperated eventNames
      * @param  {Function} callback The function to remove
