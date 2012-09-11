@@ -99,7 +99,7 @@
 
             if (xhr.status !== 200) {
                 window.console.warn("Retrying remote request for " + property.getName() + " due to return status of " + xhr.status);
-                //makeRemoteRequest(property);  // retry request...
+                makeRemoteRequest(property);  // retry request...
                 return;
             }
 
@@ -114,7 +114,7 @@
                 jsonResponse = JSON.parse(xhr.response);
             } catch (e) {
                 window.console.error("Unable to parse remote Model request for " + property.getName());
-                //should retry? makeRemoteRequest(property);
+                return; //should retry? makeRemoteRequest(property);
             }
 
             //use response header Last-Modified time stamp to determine if we should call setValue
@@ -462,7 +462,6 @@
 
                 if (!suppressNotifications){
                     eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
-                    //eventProxy.fireChangeEvent(this, oldValue);
                 }
             }
         }
