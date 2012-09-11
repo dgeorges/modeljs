@@ -494,7 +494,8 @@
     };
 
     /**
-     * Removes the property and its children if any from the Model. The Destroy event will be fired.
+     * Removes the property and its children if any from the Model. This will fire the destroy event on this and
+     * the childDestroyed event on the parent.
      *
      * @method  destroy
      *
@@ -674,7 +675,7 @@
     };
 
     /**
-     * Creates the property with the given name on this.
+     * Creates the property with the given name on this. This will fire the childCreated event on the parent.
      *
      * @example
      *     var model = new Model();
