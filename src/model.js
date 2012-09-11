@@ -27,10 +27,6 @@
  *  - think about adding a model binding ability
  *  - create a sample app.
  *  - put sample code on github
- *  - ability for custom events?
- *
- * BUGS:
- * - Think about improving the onChange callback?
  */
 
 /**
@@ -516,7 +512,7 @@
     };
 
     /**
-     * Triggers the given event on this.
+     * Triggers the given event on this. Passing the optional argument.
      *
      * @method  trigger
      *
@@ -531,7 +527,11 @@
     };
 
     /**
-     * Registers the given callback with the given events on this.
+     * Registers the given callback with the given events on this. When the callback is executed it
+     * will have it's 'this' context bound to this (ie. the property listening to the event). The first argument
+     * will be bound to the property that triggered the event. In most cases these are the same property,
+     * unless the event is bubbling up the tree. The final argument is optional and varies depending on
+     * event type.
      *
      * @method  on
      *
