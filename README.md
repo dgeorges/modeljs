@@ -7,6 +7,8 @@ Features
 --------------------
   - Simple easy to use and intuitive library
   - Can save/load Model to/from JSON with/without model meta data
+  - Can flag any property value to not be presisted to JSON
+  - Can attach custom meta-data to properties that can be presisted with model.
   - Supports models defined by a remote resource with the ability to periodically refresh
   - remote model has option to use JSONP in the event of CORS issues
   - Can register on change events with any single property or group of properties
@@ -16,12 +18,12 @@ Features
   - Can batch changes into a transaction.
   - Transaction callbacks can be easily optimized.
   - Incorrect uses of api are logged as errors to the console.
-  - Browser Support for IE9, Firefox 4+, Safari 5.1.4+, Chrome 7+, Opera 12+
+  - Native browser Support for IE9, Firefox 4+, Safari 5.1.4+, Chrome 7+, Opera 12+ without a shim library.
 
 
 Browser Support
 ---------------
-modeljs thereotically should work on all browsers that support JavaScript.  It has been tested on IE9, Firefox 14+ and Chrome 21+. To see if it work on a specify browser version of your choice, run the unit tests(test/ModelTest.html). If anything fails please report it so it can be fix. Happy Coding
+modeljs thereotically should work on all browsers that support ECMAScript 5th Edition (December 2009, http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-262.pdf).  It has been manually tested on IE9, Firefox 14+, Safari 5.1.4 and Chrome 21+. To see if it work on a specify browser version of your choice, run the unit tests(test/ModelTest.html). To support older non ECMA5 browsers using a shim library like [es5-shim](https://github.com/kriskowal/es5-shim).
 
 Getting Started
 ------------------

@@ -5,23 +5,6 @@
  * @version 1.0.0
  * @author Daniel Georges
  *
- *
- * Features
- * - Simple easy to use and intuitive library
- * - Can save/load Model to/from JSON with/without model meta-data
- * - Can flag any property value to not be presisted to JSON
- * - Can attach custom meta-data to properties
- * - Supports models defined by a remote resource with the ability to periodically refresh.
- * - remote model has option to use JSONP in the event of CORS issues
- * - Can register on change events with any single property or group of properties
- * - Model change events bubble up.
- * - Can tie validation methods to models and properties
- * - Can suppress events notification.
- * - Can batch changes into a transaction.
- * - Transaction can be easily optimized.
- * - Incorrect uses of api are logged as errors to the console
- * - Browser Support for IE9, Firefox 4+, Safari 5.1.4+, Chrome 7+, Opera 12+
- *
  * TODO:
  *  - test on IE8
  *  - think about adding a model binding ability
