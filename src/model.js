@@ -1,27 +1,25 @@
-/*
+/**
  * Model js - A simple javascript library for creating the Model part of a MVC application.
  * https://github.com/dgeorges/modeljs.git
- * @project modeljs
- * @version 1.0.0
- * @author Daniel Georges
  *
- * TODO:
- *  - test on IE8
- *  - think about adding a model binding ability
- *  - create a sample app.
- *  - put sample code on github
+ * Copyright 2012, Daniel Georges
+ * modeljs is distributed freely under a MIT licence
+ *
+ * @project modeljs
+ * @author Daniel Georges
+ * @version 1.0.0
+ * @module Model
  */
-
-/**
- Provides the base Model library.
-@module Model
-*/
 (function (window, undefined) {
     "use strict";
 
     // copied from underscorejs
+    function isFunction (fn) {
+        return fn && Object.prototype.toString.call(fn) === '[object Function]';
+    }
+
     function isObject (obj) {
-        return obj === new Object(obj) && Object.prototype.toString.call(obj) != '[object Function]';
+        return obj === new Object(obj) && !isFunction(obj) && !Array.isArray(obj);
     }
 
     function isEmptyObject(obj) {
@@ -233,13 +231,6 @@
                 eventListeners.forEach(
                     executeCallbacksFunction(property, property, eventArg)
                 );
-
-                if (propertyParent) {
-                    var childCreatedListeners = propertyParent._eventListeners.childCreated || [];
-                    childCreatedListeners.forEach(
-                        executeCallbacksFunction(property, propertyParent, eventArg)
-                    );
-                }
             } else {
                 eventListeners.forEach(
                     executeCallbacksFunction(property, property, eventArg)
@@ -302,6 +293,7 @@
             inTransaction: function () { return currentState === state.TRANSACTION;}
         };
     }();
+
 
     /**
      * A Property is a name value pair belonging to a Model.
@@ -463,6 +455,10 @@
      *                         listenToChildren {Boolean} - registers the callback with sub property changes as well.
      */
     Property.prototype.onChange = function (callback, options) {
+        if (!isFunction(callback)){
+            window.console.warn("Incorrect Syntax: callback must be a function");
+            return;
+        }
         if (options && options.listenToChildren){
             this._eventListeners.modelChange.push(callback);
         } else {
@@ -490,8 +486,7 @@
     };
 
     Property.prototype.onDestroy = function (callback) {
-        this._eventListeners.destroy.push(callback);
-        return this;
+        return this.on("destroy", callback);
     };
 
     /**
@@ -523,6 +518,11 @@
      * @return {Property}          Returns this for Object chaining.
      */
     Property.prototype.on = function (events, callback){
+        if (!isFunction(callback)){
+            window.console.warn("Incorrect Syntax: callback must be a function");
+            return;
+        }
+        //test Callback is a function
         var eventNames = events.split(' ');
         eventNames.forEach(function(eventName){
             if (!this._eventListeners[eventName]){
@@ -544,6 +544,10 @@
      * @return {Property}         Returns this for Object chaining.
      */
     Property.prototype.off = function (events, callback) {
+        if (!isFunction(callback)){
+            window.console.warn("Incorrect Syntax: callback must be a function");
+            return;
+        }
         var eventNames = events.split(' ');
         eventNames.forEach(function(eventName){
             if (this._eventListeners[eventName]){
@@ -582,8 +586,7 @@
      * @return {Boolean} True if this has a validator associated with it. False otherwise.
      */
     Property.prototype.hasValidator = function () {
-        return !!this._metadata.validator &&
-            Object.prototype.toString.call(this._metadata.validator) === '[object Function]';
+        return isFunction(this._metadata.validator);
     };
 
    /**
@@ -598,7 +601,7 @@
      * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
      */
     Property.prototype.validateValue = function (value) {
-        if (this._metadata.validator){
+        if (this.hasValidator()) {
             return this._metadata.validator(value);
         }
         return true;
@@ -982,4 +985,5 @@
 
     /** @global */
     window.Model = Model;
+
 }(window));
