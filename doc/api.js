@@ -11,7 +11,7 @@ YUI.add("yuidoc-meta", function(Y) {
         {
             "displayName": "Model",
             "name": "Model",
-            "description": "Provides the base Model library."
+            "description": "Model js - A simple javascript library for creating the Model part of a MVC application.\nhttps://github.com/dgeorges/modeljs.git\n\nCopyright 2012, Daniel Georges\nmodeljs is distributed freely under a MIT licence"
         }
     ]
 } };

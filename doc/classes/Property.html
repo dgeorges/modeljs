@@ -19,7 +19,7 @@
             
         </div>
         <div class="yui3-u-1-4 version">
-            <em>API Docs for: </em>
+            <em>API Docs for: 1.0.0</em>
         </div>
     </div>
     <div id="bd" class="yui3-g">
@@ -94,7 +94,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l327"><code>src\model.js:327</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l360"><code>src\model.js:360</code></a>
         </div>
     
 
@@ -178,7 +178,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l327"><code>src\model.js:327</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l360"><code>src\model.js:360</code></a>
         
         </p>
 
@@ -424,7 +424,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l496"><code>src\model.js:496</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l543"><code>src\model.js:543</code></a>
         
         </p>
 
@@ -496,7 +496,7 @@ the childDestroyed event on the parent.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l577"><code>src\model.js:577</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l636"><code>src\model.js:636</code></a>
         
         </p>
 
@@ -571,7 +571,7 @@ special meaning and should not be used. <b>[validator, name, url, refreshRate, i
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l395"><code>src\model.js:395</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l433"><code>src\model.js:433</code></a>
         
         </p>
 
@@ -656,7 +656,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l384"><code>src\model.js:384</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l422"><code>src\model.js:422</code></a>
         
         </p>
 
@@ -727,7 +727,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l592"><code>src\model.js:592</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l651"><code>src\model.js:651</code></a>
         
         </p>
 
@@ -822,7 +822,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l555"><code>src\model.js:555</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l610"><code>src\model.js:610</code></a>
         
         </p>
 
@@ -947,7 +947,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l534"><code>src\model.js:534</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l580"><code>src\model.js:580</code></a>
         
         </p>
 
@@ -958,7 +958,11 @@ namedRoot.property1.getName();       // returns "/customName/property1"
     </div>
 
     <div class="description">
-        <p>Registers the given callback with the given events on this.</p>
+        <p>Registers the given callback with the given events on this. When the callback is executed it
+will have it's 'this' context bound to this (ie. the property listening to the event). The first argument
+will be the property that triggered the event. In most cases these are the same property,
+unless the event is bubbling up the tree. The final argument is optional and varies depending on
+event type.</p>
     </div>
 
     
@@ -1068,7 +1072,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l472"><code>src\model.js:472</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l512"><code>src\model.js:512</code></a>
         
         </p>
 
@@ -1079,7 +1083,10 @@ namedRoot.property1.getName();       // returns "/customName/property1"
     </div>
 
     <div class="description">
-        <p>Registers a callback function with the change event of this.</p>
+        <p>Registers a callback function with the change event of this.  When the callback is executed it
+will have it's 'this' context bound to this (ie. the property listening to the event). The first argument
+will be the property that triggered the event, also this. The final argument be the oldValue before it
+was changed.</p>
     </div>
 
     
@@ -1194,7 +1201,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l413"><code>src\model.js:413</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l451"><code>src\model.js:451</code></a>
         
         </p>
 
@@ -1330,7 +1337,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l519"><code>src\model.js:519</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l565"><code>src\model.js:565</code></a>
         
         </p>
 
@@ -1341,7 +1348,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
     </div>
 
     <div class="description">
-        <p>Trigger the given event on this.</p>
+        <p>Triggers the given event on this. Passing the optional argument.</p>
     </div>
 
     
@@ -1449,7 +1456,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l607"><code>src\model.js:607</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l665"><code>src\model.js:665</code></a>
         
         </p>
 

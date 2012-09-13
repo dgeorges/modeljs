@@ -19,7 +19,7 @@
             
         </div>
         <div class="yui3-u-1-4 version">
-            <em>API Docs for: </em>
+            <em>API Docs for: 1.0.0</em>
         </div>
     </div>
     <div id="bd" class="yui3-g">
@@ -90,51 +90,28 @@
 
 <div class="file">
     <pre class="code prettyprint linenums">
-&#x2F;*
+&#x2F;**
  * Model js - A simple javascript library for creating the Model part of a MVC application.
  * https:&#x2F;&#x2F;github.com&#x2F;dgeorges&#x2F;modeljs.git
+ *
+ * Copyright 2012, Daniel Georges
+ * modeljs is distributed freely under a MIT licence
+ *
  * @project modeljs
- * @version 1.0.0
  * @author Daniel Georges
- *
- *
- * Features
- * - Simple easy to use and intuitive library
- * - Can save&#x2F;load Model to&#x2F;from JSON with&#x2F;without model meta-data
- * - Can flag any property value to not be presisted to JSON
- * - Can attach custom meta-data to properties
- * - Supports models defined by a remote resource with the ability to periodically refresh.
- * - remote model has option to use JSONP in the event of CORS issues
- * - Can register on change events with any single property or group of properties
- * - Model change events bubble up.
- * - Can tie validation methods to models and properties
- * - Can suppress events notification.
- * - Can batch changes into a transaction.
- * - Transaction can be easily optimized.
- * - Incorrect uses of api are logged as errors to the console
- * - Browser Support for IE9, Firefox 4+, Safari 5.1.4+, Chrome 7+, Opera 12+
- *
- * TODO:
- *  - test on IE8
- *  - think about adding a model binding ability
- *  - create a sample app.
- *  - put sample code on github
- *  - ability for custom events?
- *
- * BUGS:
- * - Think about improving the onChange callback?
+ * @version 1.0.0
+ * @module Model
  *&#x2F;
-
-&#x2F;**
- Provides the base Model library.
-@module Model
-*&#x2F;
 (function (window, undefined) {
     &quot;use strict&quot;;
 
     &#x2F;&#x2F; copied from underscorejs
+    function isFunction (fn) {
+        return fn &amp;&amp; Object.prototype.toString.call(fn) === &#x27;[object Function]&#x27;;
+    }
+
     function isObject (obj) {
-        return obj === new Object(obj) &amp;&amp; Object.prototype.toString.call(obj) != &#x27;[object Function]&#x27;;
+        return obj === new Object(obj) &amp;&amp; !isFunction(obj) &amp;&amp; !Array.isArray(obj);
     }
 
     function isEmptyObject(obj) {
@@ -191,7 +168,7 @@
 
             if (xhr.status !== 200) {
                 window.console.warn(&quot;Retrying remote request for &quot; + property.getName() + &quot; due to return status of &quot; + xhr.status);
-                &#x2F;&#x2F;makeRemoteRequest(property);  &#x2F;&#x2F; retry request...
+                makeRemoteRequest(property);  &#x2F;&#x2F; retry request...
                 return;
             }
 
@@ -206,7 +183,7 @@
                 jsonResponse = JSON.parse(xhr.response);
             } catch (e) {
                 window.console.error(&quot;Unable to parse remote Model request for &quot; + property.getName());
-                &#x2F;&#x2F;should retry? makeRemoteRequest(property);
+                return; &#x2F;&#x2F;should retry? makeRemoteRequest(property);
             }
 
             &#x2F;&#x2F;use response header Last-Modified time stamp to determine if we should call setValue
@@ -346,13 +323,6 @@
                 eventListeners.forEach(
                     executeCallbacksFunction(property, property, eventArg)
                 );
-
-                if (propertyParent) {
-                    var childCreatedListeners = propertyParent._eventListeners.childCreated || [];
-                    childCreatedListeners.forEach(
-                        executeCallbacksFunction(property, propertyParent, eventArg)
-                    );
-                }
             } else {
                 eventListeners.forEach(
                     executeCallbacksFunction(property, property, eventArg)
@@ -416,6 +386,69 @@
         };
     }();
 
+
+    &#x2F;**
+     * An Observable Array is a wrapper around the javaScript Array primitive which will
+     * trigger the correct events when any of it mutator methods are called. It is not
+     * exposed outside of this file.
+     *&#x2F;
+    function ObservableArray(myProperty, values){
+        this._prop = myProperty;
+        Array.call(this, values);
+    }
+    ObservableArray.prototype = Object.create(Array.prototype);
+
+    ObservableArray.prototype.pop = function (){
+        var args = Array.prototype.slice.call(arguments),
+            element = Array.prototype.pop.apply(this, args);
+        this._prop.trigger(&quot;childDestroyed&quot;, element);
+        return element;
+    };
+    ObservableArray.prototype.push = function (){
+        var args = Array.prototype.slice.call(arguments),
+            newLength = Array.prototype.push.apply(this, args);
+        this._prop.trigger(&quot;childCreated&quot;, args);
+        return newLength;
+    };
+    ObservableArray.prototype.reverse = function (){
+        var args = Array.prototype.slice.call(arguments),
+            oldValue =  Array.prototype.slice.call(this);
+        Array.prototype.reverse.apply(this, args);
+        this._prop.trigger(&quot;propertyChange&quot;, oldValue);
+        return this;
+    };
+    ObservableArray.prototype.shift = function (){
+        var args = Array.prototype.slice.call(arguments),
+            element = Array.prototype.shift.apply(this, args);
+        this._prop.trigger(&quot;childDestroyed&quot;, element);
+        return element;
+    };
+    ObservableArray.prototype.sort = function (){
+        var args = Array.prototype.slice.call(arguments),
+            oldValue = Array.prototype.slice.call(this);
+        Array.prototype.sort.apply(this, args);
+        this._prop.trigger(&quot;propertyChange&quot;, oldValue);
+        return this;
+    };
+    ObservableArray.prototype.splice = function (){
+        &#x2F;&#x2F; A little more difficult!!
+        var args = Array.prototype.slice.call(arguments),
+            removed = Array.prototype.splice.apply(this, args);
+        if (removed.length &gt; 0){
+            this._prop.trigger(&quot;childDestroyed&quot;, removed);
+        }
+        this._prop.trigger(&quot;childCreated&quot;);&#x2F;&#x2F; TODO use count to determin if should be called
+        return removed;
+    };
+    ObservableArray.prototype.unshift = function (){
+        var args = Array.prototype.slice.call(arguments),
+            newElements = Array.prototype.slice(arguments),
+            newLength = Array.prototype.unshift.apply(this, args);
+        this._prop.trigger(&quot;childCreated&quot;, newElements);
+        return newLength;
+    };
+
+
     &#x2F;**
      * A Property is a name value pair belonging to a Model.
      *
@@ -438,6 +471,11 @@
             myName = parent.getName() + myName;
         }
 
+        var myValue = value;
+        if (Array.isArray(value)){
+            myValue = new ObservableArray(this, value);
+        }
+
         Object.defineProperty(this, &quot;_name&quot;, {
             value: myName,
             enumerable: false
@@ -449,7 +487,7 @@
         });
 
         Object.defineProperty(this, &quot;_myValue&quot;, {
-            value: value,
+            value: myValue,
             enumerable: false,
             writable: true
         });
@@ -470,7 +508,7 @@
             enumerable: false
         });
 
-        this.setValue(value);
+        this.setValue(myValue);
     }
 
     &#x2F;**
@@ -548,13 +586,15 @@
                         window.console.error(&quot;Not Supported: Can&#x27;t set a Property value to a model. Delete the property and use createProperty&quot;);
                         return;
                     } else {
+                        if (Array.isArray(newValue)){
+                            newValue = new ObservableArray(this, newValue);
+                        }
                         this._myValue = newValue;
                     }
                 }
 
                 if (!suppressNotifications){
                     eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
-                    &#x2F;&#x2F;eventProxy.fireChangeEvent(this, oldValue);
                 }
             }
         }
@@ -562,7 +602,10 @@
     };
 
     &#x2F;**
-     * Registers a callback function with the change event of this.
+     * Registers a callback function with the change event of this.  When the callback is executed it
+     * will have it&#x27;s &#x27;this&#x27; context bound to this (ie. the property listening to the event). The first argument
+     * will be the property that triggered the event, also this. The final argument be the oldValue before it
+     * was changed.
      *
      * @example
      *     model.onchange(callback, true); &#x2F;&#x2F;listens to change events on entire model
@@ -577,6 +620,10 @@
      *                         listenToChildren {Boolean} - registers the callback with sub property changes as well.
      *&#x2F;
     Property.prototype.onChange = function (callback, options) {
+        if (!isFunction(callback)){
+            window.console.warn(&quot;Incorrect Syntax: callback must be a function&quot;);
+            return;
+        }
         if (options &amp;&amp; options.listenToChildren){
             this._eventListeners.modelChange.push(callback);
         } else {
@@ -604,12 +651,11 @@
     };
 
     Property.prototype.onDestroy = function (callback) {
-        this._eventListeners.destroy.push(callback);
-        return this;
+        return this.on(&quot;destroy&quot;, callback);
     };
 
     &#x2F;**
-     * Trigger the given event on this.
+     * Triggers the given event on this. Passing the optional argument.
      *
      * @method  trigger
      *
@@ -624,7 +670,11 @@
     };
 
     &#x2F;**
-     * Registers the given callback with the given events on this.
+     * Registers the given callback with the given events on this. When the callback is executed it
+     * will have it&#x27;s &#x27;this&#x27; context bound to this (ie. the property listening to the event). The first argument
+     * will be the property that triggered the event. In most cases these are the same property,
+     * unless the event is bubbling up the tree. The final argument is optional and varies depending on
+     * event type.
      *
      * @method  on
      *
@@ -633,6 +683,11 @@
      * @return {Property}          Returns this for Object chaining.
      *&#x2F;
     Property.prototype.on = function (events, callback){
+        if (!isFunction(callback)){
+            window.console.warn(&quot;Incorrect Syntax: callback must be a function&quot;);
+            return;
+        }
+        &#x2F;&#x2F;test Callback is a function
         var eventNames = events.split(&#x27; &#x27;);
         eventNames.forEach(function(eventName){
             if (!this._eventListeners[eventName]){
@@ -654,6 +709,10 @@
      * @return {Property}         Returns this for Object chaining.
      *&#x2F;
     Property.prototype.off = function (events, callback) {
+        if (!isFunction(callback)){
+            window.console.warn(&quot;Incorrect Syntax: callback must be a function&quot;);
+            return;
+        }
         var eventNames = events.split(&#x27; &#x27;);
         eventNames.forEach(function(eventName){
             if (this._eventListeners[eventName]){
@@ -692,8 +751,7 @@
      * @return {Boolean} True if this has a validator associated with it. False otherwise.
      *&#x2F;
     Property.prototype.hasValidator = function () {
-        return !!this._metadata.validator &amp;&amp;
-            Object.prototype.toString.call(this._metadata.validator) === &#x27;[object Function]&#x27;;
+        return isFunction(this._metadata.validator);
     };
 
    &#x2F;**
@@ -708,7 +766,7 @@
      * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
      *&#x2F;
     Property.prototype.validateValue = function (value) {
-        if (this._metadata.validator){
+        if (this.hasValidator()) {
             return this._metadata.validator(value);
         }
         return true;
@@ -954,7 +1012,7 @@
                 if (includeMetaData &amp;&amp; !isEmptyObject(property.getMetadata())){
                     json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
                 }
-            } else {
+            } else if (property instanceof Property) {
                 if (property.getMetadata().doNotPresist) {
                     json[name] = null;
                 } else {
@@ -1092,6 +1150,7 @@
 
     &#x2F;** @global *&#x2F;
     window.Model = Model;
+
 }(window));
     </pre>
 </div>

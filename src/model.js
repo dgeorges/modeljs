@@ -510,7 +510,10 @@
     };
 
     /**
-     * Registers a callback function with the change event of this.
+     * Registers a callback function with the change event of this.  When the callback is executed it
+     * will have it's 'this' context bound to this (ie. the property listening to the event). The first argument
+     * will be the property that triggered the event, also this. The final argument be the oldValue before it
+     * was changed.
      *
      * @example
      *     model.onchange(callback, true); //listens to change events on entire model
@@ -577,7 +580,7 @@
     /**
      * Registers the given callback with the given events on this. When the callback is executed it
      * will have it's 'this' context bound to this (ie. the property listening to the event). The first argument
-     * will be bound to the property that triggered the event. In most cases these are the same property,
+     * will be the property that triggered the event. In most cases these are the same property,
      * unless the event is bubbling up the tree. The final argument is optional and varies depending on
      * event type.
      *
