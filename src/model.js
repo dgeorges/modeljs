@@ -227,10 +227,6 @@
                         executeCallbacksFunction(property, propertyParent, eventArg)
                     );
                 }
-            } else if (eventName === eventType.CHILD_CREATED){ // special event why?
-                eventListeners.forEach(
-                    executeCallbacksFunction(property, property, eventArg)
-                );
             } else {
                 eventListeners.forEach(
                     executeCallbacksFunction(property, property, eventArg)
@@ -394,15 +390,19 @@
             enumerable: false
         });
 
+        Object.defineProperty(this, "_metadata", {
+            value: metadata || {},
+            enumerable: false
+        });
+
+        //make sure value is valid
+        if (!this.validateValue(myValue)) { //TODO: can object be set to undefined too
+            myValue = isObject(myValue)? {} : undefined;
+        }
         Object.defineProperty(this, "_myValue", {
             value: myValue,
             enumerable: false,
             writable: true
-        });
-
-        Object.defineProperty(this, "_metadata", {
-            value: metadata || {},
-            enumerable: false
         });
 
         Object.defineProperty(this, "_eventListeners", {
@@ -415,8 +415,6 @@
             },
             enumerable: false
         });
-
-        this.setValue(myValue);
     }
 
     /**
@@ -709,18 +707,19 @@
 
         //A Model is in itself a Property so lets call our supers constructor
         Property.call(this, modelName, jsonModel, modelParent, modelMetadata);
+        if (this.validateValue(json)){
+            Object.keys(jsonModel).forEach(function (name){
 
-        Object.keys(jsonModel).forEach(function (name){
+                if (name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)){ // skip special meta data properties
+                    return;
+                }
 
-            if (name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)){ // skip special meta data properties
-                return;
-            }
+                var value = jsonModel[name];
+                var propertyMetadata = json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
 
-            var value = jsonModel[name];
-            var propertyMetadata = json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
-
-            this.createProperty(name, value, propertyMetadata);
-        }, this);
+                this.createProperty(name, value, propertyMetadata);
+            }, this);
+        }
     }
     Model.prototype = Object.create(Property.prototype);
 

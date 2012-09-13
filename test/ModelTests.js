@@ -359,7 +359,7 @@ test("testPropertyValidationFunction", function () {
 test("testSaveLoadWithMetaData", function () {
 
     var expectedJSON = {
-        x: {num: 1},
+        x: 1,
         x__modeljs__metadata: {
             validator: function (value){
                 return value > 0;
@@ -372,7 +372,7 @@ test("testSaveLoadWithMetaData", function () {
     };
 
     var m = new Model();
-    m.createProperty("x", {num: 1}, {validator: validateX});
+    m.createProperty("x", 1, {validator: validateX});
 
     equal(JSON.stringify(m.toJSON(true)), JSON.stringify(expectedJSON), "JSON with metadata is as expected");
 
@@ -709,6 +709,38 @@ test("testModelNoConflict", function () {
     ok (!Model, "Model remove from global namespace after noConflict called");
     equal(myModel, originalModel, "Model returned from noConflict Method");
     window.Model = myModel; //restore the world so other tests continue to work
+
+});
+
+test("testInvalidInitialValue", function () {
+    function isPositive(value) {
+        return value > 0;
+    }
+
+    function countableObject(value){
+        return value && value.count;
+    }
+
+    var m = new Model();
+
+    m.createProperty("blankProp", undefined, {validator:isPositive});
+    m.createProperty("negativeNumber", -1, {validator:isPositive});
+    m.createProperty("positiveNumber", 1, {validator:isPositive});
+    m.createProperty("invalidCountable", {str:"123"}, {validator:countableObject});
+    m.createProperty("validCountable", {str:"123", count:1}, {validator:countableObject});
+
+    var expectedJSON = {
+        blankProp: undefined,
+        negativeNumber: undefined,
+        positiveNumber:1,
+        invalidCountable: {},
+        validCountable: {
+            str:"123",
+            count:1
+        }
+    };
+
+    equal(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Creation validation works");
 
 });
 
