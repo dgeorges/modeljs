@@ -396,8 +396,8 @@
         });
 
         //make sure value is valid
-        if (!this.validateValue(myValue)) { //TODO: can object be set to undefined too
-            myValue = isObject(myValue)? {} : undefined;
+        if (!this.validateValue(myValue)) {
+            myValue = undefined;
         }
         Object.defineProperty(this, "_myValue", {
             value: myValue,
@@ -485,7 +485,9 @@
                         return;
                     } else {
                         //This model need to be set to the newValue
-                        this.merge(newValue, false);
+                        if (this.merge(newValue, false)) {
+                            this._myValue = newValue; //set Value if successful
+                        }
                     }
                 } else { // newValue is a property
                     if (this instanceof Model){
@@ -875,7 +877,7 @@
      *
      * @param  {[Object]} json              The json object to have merged.
      * @param  {[Boolean]} keepOldProperties? True if you want to keep properties that exist in this but not in the passed in json, Otherwise they will be deleted. Defaults to false.
-     * @return {Model}                   Returns true if merge was successful, false otherwise.
+     * @return {Boolean}                   Returns true if merge was successful, false otherwise.
      */
     Model.prototype.merge = function (json, keepOldProperties) {
         //will merge the properties in json with this. result will be the same as the Object extend.
@@ -908,6 +910,10 @@
      */
     Model.prototype.toJSON = function (includeMetaData) {
         var json = {};
+        if (this._myValue === undefined){
+            return undefined;
+        }
+
         Object.keys(this).forEach( function (name){
             var property = this[name];
             if (property instanceof Model) {

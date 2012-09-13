@@ -733,15 +733,22 @@ test("testInvalidInitialValue", function () {
         blankProp: undefined,
         negativeNumber: undefined,
         positiveNumber:1,
-        invalidCountable: {},
+        invalidCountable: undefined,
         validCountable: {
             str:"123",
             count:1
         }
     };
 
-    equal(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Creation validation works");
+    ok(m.negativeNumber.getValue() === undefined, "invalid Property value not set on initialization");
+    ok(m.invalidCountable.getValue() === undefined, "invalid Model value not set on initialization");
+    equal(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Creation validation toJSON works");
 
+    m.invalidCountable.setValue({str:1, count:1});
+    m.negativeNumber.setValue(3);
+
+    equal(JSON.stringify(m.invalidCountable.getValue()), JSON.stringify({str:1, count:1}), "assignment to undefined Model");
+    equal(m.negativeNumber.getValue(), 3, "assignment to undefined Property");
 });
 
 test("testGetMetadataMethod", function (){
