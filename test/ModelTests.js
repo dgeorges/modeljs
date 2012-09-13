@@ -884,6 +884,35 @@ test("testDoNotPresist", function (){
     equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPresistObjectPropertyJSON), "metadata serialized correctly");
 });
 
+test("testObservableArray", function (){
+
+    var model = new Model();
+    model.createProperty("oArray", [1,2,3]);
+
+    var callbackCount = 0;
+    function changeCallback (property, oldValue) {
+        callbackCount++;
+    }
+
+    function childCreatedCallback(property, arg){
+        callbackCount++;
+    }
+    function childDestroyedCallback (property, arg){
+        callbackCount++;
+    }
+
+    model.oArray.onChange(changeCallback);
+    model.oArray.on('childCreated', childCreatedCallback);
+    model.oArray.on('childDestroyed', childDestroyedCallback);
+    var value = model.oArray.getValue();
+    equal (model.oArray.getValue().length, 0, "behaves like an array");
+    value.push(3,2,8,4, 10);
+    value.pop();
+    value.sort();
+    equal(callbackCount, 3);
+
+});
+
 asyncTest("remoteModel", function () {
 
     expect(3);

@@ -296,6 +296,68 @@
 
 
     /**
+     * An Observable Array is a wrapper around the javaScript Array primitive which will
+     * trigger the correct events when any of it mutator methods are called. It is not
+     * exposed outside of this file.
+     */
+    function ObservableArray(myProperty, values){
+        this._prop = myProperty;
+        Array.call(this, values);
+    }
+    ObservableArray.prototype = Object.create(Array.prototype);
+
+    ObservableArray.prototype.pop = function (){
+        var args = Array.prototype.slice.call(arguments),
+            element = Array.prototype.pop.apply(this, args);
+        this._prop.trigger("childDestroyed", element);
+        return element;
+    };
+    ObservableArray.prototype.push = function (){
+        var args = Array.prototype.slice.call(arguments),
+            newLength = Array.prototype.push.apply(this, args);
+        this._prop.trigger("childCreated", args);
+        return newLength;
+    };
+    ObservableArray.prototype.reverse = function (){
+        var args = Array.prototype.slice.call(arguments),
+            oldValue =  Array.prototype.slice.call(this);
+        Array.prototype.reverse.apply(this, args);
+        this._prop.trigger("propertyChange", oldValue);
+        return this;
+    };
+    ObservableArray.prototype.shift = function (){
+        var args = Array.prototype.slice.call(arguments),
+            element = Array.prototype.shift.apply(this, args);
+        this._prop.trigger("childDestroyed", element);
+        return element;
+    };
+    ObservableArray.prototype.sort = function (){
+        var args = Array.prototype.slice.call(arguments),
+            oldValue = Array.prototype.slice.call(this);
+        Array.prototype.sort.apply(this, args);
+        this._prop.trigger("propertyChange", oldValue);
+        return this;
+    };
+    ObservableArray.prototype.splice = function (){
+        // A little more difficult!!
+        var args = Array.prototype.slice.call(arguments),
+            removed = Array.prototype.splice.apply(this, args);
+        if (removed.length > 0){
+            this._prop.trigger("childDestroyed", removed);
+        }
+        this._prop.trigger("childCreated");// TODO use count to determin if should be called
+        return removed;
+    };
+    ObservableArray.prototype.unshift = function (){
+        var args = Array.prototype.slice.call(arguments),
+            newElements = Array.prototype.slice(arguments),
+            newLength = Array.prototype.unshift.apply(this, args);
+        this._prop.trigger("childCreated", newElements);
+        return newLength;
+    };
+
+
+    /**
      * A Property is a name value pair belonging to a Model.
      *
      * @class Property
@@ -317,6 +379,11 @@
             myName = parent.getName() + myName;
         }
 
+        var myValue = value;
+        if (Array.isArray(value)){
+            myValue = new ObservableArray(this, value);
+        }
+
         Object.defineProperty(this, "_name", {
             value: myName,
             enumerable: false
@@ -328,7 +395,7 @@
         });
 
         Object.defineProperty(this, "_myValue", {
-            value: value,
+            value: myValue,
             enumerable: false,
             writable: true
         });
@@ -349,7 +416,7 @@
             enumerable: false
         });
 
-        this.setValue(value);
+        this.setValue(myValue);
     }
 
     /**
@@ -427,6 +494,9 @@
                         window.console.error("Not Supported: Can't set a Property value to a model. Delete the property and use createProperty");
                         return;
                     } else {
+                        if (Array.isArray(newValue)){
+                            newValue = new ObservableArray(this, newValue);
+                        }
                         this._myValue = newValue;
                     }
                 }
