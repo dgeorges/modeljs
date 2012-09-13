@@ -917,7 +917,7 @@
                 if (includeMetaData && !isEmptyObject(property.getMetadata())){
                     json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
                 }
-            } else {
+            } else if (property instanceof Property) {
                 if (property.getMetadata().doNotPresist) {
                     json[name] = null;
                 } else {
