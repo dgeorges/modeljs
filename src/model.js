@@ -42,6 +42,16 @@
         return !isNaN(d.getTime());
     }
 
+    function log (level, message){
+        if (!Model.isLoggingEnabled) { //Only log when enabled.
+            return;
+        }
+
+        if (window.console && window.console[level]){
+            window.console[level](message);
+        }
+    }
+
     var getXHRObject = function () {
         if (window.XMLHttpRequest) { // Mozilla, Safari, ...
             return function () {
@@ -75,13 +85,13 @@
         if (xhr.readyState === 4){
 
             if (xhr.status !== 200) {
-                window.console.warn("Retrying remote request for " + property.getName() + " due to return status of " + xhr.status);
+                log('warn', "Retrying remote request for " + property.getName() + " due to return status of " + xhr.status);
                 makeRemoteRequest(property);  // retry request...
                 return;
             }
 
             if (xhr.responseType !== "json" && xhr.responseType !== "") {
-                window.console.error("Remote model (" + property. getName() + ") must return JSON. Not retrying.");
+                log( 'error', "Remote model (" + property. getName() + ") must return JSON. Not retrying.");
                 return;
             }
 
@@ -90,7 +100,7 @@
             try {
                 jsonResponse = JSON.parse(xhr.response);
             } catch (e) {
-                window.console.error("Unable to parse remote Model request for " + property.getName());
+                log( 'error', "Unable to parse remote Model request for " + property.getName());
                 return; //should retry? makeRemoteRequest(property);
             }
 
@@ -500,7 +510,7 @@
         if (newValue instanceof Property || newValue instanceof Model ) {
             // this is misleading syntax because other property attributes are not copied like _listener and _parent
             // so prevent it and provide alternate.
-            window.console.error("Incorrect Syntax: use setValue([property|model].getValue()) instead");
+            log('error', "Incorrect Syntax: use setValue([property|model].getValue()) instead");
             return;
         }
 
@@ -512,7 +522,7 @@
 
                 if (isObject(newValue)) {
                     if (!(this instanceof Model)){
-                        window.console.error("Not Supported: Can't set the Model value to a property. Delete the model and use createProperty");
+                        log('error', "Not Supported: Can't set the Model value to a property. Delete the model and use createProperty");
                         return;
                     } else {
                         //This model need to be set to the newValue
@@ -522,7 +532,7 @@
                     }
                 } else { // newValue is a property
                     if (this instanceof Model){
-                        window.console.error("Not Supported: Can't set a Property value to a model. Delete the property and use createProperty");
+                        log('error', "Not Supported: Can't set a Property value to a model. Delete the property and use createProperty");
                         return;
                     } else {
                         if (Array.isArray(newValue)){
@@ -560,7 +570,7 @@
      */
     Property.prototype.onChange = function (callback, options) {
         if (!isFunction(callback)){
-            window.console.warn("Incorrect Syntax: callback must be a function");
+            log('warn', "Incorrect Syntax: callback must be a function");
             return;
         }
         if (options && options.listenToChildren){
@@ -623,7 +633,7 @@
      */
     Property.prototype.on = function (events, callback){
         if (!isFunction(callback)){
-            window.console.warn("Incorrect Syntax: callback must be a function");
+            log('warn'," Incorrect Syntax: callback must be a function");
             return;
         }
         //test Callback is a function
@@ -649,7 +659,7 @@
      */
     Property.prototype.off = function (events, callback) {
         if (!isFunction(callback)){
-            window.console.warn("Incorrect Syntax: callback must be a function");
+            log('warn', "Incorrect Syntax: callback must be a function");
             return;
         }
         var eventNames = events.split(' ');
@@ -760,6 +770,12 @@
     Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX = "__modeljs__metadata";
     Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX = /__modeljs__metadata$/;
 
+    /**
+     * [loggingEnabled description]
+     * @type {Boolean}
+     */
+    Model.isLoggingEnabled = false;
+
    /**
      * Gets the value associated with the Model. This will be a json Object.
      *
@@ -809,7 +825,7 @@
      */
     Model.prototype.createProperty = function createProperty(name, value, metadata) {
         if (value instanceof Model || value instanceof Property){
-            window.console.error("Unsupported Operation: Try passing the Model/Properties value instead");
+            log('error', "Unsupported Operation: Try passing the Model/Properties value instead");
             return;
         } else if (isObject(value)){
             var modelMetadata = metadata || {};
@@ -922,7 +938,7 @@
             Model.endTransaction();
             return true;
         } else {
-            window.console.error("Merge operation Not Supported: An assignment was not valid. Model not modified");
+            log('error', "Merge operation Not Supported: An assignment was not valid. Model not modified");
             return false;
         }
     };

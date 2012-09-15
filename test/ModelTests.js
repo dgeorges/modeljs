@@ -294,7 +294,9 @@ test("testComplexChangePropertyValue", function () {
         subModel: "setting a model to a property should fail"
     });
 
-    console.log("testComplexChangePropertyValue: 4 errors to console expected");
+    if (Model.isLoggingEnabled){
+        console.log("testComplexChangePropertyValue: 4 errors to console expected");
+    }
 
 /* Note commented out code is not detected but also incorrect. see testModelCreationUsingCreatePropertyMethod
     var subModel = new Model();
@@ -1115,7 +1117,9 @@ test("modlejsTutorial", function (){
         value: "this trys to replace obj with property"
     });
 
-    console.log("modlejsTutorial: 3 errors to console expected");
+    if (Model.isLoggingEnabled){
+        console.log("modlejsTutorial: 3 errors to console expected");
+    }
     // The next section will talk about events
 
     /* --- Events --- */

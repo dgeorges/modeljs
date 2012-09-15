@@ -151,7 +151,7 @@
             "name": "getFormattedValue",
             "return": {
                 "description": "The formatted Value",
-                "type": "[String, Boolean, Number, null, Date, Function]"
+                "type": "Any"
             },
             "class": "Model",
             "module": "Model"
