@@ -134,6 +134,16 @@
         return !isNaN(d.getTime());
     }
 
+    function log (level, message){
+        if (!Model.isLoggingEnabled) { &#x2F;&#x2F;Only log when enabled.
+            return;
+        }
+
+        if (window.console &amp;&amp; window.console[level]){
+            window.console[level](message);
+        }
+    }
+
     var getXHRObject = function () {
         if (window.XMLHttpRequest) { &#x2F;&#x2F; Mozilla, Safari, ...
             return function () {
@@ -167,13 +177,13 @@
         if (xhr.readyState === 4){
 
             if (xhr.status !== 200) {
-                window.console.warn(&quot;Retrying remote request for &quot; + property.getName() + &quot; due to return status of &quot; + xhr.status);
+                log(&#x27;warn&#x27;, &quot;Retrying remote request for &quot; + property.getName() + &quot; due to return status of &quot; + xhr.status);
                 makeRemoteRequest(property);  &#x2F;&#x2F; retry request...
                 return;
             }
 
             if (xhr.responseType !== &quot;json&quot; &amp;&amp; xhr.responseType !== &quot;&quot;) {
-                window.console.error(&quot;Remote model (&quot; + property. getName() + &quot;) must return JSON. Not retrying.&quot;);
+                log( &#x27;error&#x27;, &quot;Remote model (&quot; + property. getName() + &quot;) must return JSON. Not retrying.&quot;);
                 return;
             }
 
@@ -182,7 +192,7 @@
             try {
                 jsonResponse = JSON.parse(xhr.response);
             } catch (e) {
-                window.console.error(&quot;Unable to parse remote Model request for &quot; + property.getName());
+                log( &#x27;error&#x27;, &quot;Unable to parse remote Model request for &quot; + property.getName());
                 return; &#x2F;&#x2F;should retry? makeRemoteRequest(property);
             }
 
@@ -592,7 +602,7 @@
         if (newValue instanceof Property || newValue instanceof Model ) {
             &#x2F;&#x2F; this is misleading syntax because other property attributes are not copied like _listener and _parent
             &#x2F;&#x2F; so prevent it and provide alternate.
-            window.console.error(&quot;Incorrect Syntax: use setValue([property|model].getValue()) instead&quot;);
+            log(&#x27;error&#x27;, &quot;Incorrect Syntax: use setValue([property|model].getValue()) instead&quot;);
             return;
         }
 
@@ -604,7 +614,7 @@
 
                 if (isObject(newValue)) {
                     if (!(this instanceof Model)){
-                        window.console.error(&quot;Not Supported: Can&#x27;t set the Model value to a property. Delete the model and use createProperty&quot;);
+                        log(&#x27;error&#x27;, &quot;Not Supported: Can&#x27;t set the Model value to a property. Delete the model and use createProperty&quot;);
                         return;
                     } else {
                         &#x2F;&#x2F;This model need to be set to the newValue
@@ -614,7 +624,7 @@
                     }
                 } else { &#x2F;&#x2F; newValue is a property
                     if (this instanceof Model){
-                        window.console.error(&quot;Not Supported: Can&#x27;t set a Property value to a model. Delete the property and use createProperty&quot;);
+                        log(&#x27;error&#x27;, &quot;Not Supported: Can&#x27;t set a Property value to a model. Delete the property and use createProperty&quot;);
                         return;
                     } else {
                         if (Array.isArray(newValue)){
@@ -652,7 +662,7 @@
      *&#x2F;
     Property.prototype.onChange = function (callback, options) {
         if (!isFunction(callback)){
-            window.console.warn(&quot;Incorrect Syntax: callback must be a function&quot;);
+            log(&#x27;warn&#x27;, &quot;Incorrect Syntax: callback must be a function&quot;);
             return;
         }
         if (options &amp;&amp; options.listenToChildren){
@@ -715,7 +725,7 @@
      *&#x2F;
     Property.prototype.on = function (events, callback){
         if (!isFunction(callback)){
-            window.console.warn(&quot;Incorrect Syntax: callback must be a function&quot;);
+            log(&#x27;warn&#x27;,&quot; Incorrect Syntax: callback must be a function&quot;);
             return;
         }
         &#x2F;&#x2F;test Callback is a function
@@ -741,7 +751,7 @@
      *&#x2F;
     Property.prototype.off = function (events, callback) {
         if (!isFunction(callback)){
-            window.console.warn(&quot;Incorrect Syntax: callback must be a function&quot;);
+            log(&#x27;warn&#x27;, &quot;Incorrect Syntax: callback must be a function&quot;);
             return;
         }
         var eventNames = events.split(&#x27; &#x27;);
@@ -852,6 +862,18 @@
     Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX = &quot;__modeljs__metadata&quot;;
     Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX = &#x2F;__modeljs__metadata$&#x2F;;
 
+    &#x2F;**
+     * If logging is enabled any warning or incorrect uses of the api will result in output to the console
+     * if it exists.
+     *
+     * @attribute isLoggingEnabled
+     * @default false
+     * @static
+     *
+     * @type {Boolean} Indicates if Logging is enabled
+     *&#x2F;
+    Model.isLoggingEnabled = false;
+
    &#x2F;**
      * Gets the value associated with the Model. This will be a json Object.
      *
@@ -901,7 +923,7 @@
      *&#x2F;
     Model.prototype.createProperty = function createProperty(name, value, metadata) {
         if (value instanceof Model || value instanceof Property){
-            window.console.error(&quot;Unsupported Operation: Try passing the Model&#x2F;Properties value instead&quot;);
+            log(&#x27;error&#x27;, &quot;Unsupported Operation: Try passing the Model&#x2F;Properties value instead&quot;);
             return;
         } else if (isObject(value)){
             var modelMetadata = metadata || {};
@@ -1014,7 +1036,7 @@
             Model.endTransaction();
             return true;
         } else {
-            window.console.error(&quot;Merge operation Not Supported: An assignment was not valid. Model not modified&quot;);
+            log(&#x27;error&#x27;, &quot;Merge operation Not Supported: An assignment was not valid. Model not modified&quot;);
             return false;
         }
     };

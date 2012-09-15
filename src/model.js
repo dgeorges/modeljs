@@ -771,8 +771,14 @@
     Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX = /__modeljs__metadata$/;
 
     /**
-     * [loggingEnabled description]
-     * @type {Boolean}
+     * If logging is enabled any warning or incorrect uses of the api will result in output to the console
+     * if it exists.
+     *
+     * @attribute isLoggingEnabled
+     * @default false
+     * @static
+     *
+     * @type {Boolean} Indicates if Logging is enabled
      */
     Model.isLoggingEnabled = false;
 
