@@ -512,18 +512,18 @@
     /**
      * Registers a callback function with the change event of this.  When the callback is executed it
      * will have it's 'this' context bound to this (ie. the property listening to the event). The first argument
-     * will be the property that triggered the event, also this. The final argument be the oldValue before it
+     * will be the property that triggered the event. The final argument be the oldValue before it
      * was changed.
      *
      * @example
-     *     model.onchange(callback, true); //listens to change events on entire model
+     *     model.onchange(callback, {listenToChildren: true}); //listens to change events on entire model
      *     model.property1.onchange(callback) //listen to change on property1 only
      *     model.subModel.onchange(callback) //listen to change on subModel only. (ie. via model.subModel.setValue(..))
      * For more examples see:  <b>testOnChangeCallbackWhenSettingToSameValue</b> and <b>testBubbleUpEvents</b>
      *
      * @method  onChange
      *
-     * @param {Function} callback The function to be called if the value of this changes. The call back function will be passed the following arguments (oldValue, newValue, propertyName)
+     * @param {Function} callback The function to be called if the value of this changes. The callback function will be passed the following arguments (oldValue, newValue, propertyName)
      * @param {Object}   options? May contain the following:
      *                         listenToChildren {Boolean} - registers the callback with sub property changes as well.
      */
@@ -638,7 +638,7 @@
      * pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
      * when creating a model from the very same json. Note: the modeljs framework uses the metadata to
      * store attributes associated the properties that is uses. As a result the following keys have
-     * special meaning and should not be used. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]</b>
+     * special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]</b>
      *
      * @method  getMetadata
      *
@@ -709,18 +709,19 @@
 
         //A Model is in itself a Property so lets call our supers constructor
         Property.call(this, modelName, jsonModel, modelParent, modelMetadata);
-        if (this.validateValue(json)){
-            Object.keys(jsonModel).forEach(function (name){
 
+        if (this.validateValue(json)){
+
+            for( var name in jsonModel) {
                 if (name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)){ // skip special meta data properties
-                    return;
+                    continue;
                 }
 
                 var value = jsonModel[name];
                 var propertyMetadata = json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
 
                 this.createProperty(name, value, propertyMetadata);
-            }, this);
+            }
         }
     }
     Model.prototype = Object.create(Property.prototype);
@@ -806,7 +807,7 @@
      *
      * @method  clone
      *
-     * @return {Model}  Returns a new Model object rooted at this, keeping any metadata but no onChange listeners.
+     * @return {Model}  Returns a new Model object rooted at this, keeping any metadata but no event listeners.
      */
     Model.prototype.clone = function (){
         var myName = this.getName();
@@ -853,10 +854,12 @@
         // delete properties that are not found in json
         if (!keepOldProperties && doModification){
             for (var modelProp in model) {
-                if (!json[modelProp]){
-                    if (model[modelProp] instanceof Property){
+                if (!json[modelProp] &&  //property does exist in merge
+                    model.hasOwnProperty(modelProp) &&
+                    model[modelProp] instanceof Property &&
+                    modelProp !== '_parent'){  // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
+
                         model[modelProp].destroy();
-                    }
                 }
             }
         }
@@ -914,28 +917,31 @@
             return undefined;
         }
 
-        Object.keys(this).forEach( function (name){
-            var property = this[name];
-            if (property instanceof Model) {
-                if (property.getMetadata().doNotPresist) {
-                    json[name] = {};
-                } else {
-                    json[name] = property.toJSON(includeMetaData);
-                }
-                if (includeMetaData && !isEmptyObject(property.getMetadata())){
-                    json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
-                }
-            } else if (property instanceof Property) {
-                if (property.getMetadata().doNotPresist) {
-                    json[name] = null;
-                } else {
-                    json[name] = property.getValue();
-                }
-                if (includeMetaData && !isEmptyObject(property.getMetadata())){
-                    json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+        for (var name in this) {
+            if (this.hasOwnProperty(name) && name !== '_parent') {
+                // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable. and would cause infinite recursion
+                var property = this[name];
+                if (property instanceof Model) {
+                    if (property.getMetadata().doNotPresist) {
+                        json[name] = {};
+                    } else {
+                        json[name] = property.toJSON(includeMetaData);
+                    }
+                    if (includeMetaData && !isEmptyObject(property.getMetadata())){
+                        json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+                    }
+                } else if (property instanceof Property) {
+                    if (property.getMetadata().doNotPresist) {
+                        json[name] = null;
+                    } else {
+                        json[name] = property.getValue();
+                    }
+                    if (includeMetaData && !isEmptyObject(property.getMetadata())){
+                        json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+                    }
                 }
             }
-        }, this);
+        }
         return json;
     };
 
