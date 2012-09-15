@@ -509,7 +509,8 @@ test("testGetFormattedValue", function() {
 
     var json = {
         str: "unformattedString",
-        number: 1
+        number: 1,
+        date: new Date()
     };
 
     var model = new Model(json);

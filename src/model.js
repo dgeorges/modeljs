@@ -19,7 +19,7 @@
     }
 
     function isObject (obj) {
-        return obj === new Object(obj) && !isFunction(obj) && !Array.isArray(obj);
+        return obj === new Object(obj) && !isFunction(obj) && !Array.isArray(obj) && !(obj instanceof Date);
     }
 
     function isEmptyObject(obj) {
@@ -432,7 +432,8 @@
     /**
      * A global formatter used to calculate the Formatted value of a Property Value. If set the function
      * will be called when getFormattedValue gets called. The function should accept the value to be formatted
-     * as the first argument and expect 'this' to be the Property.
+     * as the first argument and expect 'this' to be the Property. The formatter must be able to handle any
+     * input type as a value.
      *
      * @type {Function} A format function whose first argument is the value to be formatted
      */
