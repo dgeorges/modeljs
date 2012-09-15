@@ -428,6 +428,29 @@
         return this._myValue;
     };
 
+
+    /**
+     * A global formatter used to calculate the Formatted value of a Property Value. If set the function
+     * will be called when getFormattedValue gets called. The function should accept the value to be formatted
+     * as the first argument and expect 'this' to be the Property.
+     *
+     * @type {Function} A format function whose first argument is the value to be formatted
+     */
+    Model.Formatter = undefined;
+
+    /**
+     * Return the formatted value calculated by asking the Model.Formatter to format the value of this.
+     *
+     * @return {[String, Boolean, Number, null, Function]} The formatted Value
+     */
+    Property.prototype.getFormattedValue = function () {
+        if (isFunction(Model.Formatter)) {
+            return Model.Formatter.call (this, this.getValue());
+        }
+        return this.getValue();
+    };
+
+
     /**
      * The fully qualified name of this. The name is calculated by concatenating the name
      * of the parent, "/", and name of this.

@@ -497,6 +497,30 @@ test("testModelClone", function (){
 
 });
 
+test("testGetFormattedValue", function() {
+
+    Model.Formatter = function (value) {
+
+        if (typeof value ==='string'){
+            return value.toUpperCase();
+        }
+        return value;
+    };
+
+    var json = {
+        str: "unformattedString",
+        number: 1
+    };
+
+    var model = new Model(json);
+    equal(model.str.getValue(), "unformattedString", "getValue returns raw value");
+    equal(model.str.getFormattedValue(), "UNFORMATTEDSTRING", "getFormattedValue returns formatted value");
+    equal(model.str.getValue(), "unformattedString", "getValue still returns raw value");
+
+    Model.Formatter = undefined; //restore formatter
+
+});
+
 test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
     var jsonModel = {
             number: 1,
