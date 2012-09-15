@@ -158,7 +158,7 @@
         return fnName;
     }
 
-    /**
+    /*
      * Centralized place where all Model Events pass through.
      */
     var eventProxy = function () {
@@ -291,7 +291,7 @@
     }();
 
 
-    /**
+    /*
      * An Observable Array is a wrapper around the javaScript Array primitive which will
      * trigger the correct events when any of it mutator methods are called. It is not
      * exposed outside of this file.
@@ -361,7 +361,7 @@
      * @private used internally by the Model.prototype.createProperty method.
      *
      * @param {[String]} name    The name of the property
-     * @param {[String, Boolean, Number, null, Function, Object]} value   The Property Value
+     * @param {[String, Boolean, Number, null, Date, Function, Object]} value   The Property Value
      * @param {[Model]} parent  The parent property
      * @param {[Object]} metadata The metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
      *                         validator - a function to validate if the new value is valid before it is assigned.
@@ -422,7 +422,7 @@
      *
      * @method  getValue
      *
-     * @return {[String, Boolean, Number, null, Function]} The value of the property
+     * @return {[String, Boolean, Number, null, Date, Function]} The value of the property
      */
     Property.prototype.getValue = function () {
         return this._myValue;
@@ -435,14 +435,21 @@
      * as the first argument and expect 'this' to be the Property. The formatter must be able to handle any
      * input type as a value.
      *
+     * @for  Model
+     * @method  Formatter
+     * @static
+     *
      * @type {Function} A format function whose first argument is the value to be formatted
+     * @return {[type]} [description]
      */
     Model.Formatter = undefined;
 
     /**
      * Return the formatted value calculated by asking the Model.Formatter to format the value of this.
      *
-     * @return {[String, Boolean, Number, null, Function]} The formatted Value
+     * @method getFormattedValue
+     *
+     * @return {any} The formatted Value
      */
     Property.prototype.getFormattedValue = function () {
         if (isFunction(Model.Formatter)) {
@@ -482,7 +489,7 @@
      * @method setValue
      * @for Property
      *
-     * @param  {[String, Boolean, Number, null, Function, Object]} newValue The Value you want to assign to the Property.
+     * @param  {[String, Boolean, Number, null, Date, Function, Object]} newValue The Value you want to assign to the Property.
      * @param  {[Boolean]} suppressNotifications? Indicating if listeners should be notified of change.
      *
      * @return {[string, boolean, number, null, function, object]}          The resulting value. If the operation was successful this will be the passed in value otherwise it will be the existing one.
@@ -592,7 +599,7 @@
      * @method  trigger
      *
      * @param  {String} eventName The name of the event.
-     * @param  {[string, boolean, number, null, function, object]} eventArg? An optional parameter to pass to the event handler
+     * @param  {[string, boolean, number, null, Date, function, object]} eventArg? An optional parameter to pass to the event handler
      * @return {Property}           Returns this for Object chaining.
      */
     Property.prototype.trigger = function (eventName, eventArg) {
@@ -694,7 +701,7 @@
      *
      * @method  validateValue
      *
-     * @param  {[String, Boolean, Number, null, Function, Object]} value A value to test against the validation function if it exists.
+     * @param  {[String, Boolean, Number, null, Date, Function, Object]} value A value to test against the validation function if it exists.
      * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
      */
     Property.prototype.validateValue = function (value) {
@@ -783,7 +790,7 @@
      * @method  createProperty
      *
      * @param {String} name    Name of the property
-     * @param {[String, Boolean, Number, null, Function, Object]} value   Property value
+     * @param {[String, Boolean, Number, null, Date, Function, Object]} value   Property value
      * @param {[Object]} metadata? A hash of metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
      *                         <ul><li>
      *                             validator {Function} - a function to validate if the new value is valid before it is assigned.

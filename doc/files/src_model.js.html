@@ -111,7 +111,7 @@
     }
 
     function isObject (obj) {
-        return obj === new Object(obj) &amp;&amp; !isFunction(obj) &amp;&amp; !Array.isArray(obj);
+        return obj === new Object(obj) &amp;&amp; !isFunction(obj) &amp;&amp; !Array.isArray(obj) &amp;&amp; !(obj instanceof Date);
     }
 
     function isEmptyObject(obj) {
@@ -250,7 +250,7 @@
         return fnName;
     }
 
-    &#x2F;**
+    &#x2F;*
      * Centralized place where all Model Events pass through.
      *&#x2F;
     var eventProxy = function () {
@@ -319,10 +319,6 @@
                         executeCallbacksFunction(property, propertyParent, eventArg)
                     );
                 }
-            } else if (eventName === eventType.CHILD_CREATED){ &#x2F;&#x2F; special event why?
-                eventListeners.forEach(
-                    executeCallbacksFunction(property, property, eventArg)
-                );
             } else {
                 eventListeners.forEach(
                     executeCallbacksFunction(property, property, eventArg)
@@ -387,7 +383,7 @@
     }();
 
 
-    &#x2F;**
+    &#x2F;*
      * An Observable Array is a wrapper around the javaScript Array primitive which will
      * trigger the correct events when any of it mutator methods are called. It is not
      * exposed outside of this file.
@@ -457,7 +453,7 @@
      * @private used internally by the Model.prototype.createProperty method.
      *
      * @param {[String]} name    The name of the property
-     * @param {[String, Boolean, Number, null, Function, Object]} value   The Property Value
+     * @param {[String, Boolean, Number, null, Date, Function, Object]} value   The Property Value
      * @param {[Model]} parent  The parent property
      * @param {[Object]} metadata The metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
      *                         validator - a function to validate if the new value is valid before it is assigned.
@@ -486,15 +482,19 @@
             enumerable: false
         });
 
+        Object.defineProperty(this, &quot;_metadata&quot;, {
+            value: metadata || {},
+            enumerable: false
+        });
+
+        &#x2F;&#x2F;make sure value is valid
+        if (!this.validateValue(myValue)) {
+            myValue = undefined;
+        }
         Object.defineProperty(this, &quot;_myValue&quot;, {
             value: myValue,
             enumerable: false,
             writable: true
-        });
-
-        Object.defineProperty(this, &quot;_metadata&quot;, {
-            value: metadata || {},
-            enumerable: false
         });
 
         Object.defineProperty(this, &quot;_eventListeners&quot;, {
@@ -507,8 +507,6 @@
             },
             enumerable: false
         });
-
-        this.setValue(myValue);
     }
 
     &#x2F;**
@@ -516,11 +514,42 @@
      *
      * @method  getValue
      *
-     * @return {[String, Boolean, Number, null, Function]} The value of the property
+     * @return {[String, Boolean, Number, null, Date, Function]} The value of the property
      *&#x2F;
     Property.prototype.getValue = function () {
         return this._myValue;
     };
+
+
+    &#x2F;**
+     * A global formatter used to calculate the Formatted value of a Property Value. If set the function
+     * will be called when getFormattedValue gets called. The function should accept the value to be formatted
+     * as the first argument and expect &#x27;this&#x27; to be the Property. The formatter must be able to handle any
+     * input type as a value.
+     *
+     * @for  Model
+     * @method  Formatter
+     * @static
+     *
+     * @type {Function} A format function whose first argument is the value to be formatted
+     * @return {[type]} [description]
+     *&#x2F;
+    Model.Formatter = undefined;
+
+    &#x2F;**
+     * Return the formatted value calculated by asking the Model.Formatter to format the value of this.
+     *
+     * @method getFormattedValue
+     *
+     * @return {[String, Boolean, Number, null, Date, Function]} The formatted Value
+     *&#x2F;
+    Property.prototype.getFormattedValue = function () {
+        if (isFunction(Model.Formatter)) {
+            return Model.Formatter.call (this, this.getValue());
+        }
+        return this.getValue();
+    };
+
 
     &#x2F;**
      * The fully qualified name of this. The name is calculated by concatenating the name
@@ -552,7 +581,7 @@
      * @method setValue
      * @for Property
      *
-     * @param  {[String, Boolean, Number, null, Function, Object]} newValue The Value you want to assign to the Property.
+     * @param  {[String, Boolean, Number, null, Date, Function, Object]} newValue The Value you want to assign to the Property.
      * @param  {[Boolean]} suppressNotifications? Indicating if listeners should be notified of change.
      *
      * @return {[string, boolean, number, null, function, object]}          The resulting value. If the operation was successful this will be the passed in value otherwise it will be the existing one.
@@ -579,7 +608,9 @@
                         return;
                     } else {
                         &#x2F;&#x2F;This model need to be set to the newValue
-                        this.merge(newValue, false);
+                        if (this.merge(newValue, false)) {
+                            this._myValue = newValue; &#x2F;&#x2F;set Value if successful
+                        }
                     }
                 } else { &#x2F;&#x2F; newValue is a property
                     if (this instanceof Model){
@@ -604,18 +635,18 @@
     &#x2F;**
      * Registers a callback function with the change event of this.  When the callback is executed it
      * will have it&#x27;s &#x27;this&#x27; context bound to this (ie. the property listening to the event). The first argument
-     * will be the property that triggered the event, also this. The final argument be the oldValue before it
+     * will be the property that triggered the event. The final argument be the oldValue before it
      * was changed.
      *
      * @example
-     *     model.onchange(callback, true); &#x2F;&#x2F;listens to change events on entire model
+     *     model.onchange(callback, {listenToChildren: true}); &#x2F;&#x2F;listens to change events on entire model
      *     model.property1.onchange(callback) &#x2F;&#x2F;listen to change on property1 only
      *     model.subModel.onchange(callback) &#x2F;&#x2F;listen to change on subModel only. (ie. via model.subModel.setValue(..))
      * For more examples see:  &lt;b&gt;testOnChangeCallbackWhenSettingToSameValue&lt;&#x2F;b&gt; and &lt;b&gt;testBubbleUpEvents&lt;&#x2F;b&gt;
      *
      * @method  onChange
      *
-     * @param {Function} callback The function to be called if the value of this changes. The call back function will be passed the following arguments (oldValue, newValue, propertyName)
+     * @param {Function} callback The function to be called if the value of this changes. The callback function will be passed the following arguments (oldValue, newValue, propertyName)
      * @param {Object}   options? May contain the following:
      *                         listenToChildren {Boolean} - registers the callback with sub property changes as well.
      *&#x2F;
@@ -660,7 +691,7 @@
      * @method  trigger
      *
      * @param  {String} eventName The name of the event.
-     * @param  {[string, boolean, number, null, function, object]} eventArg? An optional parameter to pass to the event handler
+     * @param  {[string, boolean, number, null, Date, function, object]} eventArg? An optional parameter to pass to the event handler
      * @return {Property}           Returns this for Object chaining.
      *&#x2F;
     Property.prototype.trigger = function (eventName, eventArg) {
@@ -730,7 +761,7 @@
      * pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
      * when creating a model from the very same json. Note: the modeljs framework uses the metadata to
      * store attributes associated the properties that is uses. As a result the following keys have
-     * special meaning and should not be used. &lt;b&gt;[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]&lt;&#x2F;b&gt;
+     * special meaning. &lt;b&gt;[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]&lt;&#x2F;b&gt;
      *
      * @method  getMetadata
      *
@@ -762,7 +793,7 @@
      *
      * @method  validateValue
      *
-     * @param  {[String, Boolean, Number, null, Function, Object]} value A value to test against the validation function if it exists.
+     * @param  {[String, Boolean, Number, null, Date, Function, Object]} value A value to test against the validation function if it exists.
      * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
      *&#x2F;
     Property.prototype.validateValue = function (value) {
@@ -802,17 +833,19 @@
         &#x2F;&#x2F;A Model is in itself a Property so lets call our supers constructor
         Property.call(this, modelName, jsonModel, modelParent, modelMetadata);
 
-        Object.keys(jsonModel).forEach(function (name){
+        if (this.validateValue(json)){
 
-            if (name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)){ &#x2F;&#x2F; skip special meta data properties
-                return;
+            for( var name in jsonModel) {
+                if (name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)){ &#x2F;&#x2F; skip special meta data properties
+                    continue;
+                }
+
+                var value = jsonModel[name];
+                var propertyMetadata = json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
+
+                this.createProperty(name, value, propertyMetadata);
             }
-
-            var value = jsonModel[name];
-            var propertyMetadata = json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
-
-            this.createProperty(name, value, propertyMetadata);
-        }, this);
+        }
     }
     Model.prototype = Object.create(Property.prototype);
 
@@ -849,7 +882,7 @@
      * @method  createProperty
      *
      * @param {String} name    Name of the property
-     * @param {[String, Boolean, Number, null, Function, Object]} value   Property value
+     * @param {[String, Boolean, Number, null, Date, Function, Object]} value   Property value
      * @param {[Object]} metadata? A hash of metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
      *                         &lt;ul&gt;&lt;li&gt;
      *                             validator {Function} - a function to validate if the new value is valid before it is assigned.
@@ -897,7 +930,7 @@
      *
      * @method  clone
      *
-     * @return {Model}  Returns a new Model object rooted at this, keeping any metadata but no onChange listeners.
+     * @return {Model}  Returns a new Model object rooted at this, keeping any metadata but no event listeners.
      *&#x2F;
     Model.prototype.clone = function (){
         var myName = this.getName();
@@ -944,10 +977,12 @@
         &#x2F;&#x2F; delete properties that are not found in json
         if (!keepOldProperties &amp;&amp; doModification){
             for (var modelProp in model) {
-                if (!json[modelProp]){
-                    if (model[modelProp] instanceof Property){
+                if (!json[modelProp] &amp;&amp;  &#x2F;&#x2F;property does exist in merge
+                    model.hasOwnProperty(modelProp) &amp;&amp;
+                    model[modelProp] instanceof Property &amp;&amp;
+                    modelProp !== &#x27;_parent&#x27;){  &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable
+
                         model[modelProp].destroy();
-                    }
                 }
             }
         }
@@ -968,7 +1003,7 @@
      *
      * @param  {[Object]} json              The json object to have merged.
      * @param  {[Boolean]} keepOldProperties? True if you want to keep properties that exist in this but not in the passed in json, Otherwise they will be deleted. Defaults to false.
-     * @return {Model}                   Returns true if merge was successful, false otherwise.
+     * @return {Boolean}                   Returns true if merge was successful, false otherwise.
      *&#x2F;
     Model.prototype.merge = function (json, keepOldProperties) {
         &#x2F;&#x2F;will merge the properties in json with this. result will be the same as the Object extend.
@@ -1001,28 +1036,35 @@
      *&#x2F;
     Model.prototype.toJSON = function (includeMetaData) {
         var json = {};
-        Object.keys(this).forEach( function (name){
-            var property = this[name];
-            if (property instanceof Model) {
-                if (property.getMetadata().doNotPresist) {
-                    json[name] = {};
-                } else {
-                    json[name] = property.toJSON(includeMetaData);
-                }
-                if (includeMetaData &amp;&amp; !isEmptyObject(property.getMetadata())){
-                    json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
-                }
-            } else if (property instanceof Property) {
-                if (property.getMetadata().doNotPresist) {
-                    json[name] = null;
-                } else {
-                    json[name] = property.getValue();
-                }
-                if (includeMetaData &amp;&amp; !isEmptyObject(property.getMetadata())){
-                    json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+        if (this._myValue === undefined){
+            return undefined;
+        }
+
+        for (var name in this) {
+            if (this.hasOwnProperty(name) &amp;&amp; name !== &#x27;_parent&#x27;) {
+                &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable. and would cause infinite recursion
+                var property = this[name];
+                if (property instanceof Model) {
+                    if (property.getMetadata().doNotPresist) {
+                        json[name] = {};
+                    } else {
+                        json[name] = property.toJSON(includeMetaData);
+                    }
+                    if (includeMetaData &amp;&amp; !isEmptyObject(property.getMetadata())){
+                        json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+                    }
+                } else if (property instanceof Property) {
+                    if (property.getMetadata().doNotPresist) {
+                        json[name] = null;
+                    } else {
+                        json[name] = property.getValue();
+                    }
+                    if (includeMetaData &amp;&amp; !isEmptyObject(property.getMetadata())){
+                        json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+                    }
                 }
             }
-        }, this);
+        }
         return json;
     };
 
