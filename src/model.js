@@ -445,6 +445,14 @@
      * as the first argument and expect 'this' to be the Property. The formatter must be able to handle any
      * input type as a value.
      *
+     * @example
+     *     Model.Formatter = function (value) { //makes all strings uppercase
+     *         if (typeof value === 'string') {
+     *             return value.toUpperCase();
+     *         }
+     *         return value;
+     *     }
+     *
      * @for  Model
      * @method  Formatter
      * @static
@@ -593,7 +601,6 @@
         var myName = this.getName().substring(this.getName().lastIndexOf('/') + 1);
         delete this._parent[myName];
 
-        //eventProxy.fireDestroyEvent(this/* oldvalue*/);
         eventProxy.fireEvent(eventProxy.eventType.DESTROY, this);
 
         return this;
