@@ -445,30 +445,6 @@
         return this._myValue;
     };
 
-
-    /**
-     * A global formatter used to calculate the formatted value of a Property. If defined the function
-     * will be called when getFormattedValue gets called. The function should accept the value to be formatted
-     * as the first argument and expect 'this' to be the Property. The formatter must be able to handle any
-     * input type as a value.
-     *
-     * @example
-     *     Model.Formatter = function (value) { //makes all strings uppercase
-     *         if (typeof value === 'string') {
-     *             return value.toUpperCase();
-     *         }
-     *         return value;
-     *     }
-     *
-     * @for  Model
-     * @method  Formatter
-     * @static
-     *
-     * @type {Function} A format function whose first argument is the value to be formatted
-     * @return {any}    The formatted result
-     */
-    Model.Formatter = undefined;
-
     /**
      * Return the formatted value calculated by asking the Model.Formatter to format the value of this.
      *
@@ -1009,13 +985,35 @@
     };
 
     /**
+     * A global formatter used to calculate the formatted value of a Property. If defined the function
+     * will be called when getFormattedValue gets called. The function should accept the value to be formatted
+     * as the first argument and expect 'this' to be the Property. The formatter must be able to handle any
+     * input type as a value.
+     *
+     * @example
+     *     Model.Formatter = function (value) { //makes all strings uppercase
+     *         if (typeof value === 'string') {
+     *             return value.toUpperCase();
+     *         }
+     *         return value;
+     *     }
+     *
+     * @for  Model
+     * @method  Formatter
+     * @static
+     *
+     * @type {Function} A format function whose first argument is the value to be formatted
+     * @return {any}    The formatted result
+     */
+    Model.Formatter = undefined;
+
+    /**
      * If logging is enabled any warning or incorrect uses of the api will result in output to the console
      * if it exists.
      *
      * @attribute isLoggingEnabled
      * @default false
      * @static
-     *
      * @type {Boolean} Indicates if Logging is enabled
      */
     Model.isLoggingEnabled = false;

@@ -98,7 +98,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l725"><code>src\model.js:725</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l717"><code>src\model.js:717</code></a>
         </div>
     
 
@@ -129,7 +129,7 @@
             
                 <li class="arg">
                     
-                        <code>json</code>
+                        <code>json?</code>
                     
                 </li>
             
@@ -168,7 +168,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l725"><code>src\model.js:725</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l717"><code>src\model.js:717</code></a>
         
         </p>
 
@@ -190,7 +190,7 @@
             
                 <li class="param">
                     
-                        <code class="param-name">json</code>
+                        <code class="param-name">json?</code>
                         <span class="type">Object</span>
                     
 
@@ -214,7 +214,8 @@
                     <div class="param-description">
                         <p>May contain the following:
                         name - name of the Model, defaults to "root"
-                        *plus any properties accepted by the createProperty method metadata argument</p>
+                        *plus any properties accepted by the createProperty method metadata argument or
+                         additional data you want stored in the metadata.</p>
                     </div>
 
                     
@@ -306,7 +307,7 @@
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_getFormattedValue">getFormattedValue</a>
 
                                 
@@ -320,7 +321,7 @@
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_getName">getName</a>
 
                                 
@@ -523,7 +524,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l852"><code>src\model.js:852</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l841"><code>src\model.js:841</code></a>
         
         </p>
 
@@ -534,7 +535,7 @@
     </div>
 
     <div class="description">
-        <p>Clones the Model rooted at this keeping all validators that exist, but not keeping attached onChange callbacks.
+        <p>Clones the Model rooted at this keeping all metadata that exist, but not keeping any event listeners.
 The name of all properties are adjusted to reflect it's new root.</p>
     </div>
 
@@ -629,7 +630,7 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l796"><code>src\model.js:796</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l777"><code>src\model.js:777</code></a>
         
         </p>
 
@@ -640,7 +641,8 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
     </div>
 
     <div class="description">
-        <p>Creates the property with the given name on this. This will fire the childCreated event on the parent.</p>
+        <p>Creates the property with the given name on this. This will fire the childCreated event on the parent. The
+metadata can contain custom keys or any of the special keys below.</p>
     </div>
 
     
@@ -690,18 +692,16 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
                     <div class="param-description">
                         <p>A hash of metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
                         <ul><li>
-                            validator {Function} - a function to validate if the new value is valid before it is assigned.
+                            <b>validator</b> {Function} - a function to validate if the new value is valid before it is assigned.
                         </li><li>
-                            url {String} - the resource this model should use to get it's value. Resource must return json. <em>Must be used with refreshRate</em>
+                            <b>url</b> {String} - the resource this model should use to get it's value. Resource must return json. <em>Must be used with refreshRate</em>
                         </li><li>
-                            refreshRate {Number} - the interval used to query the url for changes. must be > 0. minimal value used is 100. -1 indicates to only fetch value once. <em>Must be used with url</em>
+                            <b>refreshRate</b> {Number} - the interval used to query the url for changes. must be > 100 or -1. -1 indicates to only fetch value once. <em>Must be used with url</em>
                         </li><li>
-                            doNotPresist {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
-                        </li>
-                        <li>
-                            isJSONPurl {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string "$jsonpCallback" where the jsonp callback function should be inserted.
-                        </li>
-                        </ul></p>
+                            <b>isJSONPurl</b> {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string "$jsonpCallback" where the jsonp callback function should be inserted.
+                        </li><li>
+                            <b>doNotPresist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+                        </li></ul></p>
                     </div>
 
                     
@@ -736,10 +736,17 @@ model.createProperty("number", 1) // a simple property (model.number)
 .createProperty("subModel", { // a property that is a subModel (model.subModel and model.subModel.str)
     str: "stringProperty"
 })
-.createProperty("positiveNumber", 2, { // a property with a validator (model.positiveNumber)
+.createProperty("positiveNumber", 2, { // a property with a positiveNumber validator and a custom attribute
     validator: function (value) {
         return value &gt; 0;
-    }
+    },
+    customMetadata: "this Property is special"
+}),
+.createProperty ("remoteModel", {prop1: "defaultValue"}, { // a remote model populated via the twitter rest api.
+    url: "http://search.twitter.com/search.json?q=tennis&amp;callback=$jsonpCallback",
+    doNotPresist: true,
+    refreshRate: -1, // -1 means fetch once.
+    isJSONPurl: true
 }); // Note the method chaining.
 </code></pre>
 
@@ -783,7 +790,7 @@ model.createProperty("number", 1) // a simple property (model.number)
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l584"><code>src\model.js:584</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l575"><code>src\model.js:575</code></a>
         
         </p>
 
@@ -794,8 +801,8 @@ model.createProperty("number", 1) // a simple property (model.number)
     </div>
 
     <div class="description">
-        <p>Removes the property and its children if any from the Model. This will fire the destroy event on this and
-the childDestroyed event on the parent.</p>
+        <p>Removes the property and its children if any from the Model. This will fire the 'destroy' event on this and
+the 'childDestroyed' event on the parent.</p>
     </div>
 
     
@@ -863,7 +870,7 @@ the childDestroyed event on the parent.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1017"><code>src\model.js:1017</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1071"><code>src\model.js:1071</code></a>
         
         </p>
 
@@ -934,7 +941,7 @@ model.endTransaction({   // override the Model.eventOptimization settings for th
 
     
         <span class="returns-inline">
-            <span class="type">type</span>
+            <span class="type">Any</span>
         </span>
     
 
@@ -963,7 +970,7 @@ model.endTransaction({   // override the Model.eventOptimization settings for th
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l442"><code>src\model.js:442</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l987"><code>src\model.js:987</code></a>
         
         </p>
 
@@ -974,7 +981,7 @@ model.endTransaction({   // override the Model.eventOptimization settings for th
     </div>
 
     <div class="description">
-        <p>A global formatter used to calculate the Formatted value of a Property Value. If set the function
+        <p>A global formatter used to calculate the formatted value of a Property. If defined the function
 will be called when getFormattedValue gets called. The function should accept the value to be formatted
 as the first argument and expect 'this' to be the Property. The formatter must be able to handle any
 input type as a value.</p>
@@ -989,19 +996,33 @@ input type as a value.</p>
             <div class="returns-description">
                 
                     
-                        <span class="type">type</span>:
+                        <span class="type">Any</span>:
                     
-                    [description]
+                    The formatted result
                 
             </div>
         </div>
     
 
     
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">Model.Formatter = function (value) { //makes all strings uppercase
+    if (typeof value === 'string') {
+        return value.toUpperCase();
+    }
+    return value;
+}
+</code></pre>
+            </div>
+        </div>
+    
 </div>
 
                 
-                    <div id="method_getFormattedValue" class="method item">
+                    <div id="method_getFormattedValue" class="method item inherited">
     <h3 class="name"><code>getFormattedValue</code></h3>
 
     
@@ -1029,15 +1050,12 @@ input type as a value.</p>
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_getFormattedValue">Property</a>:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l457"><code>src\model.js:457</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l448"><code>src\model.js:448</code></a>
         
         </p>
 
@@ -1105,7 +1123,7 @@ input type as a value.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l677"><code>src\model.js:677</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l667"><code>src\model.js:667</code></a>
         
         </p>
 
@@ -1121,6 +1139,8 @@ pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata wi
 when creating a model from the very same json. Note: the modeljs framework uses the metadata to
 store attributes associated the properties that is uses. As a result the following keys have
 special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]</b></p>
+
+<p>For example see: <b>testGetMetadataMethod</b></p>
     </div>
 
     
@@ -1144,7 +1164,7 @@ special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist
 </div>
 
                 
-                    <div id="method_getName" class="method item">
+                    <div id="method_getName" class="method item inherited">
     <h3 class="name"><code>getName</code></h3>
 
     
@@ -1172,15 +1192,12 @@ special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_getName">Property</a>:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l472"><code>src\model.js:472</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l462"><code>src\model.js:462</code></a>
         
         </p>
 
@@ -1192,7 +1209,8 @@ special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist
 
     <div class="description">
         <p>The fully qualified name of this. The name is calculated by concatenating the name
-of the parent, "/", and name of this.</p>
+of the parent, "/", and name of this. To create a named root pass in the name option key
+to the Model Constructor.</p>
     </div>
 
     
@@ -1265,7 +1283,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l785"><code>src\model.js:785</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l766"><code>src\model.js:766</code></a>
         
         </p>
 
@@ -1333,7 +1351,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l692"><code>src\model.js:692</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l684"><code>src\model.js:684</code></a>
         
         </p>
 
@@ -1414,7 +1432,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1056"><code>src\model.js:1056</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1110"><code>src\model.js:1110</code></a>
         
         </p>
 
@@ -1509,7 +1527,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l922"><code>src\model.js:922</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l908"><code>src\model.js:908</code></a>
         
         </p>
 
@@ -1632,7 +1650,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1104"><code>src\model.js:1104</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1158"><code>src\model.js:1158</code></a>
         
         </p>
 
@@ -1728,7 +1746,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l651"><code>src\model.js:651</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l641"><code>src\model.js:641</code></a>
         
         </p>
 
@@ -1850,7 +1868,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l621"><code>src\model.js:621</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l611"><code>src\model.js:611</code></a>
         
         </p>
 
@@ -1972,7 +1990,7 @@ event type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l553"><code>src\model.js:553</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l544"><code>src\model.js:544</code></a>
         
         </p>
 
@@ -2098,7 +2116,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l490"><code>src\model.js:490</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l481"><code>src\model.js:481</code></a>
         
         </p>
 
@@ -2111,7 +2129,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
     <div class="description">
         <p>Called upon a property or Model to set it's Value. If the setValue is the same as the current value,
 nothing will happen and no change events will be fired. If the value is different it must pass
-the validator if there is one.  If it does pass the validator and value is changed, all registered
+the validator if there is one.  If it does pass the validator and the value is changed, all registered
 listeners will be notified unless the suppressNotifications option indicates otherwise.</p>
     </div>
 
@@ -2216,7 +2234,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1001"><code>src\model.js:1001</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1055"><code>src\model.js:1055</code></a>
         
         </p>
 
@@ -2292,7 +2310,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l953"><code>src\model.js:953</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l939"><code>src\model.js:939</code></a>
         
         </p>
 
@@ -2410,7 +2428,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l606"><code>src\model.js:606</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l596"><code>src\model.js:596</code></a>
         
         </p>
 
@@ -2526,7 +2544,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l706"><code>src\model.js:706</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l698"><code>src\model.js:698</code></a>
         
         </p>
 
@@ -2625,7 +2643,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1091"><code>src\model.js:1091</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1145"><code>src\model.js:1145</code></a>
         
         </p>
 
@@ -2681,7 +2699,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1082"><code>src\model.js:1082</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1136"><code>src\model.js:1136</code></a>
         
         </p>
 
@@ -2737,7 +2755,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1073"><code>src\model.js:1073</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1127"><code>src\model.js:1127</code></a>
         
         </p>
 
@@ -2806,7 +2824,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l773"><code>src\model.js:773</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1010"><code>src\model.js:1010</code></a>
         
         </p>
 
