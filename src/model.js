@@ -14,11 +14,11 @@
     "use strict";
 
     // copied from underscorejs
-    function isFunction (fn) {
+    function isFunction(fn) {
         return fn && Object.prototype.toString.call(fn) === '[object Function]';
     }
 
-    function isObject (obj) {
+    function isObject(obj) {
         return obj === new Object(obj) && !isFunction(obj) && !Array.isArray(obj) && !(obj instanceof Date);
     }
 
@@ -42,7 +42,7 @@
         return !isNaN(d.getTime());
     }
 
-    function log (level, message){
+    function log(level, message) {
         if (!Model.isLoggingEnabled) { //Only log when enabled.
             return;
         }
@@ -82,7 +82,7 @@
     }();
 
     function retrieveRemoteRequest(xhr, property, xhrProgressEvent) {
-        if (xhr.readyState === 4){
+        if (xhr.readyState === 4) {
 
             if (xhr.status !== 200) {
                 log('warn', "Retrying remote request for " + property.getName() + " due to return status of " + xhr.status);
@@ -109,8 +109,8 @@
             if (responseLastModifiedDate && isValidDate(responseLastModifiedDate)) {
                 var metadata = property.getMetadata();
                 var propertyLastModified = metadata.lastModified && new Date(metadata.lastModified);
-                if (!propertyLastModified || !isValidDate(propertyLastModified) ||  // my last Modified date isn't valid
-                    Date.parse(responseLastModifiedDate) > Date.parse(propertyLastModified) ){ //  or it is and it's stale
+                if ( !propertyLastModified || !isValidDate(propertyLastModified) ||  // my last Modified date isn't valid
+                        Date.parse(responseLastModifiedDate) > Date.parse(propertyLastModified) ) { //  or it is and it's stale
 
                     property.setValue(jsonResponse);
                     metadata.lastModified = responseLastModifiedDate;
@@ -127,12 +127,12 @@
         }
     }
 
-    function makeRemoteRequest (property) {
+    function makeRemoteRequest(property) {
 
         var refreshRate = Math.max(100, property.getMetadata().refreshRate);
         setTimeout(function(property) {
             var url = property.getMetadata().url;
-            if (property.getMetadata().isJSONPurl){
+            if (property.getMetadata().isJSONPurl) {
                 var uniqueCallbackId = generateJSONPCallback(property);
                 url = url.replace("$jsonpCallback", uniqueCallbackId);
                 makeJSONPRequest(url, uniqueCallbackId);
@@ -148,7 +148,7 @@
         }.bind(null, property), refreshRate);
     }
 
-    function makeJSONPRequest (url, id) {
+    function makeJSONPRequest(url, id) {
         var scriptTag = document.createElement("SCRIPT");
         scriptTag.id = id;
         scriptTag.type = 'text/javascript';
@@ -157,7 +157,7 @@
     }
 
     var callbackId = 0;
-    function generateJSONPCallback(property){
+    function generateJSONPCallback(property) {
         var fnName = "modeljsJSONPCallback" + callbackId++;
         window[fnName] = function (property, json) { //create global callback
             property.setValue(json);
@@ -245,7 +245,7 @@
         }
 
         function fireEvent (eventName, property, customArg) {
-            if (currentState === state.ACTIVE){ // fire event now.
+            if (currentState === state.ACTIVE) { // fire event now.
                 _fireEvent(eventName, property, customArg);
             } else { //place event on queue to be called at a later time.
                 eventQueue.push({
@@ -256,10 +256,10 @@
             }
         }
 
-        function changeState(newState){
-            if (state[newState] !== currentState){
+        function changeState(newState) {
+            if (state[newState] !== currentState) {
                 currentState = newState;
-                if (newState === state.ACTIVE){
+                if (newState === state.ACTIVE) {
                     flushEventQueue();
                 }
             }
@@ -269,7 +269,7 @@
 
             executedCallbacks = []; //reset state
             callbackHashs = [];
-            if(Model.eventOptimization.suppressPreviousPropertyChangeEvents){
+            if(Model.eventOptimization.suppressPreviousPropertyChangeEvents) {
                 var optimizedQueue = [];
                 var seenProperties = [];
                 for(var i = eventQueue.length - 1; i >= 0; i-=1){// iterate backwards since last events are most recent.
@@ -440,7 +440,7 @@
 
 
     /**
-     * A global formatter used to calculate the Formatted value of a Property Value. If set the function
+     * A global formatter used to calculate the formatted value of a Property. If defined the function
      * will be called when getFormattedValue gets called. The function should accept the value to be formatted
      * as the first argument and expect 'this' to be the Property. The formatter must be able to handle any
      * input type as a value.
@@ -458,7 +458,7 @@
      * @static
      *
      * @type {Function} A format function whose first argument is the value to be formatted
-     * @return {[type]} [description]
+     * @return {any}    The formatted result
      */
     Model.Formatter = undefined;
 
@@ -479,7 +479,8 @@
 
     /**
      * The fully qualified name of this. The name is calculated by concatenating the name
-     * of the parent, "/", and name of this.
+     * of the parent, "/", and name of this. To create a named root pass in the name option key
+     * to the Model Constructor.
      *
      * @example
      *     defaultModel.getName();              // returns "/root"
@@ -498,7 +499,7 @@
     /**
      * Called upon a property or Model to set it's Value. If the setValue is the same as the current value,
      * nothing will happen and no change events will be fired. If the value is different it must pass
-     * the validator if there is one.  If it does pass the validator and value is changed, all registered
+     * the validator if there is one.  If it does pass the validator and the value is changed, all registered
      * listeners will be notified unless the suppressNotifications option indicates otherwise.
      *
      * @example
@@ -590,8 +591,8 @@
     };
 
     /**
-     * Removes the property and its children if any from the Model. This will fire the destroy event on this and
-     * the childDestroyed event on the parent.
+     * Removes the property and its children if any from the Model. This will fire the 'destroy' event on this and
+     * the 'childDestroyed' event on the parent.
      *
      * @method  destroy
      *
@@ -688,6 +689,8 @@
      * store attributes associated the properties that is uses. As a result the following keys have
      * special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]</b>
      *
+     * For example see: <b>testGetMetadataMethod</b>
+     *
      * @method  getMetadata
      *
      * @return {Object} A map of metadata properties associated with this.
@@ -740,10 +743,11 @@
      * @constructor
      * @extends Property
      *
-     * @param {Object} json    The json object to be modeled.
+     * @param {Object} json?    The json object to be modeled.
      * @param {Object} metadata? May contain the following:
      *                         name - name of the Model, defaults to "root"
-     *                         *plus any properties accepted by the createProperty method metadata argument
+     *                         *plus any properties accepted by the createProperty method metadata argument or
+     *                          additional data you want stored in the metadata.
      */
     function Model (json, metadata, parent) {
         var jsonModel = json || {} ,
@@ -801,7 +805,8 @@
     };
 
     /**
-     * Creates the property with the given name on this. This will fire the childCreated event on the parent.
+     * Creates the property with the given name on this. This will fire the childCreated event on the parent. The
+     * metadata can contain custom keys or any of the special keys below.
      *
      * @example
      *     var model = new Model();
@@ -809,11 +814,19 @@
      *     .createProperty("subModel", { // a property that is a subModel (model.subModel and model.subModel.str)
      *         str: "stringProperty"
      *     })
-     *     .createProperty("positiveNumber", 2, { // a property with a validator (model.positiveNumber)
+     *     .createProperty("positiveNumber", 2, { // a property with a positiveNumber validator and a custom attribute
      *         validator: function (value) {
      *             return value > 0;
-     *         }
+     *         },
+     *         customMetadata: "this Property is special"
+     *     }),
+     *     .createProperty ("remoteModel", {prop1: "defaultValue"}, { // a remote model populated via the twitter rest api.
+     *         url: "http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback",
+     *         doNotPresist: true,
+     *         refreshRate: -1, // -1 means fetch once.
+     *         isJSONPurl: true
      *     }); // Note the method chaining.
+     *
      * For examples see: <b>testModelCreationUsingCreatePropertyMethod</b>
      *
      * @method  createProperty
@@ -822,18 +835,17 @@
      * @param {[String, Boolean, Number, null, Date, Function, Object]} value   Property value
      * @param {[Object]} metadata? A hash of metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
      *                         <ul><li>
-     *                             validator {Function} - a function to validate if the new value is valid before it is assigned.
+     *                             <b>validator</b> {Function} - a function to validate if the new value is valid before it is assigned.
      *                         </li><li>
-     *                             url {String} - the resource this model should use to get it's value. Resource must return json. *Must be used with refreshRate*
+     *                             <b>url</b> {String} - the resource this model should use to get it's value. Resource must return json. *Must be used with refreshRate*
      *                         </li><li>
-     *                             refreshRate {Number} - the interval used to query the url for changes. must be > 0. minimal value used is 100. -1 indicates to only fetch value once. *Must be used with url*
+     *                             <b>refreshRate</b> {Number} - the interval used to query the url for changes. must be > 100 or -1. -1 indicates to only fetch value once. *Must be used with url*
      *                         </li><li>
-     *                             doNotPresist {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
-     *                         </li>
-     *                         <li>
-     *                             isJSONPurl {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string "$jsonpCallback" where the jsonp callback function should be inserted.
-     *                         </li>
-     *                         </ul>
+     *                             <b>isJSONPurl</b> {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string "$jsonpCallback" where the jsonp callback function should be inserted.
+     *                         </li><li>
+     *                             <b>doNotPresist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+     *                         </li></ul>
+     *
      * @return {Model}         Returns this for method chaining
      */
     Model.prototype.createProperty = function createProperty(name, value, metadata) {
@@ -857,7 +869,7 @@
     };
 
     /**
-     * Clones the Model rooted at this keeping all validators that exist, but not keeping attached onChange callbacks.
+     * Clones the Model rooted at this keeping all metadata that exist, but not keeping any event listeners.
      * The name of all properties are adjusted to reflect it's new root.
      *
      * @example
