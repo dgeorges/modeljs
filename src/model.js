@@ -788,18 +788,6 @@
     Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX = /__modeljs__metadata$/;
 
     /**
-     * If logging is enabled any warning or incorrect uses of the api will result in output to the console
-     * if it exists.
-     *
-     * @attribute isLoggingEnabled
-     * @default false
-     * @static
-     *
-     * @type {Boolean} Indicates if Logging is enabled
-     */
-    Model.isLoggingEnabled = false;
-
-   /**
      * Gets the value associated with the Model. This will be a json Object.
      *
      * @method  getValue
@@ -1019,6 +1007,52 @@
         }
         return json;
     };
+
+    /**
+     * If logging is enabled any warning or incorrect uses of the api will result in output to the console
+     * if it exists.
+     *
+     * @attribute isLoggingEnabled
+     * @default false
+     * @static
+     *
+     * @type {Boolean} Indicates if Logging is enabled
+     */
+    Model.isLoggingEnabled = false;
+
+    /**
+     * TODO figure out how I want to expose this.
+     * Hence the no documentation.
+     *
+     */
+    Model.find = function (model, propertyName) {
+        var modelName = model.getName();
+        var modelParts = modelName.split('/');
+        var propertyParts = propertyName.split('/');
+        var diff = "";
+
+        if (modelParts[0] !== propertyParts[0]) {
+            return null;  //not part of same model
+        }
+
+        var i = 0;
+        while (modelParts[i] === propertyParts[i] && i < propertyParts.length) {
+            i++;
+        }
+
+        var j = i;
+        var commonDenominator = model;
+        for ( j = i; j < modelParts.length; j++) {
+            commonDenominator = commonDenominator._parent;
+        }
+
+        var prop = commonDenominator;
+        for (var k = i; k < propertyParts.length; k++) {
+            prop = prop[propertyParts[k]];
+        }
+        return prop;
+    };
+
 
    /**
      * Begins a transaction. All events will be put into the queued. To be fired when endTransaction is called.

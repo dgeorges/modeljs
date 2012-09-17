@@ -979,6 +979,28 @@ test("testObservableArray", function (){
 
 });
 
+test("ModelFind", function () {
+    var json = {
+        prop1:"prop1",
+        subProp1:{
+            prop1: "prop1-l2",
+            subProp2: {
+                prop1: "prop1l3",
+                subProp3:{
+                    baby: "a"
+                }
+            }
+        }
+    };
+
+    var rootModel = new Model(json);
+    var baby = rootModel.subProp1.subProp2.subProp3.baby;
+    ok(Model.find(rootModel, baby.getName()), "search for direct child");
+    ok(Model.find(baby, rootModel.subProp1.getName()), "search for direct parent");
+    ok(Model.find(baby, rootModel.prop1.getName()), "search for sibling/cousin");
+    ok(Model.find(baby, baby.getName()), "search for self");
+});
+
 asyncTest("remoteModel", function () {
 
     expect(3);
