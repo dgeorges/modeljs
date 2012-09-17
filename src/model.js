@@ -855,20 +855,20 @@
      * @return {Model}         Returns this for method chaining
      */
     Model.prototype.createProperty = function createProperty(name, value, metadata) {
-        if (value instanceof Model || value instanceof Property){
+        if (value instanceof Model || value instanceof Property) {
             log('error', "Unsupported Operation: Try passing the Model/Properties value instead");
             return;
-        } else if (isObject(value)){
+        } else if (isObject(value)) {
             var modelMetadata = metadata || {};
             modelMetadata.name = name;
             this[name] = new Model(value, modelMetadata, this);
 
-            if (modelMetadata.url && modelMetadata.refreshRate){
+            if (modelMetadata.url && modelMetadata.refreshRate) {
                 makeRemoteRequest(this[name]);
             }
 
         } else {
-            this[name] = new Property (name, value, this, metadata);
+            this[name] = new Property(name, value, this, metadata);
         }
         this.trigger("childCreated", this[name]);
         return this;
@@ -887,24 +887,24 @@
      *
      * @return {Model}  Returns a new Model object rooted at this, keeping any metadata but no event listeners.
      */
-    Model.prototype.clone = function (){
+    Model.prototype.clone = function () {
         var myName = this.getName();
         var options = {
-            name : myName.substring(myName.lastIndexOf("/") + 1),
+            name: myName.substring(myName.lastIndexOf("/") + 1),
             validator: this._metadata.validator
         };
         return new Model(this.toJSON(true), options);
     };
 
-    function mergeLoop (model, json, doModification, keepOldProperties) {
+    function mergeLoop(model, json, doModification, keepOldProperties) {
 
         for (var name in json) {
             var value = json[name];
-            if (model[name]){
-                if (isObject(value)){ // right hand side is an object
-                    if (model[name] instanceof Model) {// merging objects
-                        var successful = mergeLoop(model[name], value, doModification, keepOldProperties );
-                        if (!successful){
+            if (model[name]) {
+                if (isObject(value)) { // right hand side is an object
+                    if (model[name] instanceof Model) { // merging objects
+                        var successful = mergeLoop(model[name], value, doModification, keepOldProperties);
+                        if (!successful) {
                             return false;
                         }
                     } else {
@@ -913,8 +913,8 @@
                     }
 
                 } else { // right hand side is a property
-                    if (!(model[name] instanceof Model)){ // Its not a Model therefore it's a Property
-                        if (doModification){
+                    if (!(model[name] instanceof Model)) { // Its not a Model therefore it's a Property
+                        if (doModification) {
                             model[name].setValue(value);
                         }
                     } else {
@@ -923,21 +923,18 @@
                     }
                 }
             } else { //create new property
-                if (doModification){
+                if (doModification) {
                     model.createProperty(name, value);
                 }
             }
         }
 
         // delete properties that are not found in json
-        if (!keepOldProperties && doModification){
+        if (!keepOldProperties && doModification) {
             for (var modelProp in model) {
-                if (!json[modelProp] &&  //property does exist in merge
-                    model.hasOwnProperty(modelProp) &&
-                    model[modelProp] instanceof Property &&
-                    modelProp !== '_parent'){  // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
-
-                        model[modelProp].destroy();
+                if (!json[modelProp] && //property does exist in merge
+                        model.hasOwnProperty(modelProp) && model[modelProp] instanceof Property && modelProp !== '_parent') { // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
+                    model[modelProp].destroy();
                 }
             }
         }
@@ -963,7 +960,7 @@
     Model.prototype.merge = function (json, keepOldProperties) {
         //will merge the properties in json with this. result will be the same as the Object extend.
         //if a property exists in the model but not in the json it will only be kept if keepOldProperties is true.
-        if (mergeLoop(this, json, false, keepOldProperties)){// check if merge will be successful
+        if (mergeLoop(this, json, false, keepOldProperties)) { // check if merge will be successful
             Model.startTransaction();
             mergeLoop(this, json, true, keepOldProperties);
             Model.endTransaction();
@@ -991,7 +988,7 @@
      */
     Model.prototype.toJSON = function (includeMetaData) {
         var json = {};
-        if (this._myValue === undefined){
+        if (this._myValue === undefined) {
             return undefined;
         }
 
@@ -1005,7 +1002,7 @@
                     } else {
                         json[name] = property.toJSON(includeMetaData);
                     }
-                    if (includeMetaData && !isEmptyObject(property.getMetadata())){
+                    if (includeMetaData && !isEmptyObject(property.getMetadata())) {
                         json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
                     }
                 } else if (property instanceof Property) {
@@ -1014,7 +1011,7 @@
                     } else {
                         json[name] = property.getValue();
                     }
-                    if (includeMetaData && !isEmptyObject(property.getMetadata())){
+                    if (includeMetaData && !isEmptyObject(property.getMetadata())) {
                         json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
                     }
                 }
