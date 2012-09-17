@@ -26,7 +26,7 @@
         if (Object.getOwnPropertyNames) { // only exits on ECMAScript 5 compatible browsers
             return (Object.getOwnPropertyNames(obj).length === 0);
         } else {
-            for( var key in obj) {
+            for (var key in obj) {
                 if (obj.hasOwnProperty(key)) {
                     return false;
                 }
@@ -36,7 +36,7 @@
     }
 
     function isValidDate(d) {
-        if ( Object.prototype.toString.call(d) !== "[object Date]" ){
+        if (Object.prototype.toString.call(d) !== "[object Date]") {
             return false;
         }
         return !isNaN(d.getTime());
@@ -47,7 +47,7 @@
             return;
         }
 
-        if (window.console && window.console[level]){
+        if (window.console && window.console[level]) {
             window.console[level](message);
         }
     }
@@ -63,35 +63,35 @@
                 return function () {
                     return new ActiveXObject("Msxml2.XMLHTTP");
                 };
-              }
-            catch (e) {
+            } catch (e) {
                 try {
                     new ActiveXObject("Microsoft.XMLHTTP");
                     return function () {
                         return new ActiveXObject("Msxml2.XMLHTTP");
                     };
-                }
-                catch (e) {
+                } catch (e) {
                     //do nothing
                 }
             }
         }
 
-        window.log.error("Could not create an XMLHTTPRequestObject Remote Model requests will fail");
+        log('error', "Could not create an XMLHTTPRequestObject Remote Model requests will fail");
         return undefined;
     }();
+
+
 
     function retrieveRemoteRequest(xhr, property, xhrProgressEvent) {
         if (xhr.readyState === 4) {
 
             if (xhr.status !== 200) {
                 log('warn', "Retrying remote request for " + property.getName() + " due to return status of " + xhr.status);
-                makeRemoteRequest(property);  // retry request...
+                makeRemoteRequest(property); // retry request...
                 return;
             }
 
             if (xhr.responseType !== "json" && xhr.responseType !== "") {
-                log( 'error', "Remote model (" + property. getName() + ") must return JSON. Not retrying.");
+                log('error', "Remote model (" + property.getName() + ") must return JSON. Not retrying.");
                 return;
             }
 
@@ -100,7 +100,7 @@
             try {
                 jsonResponse = JSON.parse(xhr.response);
             } catch (e) {
-                log( 'error', "Unable to parse remote Model request for " + property.getName());
+                log('error', "Unable to parse remote Model request for " + property.getName());
                 return; //should retry? makeRemoteRequest(property);
             }
 
@@ -109,9 +109,8 @@
             if (responseLastModifiedDate && isValidDate(responseLastModifiedDate)) {
                 var metadata = property.getMetadata();
                 var propertyLastModified = metadata.lastModified && new Date(metadata.lastModified);
-                if ( !propertyLastModified || !isValidDate(propertyLastModified) ||  // my last Modified date isn't valid
-                        Date.parse(responseLastModifiedDate) > Date.parse(propertyLastModified) ) { //  or it is and it's stale
-
+                if (!propertyLastModified || !isValidDate(propertyLastModified) || // my last Modified date isn't valid
+                        Date.parse(responseLastModifiedDate) > Date.parse(propertyLastModified)) { //  or it is and it's stale
                     property.setValue(jsonResponse);
                     metadata.lastModified = responseLastModifiedDate;
                 } else {
@@ -121,16 +120,15 @@
                 property.setValue(jsonResponse);
             }
 
-            if (property.getMetadata().refreshRate > 0) {// relaunch request..
+            if (property.getMetadata().refreshRate > 0) { // relaunch request..
                 makeRemoteRequest(property);
             }
         }
     }
-
     function makeRemoteRequest(property) {
 
         var refreshRate = Math.max(100, property.getMetadata().refreshRate);
-        setTimeout(function(property) {
+        setTimeout(function (property) {
             var url = property.getMetadata().url;
             if (property.getMetadata().isJSONPurl) {
                 var uniqueCallbackId = generateJSONPCallback(property);
@@ -157,6 +155,7 @@
     }
 
     var callbackId = 0;
+
     function generateJSONPCallback(property) {
         var fnName = "modeljsJSONPCallback" + callbackId++;
         window[fnName] = function (property, json) { //create global callback
@@ -173,33 +172,42 @@
      */
     var eventProxy = function () {
         var eventQueue = [],
-            state = {   ACTIVE: "active", TRANSACTION: "transaction"},
-            eventType = {CHANGE: "change", CREATE: "create", DESTROY: "destroy", CHILD_CREATED: "childCreated"},
+            state = {
+                ACTIVE: "active",
+                TRANSACTION: "transaction"
+            },
+            eventType = {
+                CHANGE: "change",
+                CREATE: "create",
+                DESTROY: "destroy",
+                CHILD_CREATED: "childCreated"
+            },
             currentState = state.ACTIVE;
 
         var executedCallbacks = [];
         var callbackHashs = [];
+
         function _fireEvent(eventName, property, eventArg) {
 
             // This weird executeCallback function is a bit more complicated than it needs to be but is
             // used to get around the JSLint warning of creating a function within the while loop below
             var executeCallbacksFunction = function (changedProperty, listenerProperty, arg) {
-                return function (callback){
-                    if (Model.eventOptimization.enableSingleCallbackCall || Model.eventOptimization.enableCallbackHashOpimization){
+                return function (callback) {
+                    if (Model.eventOptimization.enableSingleCallbackCall || Model.eventOptimization.enableCallbackHashOpimization) {
                         var callbackExecuted = false;
-                        if (Model.eventOptimization.enableSingleCallbackCall){
-                            if(executedCallbacks.indexOf(callback) === -1) { // Only call callback once
+                        if (Model.eventOptimization.enableSingleCallbackCall) {
+                            if (executedCallbacks.indexOf(callback) === -1) { // Only call callback once
                                 executedCallbacks.push(callback);
                                 callback.call(listenerProperty, changedProperty, arg);
                                 callbackExecuted = true;
                             }
                         }
-                        if(Model.eventOptimization.enableCallbackHashOpimization){
-                             if(!callback.hash || callbackHashs.indexOf(callback.hash) === -1) { // Only call hash identified callback once
+                        if (Model.eventOptimization.enableCallbackHashOpimization) {
+                            if (!callback.hash || callbackHashs.indexOf(callback.hash) === -1) { // Only call hash identified callback once
                                 if (callback.hash) {
                                     callbackHashs.push(callback.hash);
                                 }
-                                if (!callbackExecuted){
+                                if (!callbackExecuted) {
                                     callback.call(listenerProperty, changedProperty, arg);
                                     callbackExecuted = true;
                                 }
@@ -213,20 +221,19 @@
 
             var propertyParent = property._parent;
             var eventListeners = property._eventListeners[eventName] || [];
-            if (eventName === eventType.CHANGE){ // Change is a special event it can propergate and it's eventArg is the oldValue
+            if (eventName === eventType.CHANGE) { // Change is a special event it can propergate and it's eventArg is the oldValue
                 var allPropertyListeners = property._eventListeners.propertyChange.concat(property._eventListeners.modelChange);
                 allPropertyListeners.forEach(
                     executeCallbacksFunction(property, property, eventArg)
                 );
 
-                while (propertyParent){
-
+                while (propertyParent) {
                     propertyParent._eventListeners.modelChange.forEach( // when we bubble the event we only notify modelListeners
                         executeCallbacksFunction(property, propertyParent, eventArg)
                     );
                     propertyParent = propertyParent._parent;
                 }
-            } else if (eventName === eventType.DESTROY){ //destroy also notifies its parent childDestroyed listeners
+            } else if (eventName === eventType.DESTROY) { //destroy also notifies its parent childDestroyed listeners
                 eventListeners.forEach(
                     executeCallbacksFunction(property, property, eventArg)
                 );
@@ -244,7 +251,7 @@
             }
         }
 
-        function fireEvent (eventName, property, customArg) {
+        function fireEvent(eventName, property, customArg) {
             if (currentState === state.ACTIVE) { // fire event now.
                 _fireEvent(eventName, property, customArg);
             } else { //place event on queue to be called at a later time.
@@ -269,12 +276,12 @@
 
             executedCallbacks = []; //reset state
             callbackHashs = [];
-            if(Model.eventOptimization.suppressPreviousPropertyChangeEvents) {
+            if (Model.eventOptimization.suppressPreviousPropertyChangeEvents) {
                 var optimizedQueue = [];
                 var seenProperties = [];
-                for(var i = eventQueue.length - 1; i >= 0; i-=1){// iterate backwards since last events are most recent.
+                for (var i = eventQueue.length - 1; i >= 0; i -= 1) { // iterate backwards since last events are most recent.
                     var eventProperty = eventQueue[i].property;
-                    if (seenProperties.indexOf(eventProperty) === -1){
+                    if (seenProperties.indexOf(eventProperty) === -1) {
                         // Not seen yet add it.
                         seenProperties.push(eventProperty);
                         optimizedQueue.push(eventQueue[i]);
@@ -285,7 +292,7 @@
                 eventQueue = optimizedQueue;
             }
 
-            eventQueue.forEach( function (event){
+            eventQueue.forEach(function (event) {
                 _fireEvent(event.eventName, event.property, event.customArg);
             });
             eventQueue = []; //Queue has been flushed
@@ -296,72 +303,72 @@
             eventType: eventType,
             startTransaction: changeState.bind(null, state.TRANSACTION),
             endTransaction: changeState.bind(null, state.ACTIVE),
-            inTransaction: function () { return currentState === state.TRANSACTION;}
+            inTransaction: function () {
+                return currentState === state.TRANSACTION;
+            }
         };
     }();
-
 
     /*
      * An Observable Array is a wrapper around the javaScript Array primitive which will
      * trigger the correct events when any of it mutator methods are called. It is not
      * exposed outside of this file.
      */
-    function ObservableArray(myProperty, values){
+    function ObservableArray(myProperty, values) {
         this._prop = myProperty;
         Array.call(this, values);
     }
     ObservableArray.prototype = Object.create(Array.prototype);
 
-    ObservableArray.prototype.pop = function (){
+    ObservableArray.prototype.pop = function () {
         var args = Array.prototype.slice.call(arguments),
             element = Array.prototype.pop.apply(this, args);
         this._prop.trigger("childDestroyed", element);
         return element;
     };
-    ObservableArray.prototype.push = function (){
+    ObservableArray.prototype.push = function () {
         var args = Array.prototype.slice.call(arguments),
             newLength = Array.prototype.push.apply(this, args);
         this._prop.trigger("childCreated", args);
         return newLength;
     };
-    ObservableArray.prototype.reverse = function (){
+    ObservableArray.prototype.reverse = function () {
         var args = Array.prototype.slice.call(arguments),
-            oldValue =  Array.prototype.slice.call(this);
+            oldValue = Array.prototype.slice.call(this);
         Array.prototype.reverse.apply(this, args);
         this._prop.trigger("propertyChange", oldValue);
         return this;
     };
-    ObservableArray.prototype.shift = function (){
+    ObservableArray.prototype.shift = function () {
         var args = Array.prototype.slice.call(arguments),
             element = Array.prototype.shift.apply(this, args);
         this._prop.trigger("childDestroyed", element);
         return element;
     };
-    ObservableArray.prototype.sort = function (){
+    ObservableArray.prototype.sort = function () {
         var args = Array.prototype.slice.call(arguments),
             oldValue = Array.prototype.slice.call(this);
         Array.prototype.sort.apply(this, args);
         this._prop.trigger("propertyChange", oldValue);
         return this;
     };
-    ObservableArray.prototype.splice = function (){
+    ObservableArray.prototype.splice = function () {
         // A little more difficult!!
         var args = Array.prototype.slice.call(arguments),
             removed = Array.prototype.splice.apply(this, args);
-        if (removed.length > 0){
+        if (removed.length > 0) {
             this._prop.trigger("childDestroyed", removed);
         }
-        this._prop.trigger("childCreated");// TODO use count to determin if should be called
+        this._prop.trigger("childCreated"); // TODO use count to determin if should be called
         return removed;
     };
-    ObservableArray.prototype.unshift = function (){
+    ObservableArray.prototype.unshift = function () {
         var args = Array.prototype.slice.call(arguments),
             newElements = Array.prototype.slice(arguments),
             newLength = Array.prototype.unshift.apply(this, args);
         this._prop.trigger("childCreated", newElements);
         return newLength;
     };
-
 
     /**
      * A Property is a name value pair belonging to a Model.
@@ -1055,7 +1062,7 @@
     Model.endTransaction = function (options) {
         var originalEventOptimization;
 
-        if (options){ // if option override global setting keeping them so they can be restored later
+        if (options) { // if option override global setting keeping them so they can be restored later
             originalEventOptimization = JSON.parse(JSON.stringify(Model.eventOptimization));
             Model.eventOptimization.suppressPreviousPropertyChangeEvents = !!options.suppressPreviousPropertyChangeEvents;
             Model.eventOptimization.enableSingleCallbackCall = !!options.enableSingleCallbackCall;
@@ -1064,7 +1071,7 @@
 
         eventProxy.endTransaction();
 
-        if (options){ //restore global settings
+        if (options) { //restore global settings
             Model.eventOptimization.suppressPreviousPropertyChangeEvents = originalEventOptimization.suppressPreviousPropertyChangeEvents;
             Model.eventOptimization.enableSingleCallbackCall = originalEventOptimization.enableSingleCallbackCall;
             Model.eventOptimization.enableCallbackHashOpimization = originalEventOptimization.enableCallbackHashOpimization;
