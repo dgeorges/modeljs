@@ -388,12 +388,12 @@
     function Property (name, value, parent, metadata) {
 
         var myName = "/" + name;
-        if (parent){
+        if (parent) {
             myName = parent.getName() + myName;
         }
 
         var myValue = value;
-        if (Array.isArray(value)){
+        if (Array.isArray(value)) {
             myValue = new ObservableArray(this, value);
         }
 
@@ -478,11 +478,10 @@
      */
     Property.prototype.getFormattedValue = function () {
         if (isFunction(Model.Formatter)) {
-            return Model.Formatter.call (this, this.getValue());
+            return Model.Formatter.call(this, this.getValue());
         }
         return this.getValue();
     };
-
 
     /**
      * The fully qualified name of this. The name is calculated by concatenating the name
@@ -523,7 +522,7 @@
     Property.prototype.setValue = function (value, suppressNotifications) {
         var newValue = value;
 
-        if (newValue instanceof Property || newValue instanceof Model ) {
+        if (newValue instanceof Property || newValue instanceof Model) {
             // this is misleading syntax because other property attributes are not copied like _listener and _parent
             // so prevent it and provide alternate.
             log('error', "Incorrect Syntax: use setValue([property|model].getValue()) instead");
@@ -533,11 +532,11 @@
         // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
         if (newValue !== undefined && newValue !== this._myValue) {
 
-            if (!this.hasValidator() || this.validateValue(newValue)){
+            if (!this.hasValidator() || this.validateValue(newValue)) {
                 var oldValue = this._myValue;
 
                 if (isObject(newValue)) {
-                    if (!(this instanceof Model)){
+                    if (!(this instanceof Model)) {
                         log('error', "Not Supported: Can't set the Model value to a property. Delete the model and use createProperty");
                         return;
                     } else {
@@ -547,18 +546,18 @@
                         }
                     }
                 } else { // newValue is a property
-                    if (this instanceof Model){
+                    if (this instanceof Model) {
                         log('error', "Not Supported: Can't set a Property value to a model. Delete the property and use createProperty");
                         return;
                     } else {
-                        if (Array.isArray(newValue)){
+                        if (Array.isArray(newValue)) {
                             newValue = new ObservableArray(this, newValue);
                         }
                         this._myValue = newValue;
                     }
                 }
 
-                if (!suppressNotifications){
+                if (!suppressNotifications) {
                     eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
                 }
             }
@@ -585,11 +584,11 @@
      *                         listenToChildren {Boolean} - registers the callback with sub property changes as well.
      */
     Property.prototype.onChange = function (callback, options) {
-        if (!isFunction(callback)){
+        if (!isFunction(callback)) {
             log('warn', "Incorrect Syntax: callback must be a function");
             return;
         }
-        if (options && options.listenToChildren){
+        if (options && options.listenToChildren) {
             this._eventListeners.modelChange.push(callback);
         } else {
             this._eventListeners.propertyChange.push(callback);
@@ -646,15 +645,15 @@
      * @param  {Function} callback  The function to execute when the given event is triggered
      * @return {Property}          Returns this for Object chaining.
      */
-    Property.prototype.on = function (events, callback){
-        if (!isFunction(callback)){
-            log('warn'," Incorrect Syntax: callback must be a function");
+    Property.prototype.on = function (events, callback) {
+        if (!isFunction(callback)) {
+            log('warn', "Incorrect Syntax: callback must be a function");
             return;
         }
         //test Callback is a function
         var eventNames = events.split(' ');
-        eventNames.forEach(function(eventName){
-            if (!this._eventListeners[eventName]){
+        eventNames.forEach(function (eventName) {
+            if (!this._eventListeners[eventName]) {
                 this._eventListeners[eventName] = [];
             }
             this._eventListeners[eventName].push(callback);
@@ -673,13 +672,13 @@
      * @return {Property}         Returns this for Object chaining.
      */
     Property.prototype.off = function (events, callback) {
-        if (!isFunction(callback)){
+        if (!isFunction(callback)) {
             log('warn', "Incorrect Syntax: callback must be a function");
             return;
         }
         var eventNames = events.split(' ');
-        eventNames.forEach(function(eventName){
-            if (this._eventListeners[eventName]){
+        eventNames.forEach(function (eventName) {
+            if (this._eventListeners[eventName]) {
                 this._eventListeners[eventName] = this._eventListeners[eventName].filter(function (element, index, array) {
                     return element !== callback;
                 });
@@ -756,23 +755,23 @@
      *                         *plus any properties accepted by the createProperty method metadata argument or
      *                          additional data you want stored in the metadata.
      */
-    function Model (json, metadata, parent) {
-        var jsonModel = json || {} ,
-            modelMetadata = metadata|| {},
+    function Model(json, metadata, parent) {
+        var jsonModel = json || {},
+            modelMetadata = metadata || {},
             modelName = (modelMetadata.name || "root"),
             modelParent = parent || null;
 
-        if (modelMetadata.name){ // name is not part of the metadata.
+        if (modelMetadata.name) { // name is not part of the metadata.
             delete modelMetadata.name;
         }
 
         //A Model is in itself a Property so lets call our supers constructor
         Property.call(this, modelName, jsonModel, modelParent, modelMetadata);
 
-        if (this.validateValue(json)){
+        if (this.validateValue(json)) {
 
-            for( var name in jsonModel) {
-                if (name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)){ // skip special meta data properties
+            for (var name in jsonModel) {
+                if (name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)) { // skip special meta data properties
                     continue;
                 }
 
@@ -807,7 +806,7 @@
      *
      * @return {Object} The json Object represented by the model
      */
-    Model.prototype.getValue = function() {
+    Model.prototype.getValue = function () {
         return this.toJSON();
     };
 
