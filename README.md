@@ -22,7 +22,7 @@ Features
   - Can supply your own custom Formatter function to get formatted values
   - Can enable logging to flag incorrect uses of api to the console.
   - Native browser Support for all browsers that support ECMA5 including and tested on IE9, Firefox 4+, Safari 5.1.4+, Chrome 7+, Opera 12+ without a shim library.
-  - Works on non-ECMA5 browser with use of a shim library. Specifically tested on IE8.
+  - Works on non-ECMA5 browser with use of a shim library. Specifically tested on IE8 with es5-shim.
 
 
 
