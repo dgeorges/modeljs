@@ -441,7 +441,7 @@ test("testBubbleUpEvents", function () {
     };
 
     var m = new Model(jsonModel);
-    m.onChange(callback, {listenToChildren: true});
+    m.onChange(callback, true);
     m.number.onChange(callback);
 
     m.number.setValue(5);
@@ -451,7 +451,7 @@ test("testBubbleUpEvents", function () {
 
     count = 0; //reset counter
     callbackCalled = false;
-    m.subModel.onChange(callback, {listenToChildren: true});
+    m.subModel.onChange(callback, true);
     m.subModel.subProp.setValue("new value");
 
     ok(callbackCalled, "Passed");
@@ -562,7 +562,7 @@ test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
 
     //test on Model
     count = 0; //reset counter
-    model.subModel.onChange(callback, {listenToChildren: true});
+    model.subModel.onChange(callback, true);
     Model.startTransaction();
     model.subModel.subProp.setValue("new subProp value1");
     model.subModel.subProp.setValue("new subProp value2");
@@ -607,7 +607,7 @@ test("testSingleCallbackEventOptimization", function (){
 
     var model = new Model(jsonModel);
     model.number.onChange(callback);
-    model.subModel.onChange(callback, {listenToChildren: true});
+    model.subModel.onChange(callback, true);
     model.subModel.subProp.onChange(callback);
     model.str.onChange(callback2);
 
@@ -651,8 +651,8 @@ test("testEnableCallbackHashOpimization", function (){
     var model = new Model(jsonModel);
     model.number.onChange(callback);
     model.number.onChange(callback2);
-    model.subModel.onChange(callback, {listenToChildren: true});
-    model.subModel.onChange(callback2, {listenToChildren: true});
+    model.subModel.onChange(callback, true);
+    model.subModel.onChange(callback2, true);
     model.subModel.subProp.onChange(callback);
     model.subModel.subProp.onChange(callback2);
 
@@ -696,8 +696,8 @@ test("testModelEndTransactionWithOptions", function () {
     var model = new Model(jsonModel);
     model.number.onChange(callback);
     model.number.onChange(callback2);
-    model.subModel.onChange(callback, {listenToChildren: true});
-    model.subModel.onChange(callback2, {listenToChildren: true});
+    model.subModel.onChange(callback, true);
+    model.subModel.onChange(callback2, true);
     model.subModel.subProp.onChange(callback);
     model.subModel.subProp.onChange(callback2);
 
@@ -1164,7 +1164,7 @@ test("modlejsTutorial", function (){
     modelFromJSON.objProperty.name.onChange(callback);
 
     // If you want to listen to anyProperty changes of a Property and its children you can register you callback to do so.
-    modelFromJSON.objProperty2.onChange(callback, {listenToChildren: true}); // callback will be called with objProperty2 or it's children change value
+    modelFromJSON.objProperty2.onChange(callback, true); // callback will be called with objProperty2 or it's children change value
     //this is recomended as oppose to registaring the same listener on all children.
 
     // Finally another useful feature is delaying your callbacks until your done munipulating the model

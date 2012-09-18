@@ -556,15 +556,14 @@
      * @method  onChange
      *
      * @param {Function} callback The function to be called if the value of this changes. The callback function will be passed the following arguments (oldValue, newValue, propertyName)
-     * @param {Object}   options? May contain the following:
-     *                         listenToChildren {Boolean} - registers the callback with sub property changes as well.
+     * @param {Boolean}   listenToChildren? Registers the callback with sub property changes as well.
      */
-    Property.prototype.onChange = function (callback, options) {
+    Property.prototype.onChange = function (callback, listenToChildren) {
         if (!isFunction(callback)) {
             log('warn', "Incorrect Syntax: callback must be a function");
             return;
         }
-        if (options && options.listenToChildren) {
+        if (listenToChildren) {
             this._eventListeners.modelChange.push(callback);
         } else {
             this._eventListeners.propertyChange.push(callback);
