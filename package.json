@@ -1,0 +1,27 @@
+{
+    "name": "modeljs",
+    "description": "A simple javaScript library for creating a Model part of a MVC application from JSON.",
+    "main": "./src/model.js",
+    "version": "1.0.0",
+    "license": "MIT",
+    "author": {
+        "name": "Daniel Georges",
+        "email": "daniel.georges@gmail.com"
+    },
+    "keywords": [
+        "model",
+        "mvc"
+    ],
+    "dependencies": {
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dgeorges/modeljs.git"
+    },
+    "scripts": {
+        "test": "echo all tests are preformed on the browser currently with qUnit"
+    },
+    "engines": {
+        "node": ">=0.4.0"
+    }
+}

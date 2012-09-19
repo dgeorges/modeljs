@@ -52,7 +52,7 @@
         }
     }
 
-    var getXHRObject = function () {
+    var getXHRObject = (function () {
         if (window.XMLHttpRequest) { // Mozilla, Safari, ...
             return function () {
                 return new XMLHttpRequest();
@@ -63,13 +63,13 @@
                 return function () {
                     return new ActiveXObject("Msxml2.XMLHTTP");
                 };
-            } catch (e) {
+            } catch (e1) {
                 try {
                     new ActiveXObject("Microsoft.XMLHTTP");
                     return function () {
                         return new ActiveXObject("Msxml2.XMLHTTP");
                     };
-                } catch (e) {
+                } catch (e2) {
                     //do nothing
                 }
             }
@@ -77,9 +77,48 @@
 
         log('error', "Could not create an XMLHTTPRequestObject Remote Model requests will fail");
         return undefined;
-    }();
+    }());
 
+    function makeJSONPRequest(url, id) {
+        var scriptTag = document.createElement("SCRIPT");
+        scriptTag.id = id;
+        scriptTag.type = 'text/javascript';
+        scriptTag.src = url;
+        document.getElementsByTagName('head')[0].appendChild(scriptTag);
+    }
 
+    var callbackId = 0;
+    function generateJSONPCallback(property) {
+        var fnName = "modeljsJSONPCallback" + callbackId++;
+        window[fnName] = function (property, json) { //create global callback
+            property.setValue(json);
+            var scriptElement = document.getElementById(fnName);
+            document.getElementsByTagName('head')[0].removeChild(scriptElement); //remove callback script
+            delete window[fnName]; // remove global callback method
+        }.bind(null, property);
+        return fnName;
+    }
+
+    function makeRemoteRequest(property) {
+
+        var refreshRate = Math.max(100, property.getMetadata().refreshRate);
+        setTimeout(function (property) {
+            var url = property.getMetadata().url;
+            if (property.getMetadata().isJSONPurl) {
+                var uniqueCallbackId = generateJSONPCallback(property);
+                url = url.replace("$jsonpCallback", uniqueCallbackId);
+                makeJSONPRequest(url, uniqueCallbackId);
+            } else {
+                var httpRequest = getXHRObject();
+                httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
+                //httpRequest.orgin = "localhost:8080";
+                //httpRequest.setRequestHeader
+                httpRequest.open('GET', url);
+                httpRequest.send();
+            }
+
+        }.bind(null, property), refreshRate);
+    }
 
     function retrieveRemoteRequest(xhr, property, xhrProgressEvent) {
         if (xhr.readyState === 4) {
@@ -125,52 +164,11 @@
             }
         }
     }
-    function makeRemoteRequest(property) {
-
-        var refreshRate = Math.max(100, property.getMetadata().refreshRate);
-        setTimeout(function (property) {
-            var url = property.getMetadata().url;
-            if (property.getMetadata().isJSONPurl) {
-                var uniqueCallbackId = generateJSONPCallback(property);
-                url = url.replace("$jsonpCallback", uniqueCallbackId);
-                makeJSONPRequest(url, uniqueCallbackId);
-            } else {
-                var httpRequest = getXHRObject();
-                httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
-                //httpRequest.orgin = "localhost:8080";
-                //httpRequest.setRequestHeader
-                httpRequest.open('GET', url);
-                httpRequest.send();
-            }
-
-        }.bind(null, property), refreshRate);
-    }
-
-    function makeJSONPRequest(url, id) {
-        var scriptTag = document.createElement("SCRIPT");
-        scriptTag.id = id;
-        scriptTag.type = 'text/javascript';
-        scriptTag.src = url;
-        document.getElementsByTagName('head')[0].appendChild(scriptTag);
-    }
-
-    var callbackId = 0;
-
-    function generateJSONPCallback(property) {
-        var fnName = "modeljsJSONPCallback" + callbackId++;
-        window[fnName] = function (property, json) { //create global callback
-            property.setValue(json);
-            var scriptElement = document.getElementById(fnName);
-            document.getElementsByTagName('head')[0].removeChild(scriptElement); //remove callback script
-            delete window[fnName]; // remove global callback method
-        }.bind(null, property);
-        return fnName;
-    }
 
     /*
      * Centralized place where all Model Events pass through.
      */
-    var eventProxy = function () {
+    var eventProxy = (function () {
         var eventQueue = [],
             state = {
                 ACTIVE: "active",
@@ -307,7 +305,7 @@
                 return currentState === state.TRANSACTION;
             }
         };
-    }();
+    }());
 
     /*
      * An Observable Array is a wrapper around the javaScript Array primitive which will
