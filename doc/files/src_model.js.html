@@ -102,7 +102,7 @@
  * @version 1.0.0
  * @module Model
  *&#x2F;
-(function (window, undefined) {
+(function (globalNS, undefined) { &#x2F;&#x2F;globalNS === window in the browser or GLOBAL in nodejs
     &quot;use strict&quot;;
 
     &#x2F;&#x2F; copied from underscorejs
@@ -139,29 +139,29 @@
             return;
         }
 
-        if (window.console &amp;&amp; window.console[level]) {
-            window.console[level](message);
+        if (globalNS.console &amp;&amp; globalNS.console[level]) {
+            globalNS.console[level](message);
         }
     }
 
-    var getXHRObject = function () {
-        if (window.XMLHttpRequest) { &#x2F;&#x2F; Mozilla, Safari, ...
+    var getXHRObject = (function () {
+        if (globalNS.XMLHttpRequest) { &#x2F;&#x2F; Mozilla, Safari, ...
             return function () {
                 return new XMLHttpRequest();
             };
-        } else if (window.ActiveXObject) { &#x2F;&#x2F; IE
+        } else if (globalNS.ActiveXObject) { &#x2F;&#x2F; IE
             try {
                 new ActiveXObject(&quot;Msxml2.XMLHTTP&quot;);
                 return function () {
                     return new ActiveXObject(&quot;Msxml2.XMLHTTP&quot;);
                 };
-            } catch (e) {
+            } catch (e1) {
                 try {
                     new ActiveXObject(&quot;Microsoft.XMLHTTP&quot;);
                     return function () {
                         return new ActiveXObject(&quot;Msxml2.XMLHTTP&quot;);
                     };
-                } catch (e) {
+                } catch (e2) {
                     &#x2F;&#x2F;do nothing
                 }
             }
@@ -169,9 +169,48 @@
 
         log(&#x27;error&#x27;, &quot;Could not create an XMLHTTPRequestObject Remote Model requests will fail&quot;);
         return undefined;
-    }();
+    }());
 
+    function makeJSONPRequest(url, id) {
+        var scriptTag = document.createElement(&quot;SCRIPT&quot;);
+        scriptTag.id = id;
+        scriptTag.type = &#x27;text&#x2F;javascript&#x27;;
+        scriptTag.src = url;
+        document.getElementsByTagName(&#x27;head&#x27;)[0].appendChild(scriptTag);
+    }
 
+    var callbackId = 0;
+    function generateJSONPCallback(property) {
+        var fnName = &quot;modeljsJSONPCallback&quot; + callbackId++;
+        window[fnName] = function (property, json) { &#x2F;&#x2F;create global callback
+            property.setValue(json);
+            var scriptElement = document.getElementById(fnName);
+            document.getElementsByTagName(&#x27;head&#x27;)[0].removeChild(scriptElement); &#x2F;&#x2F;remove callback script
+            delete window[fnName]; &#x2F;&#x2F; remove global callback method
+        }.bind(null, property);
+        return fnName;
+    }
+
+    function makeRemoteRequest(property) {
+
+        var refreshRate = Math.max(100, property.getMetadata().refreshRate);
+        setTimeout(function (property) {
+            var url = property.getMetadata().url;
+            if (property.getMetadata().isJSONPurl) {
+                var uniqueCallbackId = generateJSONPCallback(property);
+                url = url.replace(&quot;$jsonpCallback&quot;, uniqueCallbackId);
+                makeJSONPRequest(url, uniqueCallbackId);
+            } else {
+                var httpRequest = getXHRObject();
+                httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
+                &#x2F;&#x2F;httpRequest.orgin = &quot;localhost:8080&quot;;
+                &#x2F;&#x2F;httpRequest.setRequestHeader
+                httpRequest.open(&#x27;GET&#x27;, url);
+                httpRequest.send();
+            }
+
+        }.bind(null, property), refreshRate);
+    }
 
     function retrieveRemoteRequest(xhr, property, xhrProgressEvent) {
         if (xhr.readyState === 4) {
@@ -217,52 +256,11 @@
             }
         }
     }
-    function makeRemoteRequest(property) {
-
-        var refreshRate = Math.max(100, property.getMetadata().refreshRate);
-        setTimeout(function (property) {
-            var url = property.getMetadata().url;
-            if (property.getMetadata().isJSONPurl) {
-                var uniqueCallbackId = generateJSONPCallback(property);
-                url = url.replace(&quot;$jsonpCallback&quot;, uniqueCallbackId);
-                makeJSONPRequest(url, uniqueCallbackId);
-            } else {
-                var httpRequest = getXHRObject();
-                httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
-                &#x2F;&#x2F;httpRequest.orgin = &quot;localhost:8080&quot;;
-                &#x2F;&#x2F;httpRequest.setRequestHeader
-                httpRequest.open(&#x27;GET&#x27;, url);
-                httpRequest.send();
-            }
-
-        }.bind(null, property), refreshRate);
-    }
-
-    function makeJSONPRequest(url, id) {
-        var scriptTag = document.createElement(&quot;SCRIPT&quot;);
-        scriptTag.id = id;
-        scriptTag.type = &#x27;text&#x2F;javascript&#x27;;
-        scriptTag.src = url;
-        document.getElementsByTagName(&#x27;head&#x27;)[0].appendChild(scriptTag);
-    }
-
-    var callbackId = 0;
-
-    function generateJSONPCallback(property) {
-        var fnName = &quot;modeljsJSONPCallback&quot; + callbackId++;
-        window[fnName] = function (property, json) { &#x2F;&#x2F;create global callback
-            property.setValue(json);
-            var scriptElement = document.getElementById(fnName);
-            document.getElementsByTagName(&#x27;head&#x27;)[0].removeChild(scriptElement); &#x2F;&#x2F;remove callback script
-            delete window[fnName]; &#x2F;&#x2F; remove global callback method
-        }.bind(null, property);
-        return fnName;
-    }
 
     &#x2F;*
      * Centralized place where all Model Events pass through.
      *&#x2F;
-    var eventProxy = function () {
+    var eventProxy = (function () {
         var eventQueue = [],
             state = {
                 ACTIVE: &quot;active&quot;,
@@ -355,20 +353,14 @@
             }
         }
 
-        function changeState(newState) {
-            if (state[newState] !== currentState) {
-                currentState = newState;
-                if (newState === state.ACTIVE) {
-                    flushEventQueue();
-                }
-            }
-        }
-
         function flushEventQueue() {
 
             executedCallbacks = []; &#x2F;&#x2F;reset state
             callbackHashs = [];
-            if (Model.eventOptimization.suppressPreviousPropertyChangeEvents) {
+            if (Model.eventOptimization.suppressAll) {
+                &#x2F;&#x2F;discard all events
+                eventQueue = [];
+            } else if (Model.eventOptimization.suppressPreviousPropertyChangeEvents) {
                 var optimizedQueue = [];
                 var seenProperties = [];
                 for (var i = eventQueue.length - 1; i &gt;= 0; i -= 1) { &#x2F;&#x2F; iterate backwards since last events are most recent.
@@ -390,6 +382,15 @@
             eventQueue = []; &#x2F;&#x2F;Queue has been flushed
         }
 
+        function changeState(newState) {
+            if (state[newState] !== currentState) {
+                currentState = newState;
+                if (newState === state.ACTIVE) {
+                    flushEventQueue();
+                }
+            }
+        }
+
         return {
             fireEvent: fireEvent,
             eventType: eventType,
@@ -399,7 +400,7 @@
                 return currentState === state.TRANSACTION;
             }
         };
-    }();
+    }());
 
     &#x2F;*
      * An Observable Array is a wrapper around the javaScript Array primitive which will
@@ -1102,7 +1103,7 @@
      * If logging is enabled any warning or incorrect uses of the api will result in output to the console
      * if it exists.
      *
-     * @attribute isLoggingEnabled
+     * @property isLoggingEnabled
      * @default false
      * @static
      * @type {Boolean} Indicates if Logging is enabled
@@ -1241,18 +1242,28 @@
             @static
             @type {boolean}
         *&#x2F;
-        enableCallbackHashOpimization: false
+        enableCallbackHashOpimization: false,
+        &#x2F;**
+            Will guarentee that no event are fired during a transaction
+            @Example For an example see &lt;b&gt;testSuppressAllEventOptimization&lt;&#x2F;b&gt;
+            @property eventOptimization.supressAll
+            @default false
+            @static
+            @type {boolean
+        *&#x2F;
+        suppressAll: false
+
     };
     Object.seal(Model.eventOptimization);
 
-    var oldModel = window.Model;
+    var oldModel = globalNS.Model;
     &#x2F;**
      * Release control of the global window.Model variable restoring it to its previous value
      *
      * @Example
      *     &#x2F;&#x2F; window.Model is restore to previous value and localModel now holds the window.Model reference
      *     var localModel = window.Model.noConflict();
-     * For an example see &lt;b&gt;testEnableCallbackHashOpimization&lt;&#x2F;b&gt;
+     * For an example see &lt;b&gt;testModelNoConflict&lt;&#x2F;b&gt;
      *
      * @for  Model
      * @method  noConflict
@@ -1261,14 +1272,21 @@
      * @return {[Model]} The window Model variable that was just released.
      *&#x2F;
     Model.noConflict = function () {
-        window.Model = oldModel;
+        globalNS.Model = oldModel;
         return this;
     };
 
-    &#x2F;** @global *&#x2F;
-    window.Model = Model;
+    if (typeof exports !== &#x27;undefined&#x27;) {
+        if (typeof module !== &#x27;undefined&#x27; &amp;&amp; module.exports) {
+            exports = module.exports = Model;
+        }
+        exports.Model = Model;
+    } else {
+        &#x2F;** @global *&#x2F;
+        window[&quot;Model&quot;] = Model;
+    }
 
-}(window));
+}(this)); &#x2F;&#x2F;this === window in the browser and GLOBAL in node
     </pre>
 </div>
 
