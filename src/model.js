@@ -53,11 +53,11 @@
     }
 
     var getXHRObject = (function () {
-        if (window.XMLHttpRequest) { // Mozilla, Safari, ...
+        if (globalNS.XMLHttpRequest) { // Mozilla, Safari, ...
             return function () {
                 return new XMLHttpRequest();
             };
-        } else if (window.ActiveXObject) { // IE
+        } else if (globalNS.ActiveXObject) { // IE
             try {
                 new ActiveXObject("Msxml2.XMLHTTP");
                 return function () {
