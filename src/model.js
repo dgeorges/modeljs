@@ -261,20 +261,14 @@
             }
         }
 
-        function changeState(newState) {
-            if (state[newState] !== currentState) {
-                currentState = newState;
-                if (newState === state.ACTIVE) {
-                    flushEventQueue();
-                }
-            }
-        }
-
         function flushEventQueue() {
 
             executedCallbacks = []; //reset state
             callbackHashs = [];
-            if (Model.eventOptimization.suppressPreviousPropertyChangeEvents) {
+            if (Model.eventOptimization.suppressAll) {
+                //discard all events
+                eventQueue = [];
+            } else if (Model.eventOptimization.suppressPreviousPropertyChangeEvents) {
                 var optimizedQueue = [];
                 var seenProperties = [];
                 for (var i = eventQueue.length - 1; i >= 0; i -= 1) { // iterate backwards since last events are most recent.
@@ -294,6 +288,15 @@
                 _fireEvent(event.eventName, event.property, event.customArg);
             });
             eventQueue = []; //Queue has been flushed
+        }
+
+        function changeState(newState) {
+            if (state[newState] !== currentState) {
+                currentState = newState;
+                if (newState === state.ACTIVE) {
+                    flushEventQueue();
+                }
+            }
         }
 
         return {
@@ -1008,7 +1011,7 @@
      * If logging is enabled any warning or incorrect uses of the api will result in output to the console
      * if it exists.
      *
-     * @attribute isLoggingEnabled
+     * @property isLoggingEnabled
      * @default false
      * @static
      * @type {Boolean} Indicates if Logging is enabled
@@ -1147,7 +1150,17 @@
             @static
             @type {boolean}
         */
-        enableCallbackHashOpimization: false
+        enableCallbackHashOpimization: false,
+        /**
+            Will guarentee that no event are fired during a transaction
+            @Example For an example see <b>testSuppressAllEventOptimization</b>
+            @property eventOptimization.supressAll
+            @default false
+            @static
+            @type {boolean
+        */
+        suppressAll: false
+
     };
     Object.seal(Model.eventOptimization);
 
@@ -1158,7 +1171,7 @@
      * @Example
      *     // window.Model is restore to previous value and localModel now holds the window.Model reference
      *     var localModel = window.Model.noConflict();
-     * For an example see <b>testEnableCallbackHashOpimization</b>
+     * For an example see <b>testModelNoConflict</b>
      *
      * @for  Model
      * @method  noConflict

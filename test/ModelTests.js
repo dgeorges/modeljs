@@ -669,6 +669,48 @@ test("testEnableCallbackHashOpimization", function (){
     equal(count2, 3, " unhashed function called more than once when enableCallbackHashOpimization set");
 });
 
+test("testSuppressAllEventOptimization", function (){
+    var jsonModel = {
+            number: 1,
+            str: "aString",
+            bool: true,
+            nil: null,
+            undef: undefined,
+            fun: function () {return "I am a function";},
+            subModel: {
+                subProp: "I am the subProp",
+                fun: function () {return "I am a function";}
+            }
+        };
+
+    var count = 0;
+    function callback(property, oldValue){
+        count +=1;
+    }
+    var count2 = 0;
+    function callback2(property, oldValue){
+        count2 +=1;
+    }
+
+    var model = new Model(jsonModel);
+    model.number.onChange(callback);
+    model.subModel.onChange(callback, true);
+    model.subModel.subProp.onChange(callback);
+    model.str.onChange(callback2);
+
+    Model.eventOptimization.suppressAll = true;
+
+    Model.startTransaction();
+    model.number.setValue(3);
+    model.subModel.subProp.setValue("value Changed");
+    model.str.setValue("new Value");
+    Model.endTransaction();
+
+    equal(count, 0, "suppress all fired no events");
+    equal(count2, 0, "suppress all fired no events");
+    Model.eventOptimization.suppressAll = false; //restore
+});
+
 test("testModelEndTransactionWithOptions", function () {
     var jsonModel = {
             number: 1,
