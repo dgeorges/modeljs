@@ -10,7 +10,7 @@
  * @version 1.0.0
  * @module Model
  */
-(function (window, undefined) {
+(function (globalNS, undefined) { //globalNS === window in the browser or GLOBAL in nodejs
     "use strict";
 
     // copied from underscorejs
@@ -47,8 +47,8 @@
             return;
         }
 
-        if (window.console && window.console[level]) {
-            window.console[level](message);
+        if (globalNS.console && globalNS.console[level]) {
+            globalNS.console[level](message);
         }
     }
 
@@ -1164,7 +1164,7 @@
     };
     Object.seal(Model.eventOptimization);
 
-    var oldModel = window.Model;
+    var oldModel = globalNS.Model;
     /**
      * Release control of the global window.Model variable restoring it to its previous value
      *
@@ -1180,11 +1180,18 @@
      * @return {[Model]} The window Model variable that was just released.
      */
     Model.noConflict = function () {
-        window.Model = oldModel;
+        globalNS.Model = oldModel;
         return this;
     };
 
-    /** @global */
-    window.Model = Model;
+    if (typeof exports !== 'undefined') {
+        if (typeof module !== 'undefined' && module.exports) {
+            exports = module.exports = Model;
+        }
+        exports.Model = Model;
+    } else {
+        /** @global */
+        window["Model"] = Model;
+    }
 
-}(window));
+}(this)); //this === window in the browser and GLOBAL in node
