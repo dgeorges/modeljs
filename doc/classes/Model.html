@@ -98,7 +98,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l717"><code>src\model.js:717</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l724"><code>src\model.js:724</code></a>
         </div>
     
 
@@ -168,7 +168,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l717"><code>src\model.js:717</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l724"><code>src\model.js:724</code></a>
         
         </p>
 
@@ -289,15 +289,6 @@
                         
                             <li class="index-item method">
                                 <a href="#method_endTransaction">endTransaction</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item method">
-                                <a href="#method_Formatter">Formatter</a>
 
                                 
                                     <span class="flag static">static</span>
@@ -470,6 +461,15 @@
                             </li>
                         
                             <li class="index-item property">
+                                <a href="#property_Formatter">Formatter</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
                                 <a href="#property_isLoggingEnabled">isLoggingEnabled</a>
 
                                 
@@ -528,7 +528,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l841"><code>src\model.js:841</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l848"><code>src\model.js:848</code></a>
         
         </p>
 
@@ -634,7 +634,7 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l777"><code>src\model.js:777</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l784"><code>src\model.js:784</code></a>
         
         </p>
 
@@ -794,7 +794,7 @@ model.createProperty("number", 1) // a simple property (model.number)
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l575"><code>src\model.js:575</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l582"><code>src\model.js:582</code></a>
         
         </p>
 
@@ -874,7 +874,7 @@ the 'childDestroyed' event on the parent.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1071"><code>src\model.js:1071</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1078"><code>src\model.js:1078</code></a>
         
         </p>
 
@@ -936,96 +936,6 @@ model.endTransaction({   // override the Model.eventOptimization settings for th
 </div>
 
                 
-                    <div id="method_Formatter" class="method item">
-    <h3 class="name"><code>Formatter</code></h3>
-
-    
-        <span class="paren">()</span>
-    
-
-    
-        <span class="returns-inline">
-            <span class="type">Any</span>
-        </span>
-    
-
-    
-
-    
-
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l987"><code>src\model.js:987</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>A global formatter used to calculate the formatted value of a Property. If defined the function
-will be called when getFormattedValue gets called. The function should accept the value to be formatted
-as the first argument and expect 'this' to be the Property. The formatter must be able to handle any
-input type as a value.</p>
-    </div>
-
-    
-
-    
-        <div class="returns">
-            <h4>Returns:</h4>
-
-            <div class="returns-description">
-                
-                    
-                        <span class="type">Any</span>:
-                    
-                    The formatted result
-                
-            </div>
-        </div>
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <pre class="code"><code class="prettyprint">Model.Formatter = function (value) { //makes all strings uppercase
-    if (typeof value === 'string') {
-        return value.toUpperCase();
-    }
-    return value;
-}
-</code></pre>
-            </div>
-        </div>
-    
-</div>
-
-                
                     <div id="method_getFormattedValue" class="method item inherited">
     <h3 class="name"><code>getFormattedValue</code></h3>
 
@@ -1059,7 +969,7 @@ input type as a value.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l449"><code>src\model.js:449</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l456"><code>src\model.js:456</code></a>
         
         </p>
 
@@ -1127,7 +1037,7 @@ input type as a value.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l667"><code>src\model.js:667</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l674"><code>src\model.js:674</code></a>
         
         </p>
 
@@ -1201,7 +1111,7 @@ special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l463"><code>src\model.js:463</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l470"><code>src\model.js:470</code></a>
         
         </p>
 
@@ -1287,7 +1197,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l766"><code>src\model.js:766</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l773"><code>src\model.js:773</code></a>
         
         </p>
 
@@ -1355,7 +1265,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l684"><code>src\model.js:684</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l691"><code>src\model.js:691</code></a>
         
         </p>
 
@@ -1436,7 +1346,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1110"><code>src\model.js:1110</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1117"><code>src\model.js:1117</code></a>
         
         </p>
 
@@ -1531,7 +1441,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l908"><code>src\model.js:908</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l915"><code>src\model.js:915</code></a>
         
         </p>
 
@@ -1654,7 +1564,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1168"><code>src\model.js:1168</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1175"><code>src\model.js:1175</code></a>
         
         </p>
 
@@ -1750,7 +1660,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l641"><code>src\model.js:641</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l648"><code>src\model.js:648</code></a>
         
         </p>
 
@@ -1872,7 +1782,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l611"><code>src\model.js:611</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l618"><code>src\model.js:618</code></a>
         
         </p>
 
@@ -1994,7 +1904,7 @@ event type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l545"><code>src\model.js:545</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l552"><code>src\model.js:552</code></a>
         
         </p>
 
@@ -2119,7 +2029,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l482"><code>src\model.js:482</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l489"><code>src\model.js:489</code></a>
         
         </p>
 
@@ -2237,7 +2147,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1055"><code>src\model.js:1055</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1062"><code>src\model.js:1062</code></a>
         
         </p>
 
@@ -2313,7 +2223,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l939"><code>src\model.js:939</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l946"><code>src\model.js:946</code></a>
         
         </p>
 
@@ -2431,7 +2341,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l596"><code>src\model.js:596</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l603"><code>src\model.js:603</code></a>
         
         </p>
 
@@ -2547,7 +2457,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l698"><code>src\model.js:698</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l705"><code>src\model.js:705</code></a>
         
         </p>
 
@@ -2646,7 +2556,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1145"><code>src\model.js:1145</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1152"><code>src\model.js:1152</code></a>
         
         </p>
 
@@ -2702,7 +2612,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1136"><code>src\model.js:1136</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1143"><code>src\model.js:1143</code></a>
         
         </p>
 
@@ -2758,7 +2668,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1127"><code>src\model.js:1127</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1134"><code>src\model.js:1134</code></a>
         
         </p>
 
@@ -2814,7 +2724,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1154"><code>src\model.js:1154</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1161"><code>src\model.js:1161</code></a>
         
         </p>
 
@@ -2837,6 +2747,69 @@ properties will have the value set to 'undefined' while models will be set to an
 
             <div class="example-content">
                 <p>For an example see <b>testSuppressAllEventOptimization</b></p>
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
+                    <div id="property_Formatter" class="property item">
+    <h3 class="name"><code>Formatter</code></h3>
+    <span class="type">Function A format function whose first argument is the value to be formatted</span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l994"><code>src\model.js:994</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>A global formatter used to calculate the formatted value of a Property. If defined the function
+will be called when getFormattedValue gets called. The function should accept the value to be formatted
+as the first argument and expect 'this' to be the Property. The formatter must be able to handle any
+input type as a value.</p>
+    </div>
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code"><code class="prettyprint">Model.Formatter = function (value) { //makes all strings uppercase
+    if (typeof value === 'string') {
+        return value.toUpperCase();
+    }
+    return value;
+}
+</code></pre>
             </div>
         </div>
     
@@ -2870,7 +2843,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1010"><code>src\model.js:1010</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1017"><code>src\model.js:1017</code></a>
         
         </p>
 

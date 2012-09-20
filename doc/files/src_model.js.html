@@ -135,7 +135,7 @@
     }
 
     function log(level, message) {
-        if (!Model.isLoggingEnabled) { &#x2F;&#x2F;Only log when enabled.
+        if (!Model.enableLogging) { &#x2F;&#x2F;Only log when enabled.
             return;
         }
 
@@ -186,7 +186,12 @@
             property.setValue(json);
             var scriptElement = document.getElementById(fnName);
             document.getElementsByTagName(&#x27;head&#x27;)[0].removeChild(scriptElement); &#x2F;&#x2F;remove callback script
-            delete window[fnName]; &#x2F;&#x2F; remove global callback method
+            try {
+                delete window[fnName]; &#x2F;&#x2F; remove global callback method
+            } catch (e) {
+                &#x2F;&#x2F; this seems to throw and exception in IE8 so we will release it get garbage collected.
+                window[fnName] = undefined;
+            }
         }.bind(null, property);
         return fnName;
     }
@@ -267,10 +272,12 @@
                 TRANSACTION: &quot;transaction&quot;
             },
             eventType = {
-                CHANGE: &quot;change&quot;,
-                CREATE: &quot;create&quot;,
+                PROPERTY_CHANGE: &quot;propertyChange&quot;,
+                MODEL_CHANGE: &quot;modelChange&quot;,
+                CHANGE: &quot;change&quot;, &#x2F;&#x2F;special compound event that triggers propertyChange and bubble modelChange event. all other events do not bubble
                 DESTROY: &quot;destroy&quot;,
-                CHILD_CREATED: &quot;childCreated&quot;
+                CHILD_CREATED: &quot;childCreated&quot;,
+                CHILD_DESTROYED: &quot;childDestroyed&quot;
             },
             currentState = state.ACTIVE;
 
@@ -416,33 +423,33 @@
     ObservableArray.prototype.pop = function () {
         var args = Array.prototype.slice.call(arguments),
             element = Array.prototype.pop.apply(this, args);
-        this._prop.trigger(&quot;childDestroyed&quot;, element);
+        this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, element);
         return element;
     };
     ObservableArray.prototype.push = function () {
         var args = Array.prototype.slice.call(arguments),
             newLength = Array.prototype.push.apply(this, args);
-        this._prop.trigger(&quot;childCreated&quot;, args);
+        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, args);
         return newLength;
     };
     ObservableArray.prototype.reverse = function () {
         var args = Array.prototype.slice.call(arguments),
             oldValue = Array.prototype.slice.call(this);
         Array.prototype.reverse.apply(this, args);
-        this._prop.trigger(&quot;propertyChange&quot;, oldValue);
+        this._prop.trigger(eventProxy.eventType.PROPERTY_CHANGE, oldValue);
         return this;
     };
     ObservableArray.prototype.shift = function () {
         var args = Array.prototype.slice.call(arguments),
             element = Array.prototype.shift.apply(this, args);
-        this._prop.trigger(&quot;childDestroyed&quot;, element);
+        this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, element);
         return element;
     };
     ObservableArray.prototype.sort = function () {
         var args = Array.prototype.slice.call(arguments),
             oldValue = Array.prototype.slice.call(this);
         Array.prototype.sort.apply(this, args);
-        this._prop.trigger(&quot;propertyChange&quot;, oldValue);
+        this._prop.trigger(eventProxy.eventType.PROPERTY_CHANGE, oldValue);
         return this;
     };
     ObservableArray.prototype.splice = function () {
@@ -450,16 +457,16 @@
         var args = Array.prototype.slice.call(arguments),
             removed = Array.prototype.splice.apply(this, args);
         if (removed.length &gt; 0) {
-            this._prop.trigger(&quot;childDestroyed&quot;, removed);
+            this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, removed);
         }
-        this._prop.trigger(&quot;childCreated&quot;); &#x2F;&#x2F; TODO use count to determin if should be called
+        this._prop.trigger(eventProxy.eventType.CHILD_CREATED); &#x2F;&#x2F; TODO use count to determin if should be called
         return removed;
     };
     ObservableArray.prototype.unshift = function () {
         var args = Array.prototype.slice.call(arguments),
             newElements = Array.prototype.slice(arguments),
             newLength = Array.prototype.unshift.apply(this, args);
-        this._prop.trigger(&quot;childCreated&quot;, newElements);
+        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, newElements);
         return newLength;
     };
 
@@ -516,7 +523,7 @@
         });
 
         Object.defineProperty(this, &quot;_eventListeners&quot;, {
-            value: { &#x2F;&#x2F;map of eventName to listener array
+            value: { &#x2F;&#x2F;map of eventName to listener array. The following are modeljs Events
                 propertyChange: [],
                 modelChange: [], &#x2F;&#x2F;model &quot;children&quot; changed come from property change and listenToChildren true.
                 childCreated: [],
@@ -682,7 +689,7 @@
     };
 
     Property.prototype.onDestroy = function (callback) {
-        return this.on(&quot;destroy&quot;, callback);
+        return this.on(eventProxy.eventType.DESTROY, callback);
     };
 
     &#x2F;**
@@ -926,7 +933,7 @@
         } else {
             this[name] = new Property(name, value, this, metadata);
         }
-        this.trigger(&quot;childCreated&quot;, this[name]);
+        this.trigger(eventProxy.eventType.CHILD_CREATED, this[name]);
         return this;
     };
 
@@ -1091,7 +1098,7 @@
      *     }
      *
      * @for  Model
-     * @method  Formatter
+     * @property  Formatter
      * @static
      *
      * @type {Function} A format function whose first argument is the value to be formatted
@@ -1108,7 +1115,7 @@
      * @static
      * @type {Boolean} Indicates if Logging is enabled
      *&#x2F;
-    Model.isLoggingEnabled = false;
+    Model.enableLogging = false;
 
     &#x2F;**
      * TODO figure out how I want to expose this.
