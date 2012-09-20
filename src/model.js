@@ -43,7 +43,7 @@
     }
 
     function log(level, message) {
-        if (!Model.isLoggingEnabled) { //Only log when enabled.
+        if (!Model.enableLogging) { //Only log when enabled.
             return;
         }
 
@@ -331,33 +331,33 @@
     ObservableArray.prototype.pop = function () {
         var args = Array.prototype.slice.call(arguments),
             element = Array.prototype.pop.apply(this, args);
-        this._prop.trigger("childDestroyed", element);
+        this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, element);
         return element;
     };
     ObservableArray.prototype.push = function () {
         var args = Array.prototype.slice.call(arguments),
             newLength = Array.prototype.push.apply(this, args);
-        this._prop.trigger("childCreated", args);
+        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, args);
         return newLength;
     };
     ObservableArray.prototype.reverse = function () {
         var args = Array.prototype.slice.call(arguments),
             oldValue = Array.prototype.slice.call(this);
         Array.prototype.reverse.apply(this, args);
-        this._prop.trigger("propertyChange", oldValue);
+        this._prop.trigger(eventProxy.eventType.PROPERTY_CHANGE, oldValue);
         return this;
     };
     ObservableArray.prototype.shift = function () {
         var args = Array.prototype.slice.call(arguments),
             element = Array.prototype.shift.apply(this, args);
-        this._prop.trigger("childDestroyed", element);
+        this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, element);
         return element;
     };
     ObservableArray.prototype.sort = function () {
         var args = Array.prototype.slice.call(arguments),
             oldValue = Array.prototype.slice.call(this);
         Array.prototype.sort.apply(this, args);
-        this._prop.trigger("propertyChange", oldValue);
+        this._prop.trigger(eventProxy.eventType.PROPERTY_CHANGE, oldValue);
         return this;
     };
     ObservableArray.prototype.splice = function () {
@@ -365,16 +365,16 @@
         var args = Array.prototype.slice.call(arguments),
             removed = Array.prototype.splice.apply(this, args);
         if (removed.length > 0) {
-            this._prop.trigger("childDestroyed", removed);
+            this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, removed);
         }
-        this._prop.trigger("childCreated"); // TODO use count to determin if should be called
+        this._prop.trigger(eventProxy.eventType.CHILD_CREATED); // TODO use count to determin if should be called
         return removed;
     };
     ObservableArray.prototype.unshift = function () {
         var args = Array.prototype.slice.call(arguments),
             newElements = Array.prototype.slice(arguments),
             newLength = Array.prototype.unshift.apply(this, args);
-        this._prop.trigger("childCreated", newElements);
+        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, newElements);
         return newLength;
     };
 
@@ -597,7 +597,7 @@
     };
 
     Property.prototype.onDestroy = function (callback) {
-        return this.on("destroy", callback);
+        return this.on(eventProxy.eventType.DESTROY, callback);
     };
 
     /**
@@ -841,7 +841,7 @@
         } else {
             this[name] = new Property(name, value, this, metadata);
         }
-        this.trigger("childCreated", this[name]);
+        this.trigger(eventProxy.eventType.CHILD_CREATED, this[name]);
         return this;
     };
 
@@ -1006,7 +1006,7 @@
      *     }
      *
      * @for  Model
-     * @method  Formatter
+     * @property  Formatter
      * @static
      *
      * @type {Function} A format function whose first argument is the value to be formatted
@@ -1023,7 +1023,7 @@
      * @static
      * @type {Boolean} Indicates if Logging is enabled
      */
-    Model.isLoggingEnabled = false;
+    Model.enableLogging = false;
 
     /**
      * TODO figure out how I want to expose this.

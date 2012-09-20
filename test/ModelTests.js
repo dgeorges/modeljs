@@ -294,7 +294,7 @@ test("testComplexChangePropertyValue", function () {
         subModel: "setting a model to a property should fail"
     });
 
-    if (Model.isLoggingEnabled){
+    if (Model.enableLogging){
         console.log("testComplexChangePropertyValue: 4 errors to console expected");
     }
 
@@ -1181,7 +1181,7 @@ test("modlejsTutorial", function (){
         value: "this trys to replace obj with property"
     });
 
-    if (Model.isLoggingEnabled){
+    if (Model.enableLogging){
         console.log("modlejsTutorial: 3 errors to console expected");
     }
     // The next section will talk about events
