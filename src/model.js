@@ -94,7 +94,12 @@
             property.setValue(json);
             var scriptElement = document.getElementById(fnName);
             document.getElementsByTagName('head')[0].removeChild(scriptElement); //remove callback script
-            delete window[fnName]; // remove global callback method
+            try {
+                delete window[fnName]; // remove global callback method
+            } catch (e) {
+                // this seems to throw and exception in IE8 so we will release it get garbage collected.
+                window[fnName] = undefined;
+            }
         }.bind(null, property);
         return fnName;
     }

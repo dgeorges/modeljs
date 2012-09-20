@@ -5,21 +5,21 @@ A simple javaScript library for creating a Model part of a MVC application from 
 
 Features
 --------------------
-  - Simple easy to use and intuitive library
-  - No dependencies
-  - Can save/load Model to/from JSON with/without model meta data
+  - Simple easy to use and intuitive library.
+  - No dependencies.
+  - Can save/load Model to/from JSON with/without model meta data.
   - Can attach custom meta-data to properties that can be persisted with model.
-  - Supports models defined by a remote resource with the ability to periodically refresh
-  - remote model has option to use JSONP in the event of CORS issues
-  - Can register on change events with any single property or group of properties
+  - Supports models defined by a remote resource with the ability to periodically refresh.
+  - remote model has option to use JSONP in the event of CORS issues.
+  - Can register on change events with any single property or group of properties.
   - Model change events bubble up.
   - Can define and trigger custom events.
   - Can suppress change event notification.
   - Can batch actions into a transaction.
   - Transaction callbacks can be easily optimized.
-  - Can tie validation methods to models and properties
-  - Can flag any property value to not be persisted to JSON
-  - Can supply your own custom Formatter function to get formatted values
+  - Can tie validation methods to models and properties.
+  - Can flag any property value to not be persisted to JSON.
+  - Can retrieve FormattedValues using a custom defined Formatter.
   - Can enable logging to flag incorrect uses of api to the console.
   - Native browser Support for all browsers that support ECMA5 including and tested on IE9, Firefox 4+, Safari 5.1.4+, Chrome 7+, Opera 12+ without a shim library.
   - Works on non-ECMA5 browser with use of a shim library. Specifically tested on IE8 with es5-shim.
@@ -29,7 +29,7 @@ Features
 
 Browser Support
 ---------------
-modeljs works on all browsers that support ECMAScript 5th Edition (December 2009, http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-262.pdf).  It has been manually tested on IE9, Firefox 14+, Safari 5.1.4 and Chrome 21+. To see if it work on a specify browser version of your choice, run the unit tests(test/ModelTest.html). To support older non ECMA5 browsers using a shim library like [es5-shim](https://github.com/kriskowal/es5-shim). Modeljs has been manually tested to work on IE8 with a shim library.
+modeljs works on all browsers that support ECMAScript 5th Edition (December 2009, http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-262.pdf).  It has been manually tested on IE9, Firefox 14+, Safari 5.1.4 and Chrome 21+. To see if it work on a specify browser version of your choice, run the unit tests(test/ModelTest.html). To support older non ECMA5 browsers using a shim library like [es5-shim](https://github.com/kriskowal/es5-shim). Modeljs has been successfully tested on IE8 with the es5-shim library.
 
 Getting Started
 ------------------
