@@ -175,10 +175,12 @@
                 TRANSACTION: "transaction"
             },
             eventType = {
-                CHANGE: "change",
-                CREATE: "create",
+                PROPERTY_CHANGE: "propertyChange",
+                MODEL_CHANGE: "modelChange",
+                CHANGE: "change", //special compound event that triggers propertyChange and bubble modelChange event. all other events do not bubble
                 DESTROY: "destroy",
-                CHILD_CREATED: "childCreated"
+                CHILD_CREATED: "childCreated",
+                CHILD_DESTROYED: "childDestroyed"
             },
             currentState = state.ACTIVE;
 
@@ -424,7 +426,7 @@
         });
 
         Object.defineProperty(this, "_eventListeners", {
-            value: { //map of eventName to listener array
+            value: { //map of eventName to listener array. The following are modeljs Events
                 propertyChange: [],
                 modelChange: [], //model "children" changed come from property change and listenToChildren true.
                 childCreated: [],
