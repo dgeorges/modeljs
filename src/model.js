@@ -1191,7 +1191,12 @@
         return this;
     };
 
-    if (typeof exports !== 'undefined') {
+
+   if (typeof define === "function" && define.amd) {
+        define([], function () { 
+            return Model;
+        });
+    } else if (typeof exports !== 'undefined') {
         if (typeof module !== 'undefined' && module.exports) {
             exports = module.exports = Model;
         }
