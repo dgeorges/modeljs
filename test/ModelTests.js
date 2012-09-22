@@ -210,7 +210,8 @@ test("testModelMergeMethod", function () {
         obj2: {
             key1: "key1",
             key2: "key2",
-            subModel : {v1: "value1", v2: "value2"}
+            subModel : {v1: "value1", v2: "value2"},
+            aArray: [1,2]
         }
     };
 
@@ -469,6 +470,7 @@ test("testModelClone", function (){
             str: "aString",
             bool: true,
             nil: null,
+            aArray: [1,2],
             undef: undefined,
             fun: function () {return "I am a function";},
             subModel: {
@@ -992,10 +994,24 @@ test("testDoNotPresist", function (){
     equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPresistObjectPropertyJSON), "metadata serialized correctly");
 });
 
-test("testObservableArray", function (){
+test("testPropertyArray", function (){
+
+    function testPropertyArrayOnlyContainsProperties(propertyArray) {
+        for (var i = 0; i < propertyArray.length; i++){
+            if (!Model.isProperty(propertyArray[i])){
+                return false;
+            }
+        }
+        return true;
+    }
 
     var model = new Model();
-    model.createProperty("oArray", [1,2,3]);
+    var arrayInitialValue = [1,2,3];
+    model.createProperty("oArray", arrayInitialValue);
+    ok( Model.isArray(model.oArray), "Array Property created");
+    equal(model.oArray.length, 3, "Array initial size correct");
+    equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayInitialValue), "test Array initial getValue");
+    ok (testPropertyArrayOnlyContainsProperties(model.oArray), "Property Array contains only Properties");
 
     var callbackCount = 0;
     function changeCallback (property, oldValue) {
@@ -1012,13 +1028,19 @@ test("testObservableArray", function (){
     model.oArray.onChange(changeCallback);
     model.oArray.on('childCreated', childCreatedCallback);
     model.oArray.on('childDestroyed', childDestroyedCallback);
-    var value = model.oArray.getValue();
-    equal (model.oArray.getValue().length, 0, "behaves like an array");
-    value.push(3,2,8,4, 10);
-    value.pop();
-    value.sort();
+    model.oArray.push(3,2,8,4,10);
+    ok (testPropertyArrayOnlyContainsProperties(model.oArray), "Property Array contains only Properties");
+    equal(model.oArray.length, 8, "test Array post push length");
+    model.oArray.pop();
+    equal(model.oArray.length, 7, "test Array post pop length");
+    model.oArray.sort();
     equal(callbackCount, 3);
 
+    // The following is a limitation we currently have. String doesn't get converted into a property
+    //model.oArray[0] = "Inserted value by index";
+    //model.oArray.setValue("test"); //does nothing
+    //model.oArray.length;
+    //what does merge do? and getName
 });
 
 test("ModelFind", function () {

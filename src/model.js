@@ -15,7 +15,7 @@
 
     // copied from underscorejs
     function isFunction(fn) {
-        return fn && Object.prototype.toString.call(fn) === '[object Function]';
+        return !!fn && Object.prototype.toString.call(fn) === '[object Function]';
     }
 
     function isObject(obj) {
@@ -43,11 +43,8 @@
     }
 
     function log(level, message) {
-        if (!Model.enableLogging) { //Only log when enabled.
-            return;
-        }
-
-        if (globalNS.console && globalNS.console[level]) {
+        //Only log when enabled and console log method is available
+        if (Model.enableLogging && globalNS.console && globalNS.console[level]) {
             globalNS.console[level](message);
         }
     }
@@ -105,32 +102,30 @@
     }
 
     function makeRemoteRequest(property) {
-
-        var refreshRate = Math.max(100, property.getMetadata().refreshRate);
-        setTimeout(function (property) {
-            var url = property.getMetadata().url;
-            if (property.getMetadata().isJSONPurl) {
-                var uniqueCallbackId = generateJSONPCallback(property);
-                url = url.replace("$jsonpCallback", uniqueCallbackId);
-                makeJSONPRequest(url, uniqueCallbackId);
-            } else {
-                var httpRequest = getXHRObject();
-                httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
-                //httpRequest.orgin = "localhost:8080";
-                //httpRequest.setRequestHeader
-                httpRequest.open('GET', url);
-                httpRequest.send();
-            }
-
-        }.bind(null, property), refreshRate);
+        var url = property.getMetadata().url;
+        if (property.getMetadata().isJSONPurl) {
+            var uniqueCallbackId = generateJSONPCallback(property);
+            url = url.replace("$jsonpCallback", uniqueCallbackId);
+            makeJSONPRequest(url, uniqueCallbackId);
+        } else {
+            var httpRequest = getXHRObject();
+            httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
+            //httpRequest.orgin = "localhost:8080";
+            //httpRequest.setRequestHeader
+            httpRequest.open('GET', url);
+            httpRequest.send();
+        }
     }
 
     function retrieveRemoteRequest(xhr, property, xhrProgressEvent) {
         if (xhr.readyState === 4) {
 
             if (xhr.status !== 200) {
-                log('warn', "Retrying remote request for " + property.getName() + " due to return status of " + xhr.status);
-                makeRemoteRequest(property); // retry request...
+                log('warn', "Remote request for " + property.getName() + " failded due to return status of " + xhr.status);
+                if (property.getMetadata().refreshRate === -1) {
+                    log('warn', "Retrying remote request for " + property.getName() + " in 2 seconds");
+                    setTimeout(makeRemoteRequest.bind(null, property), 2000);// try again in 2 sec
+                }
                 return;
             }
 
@@ -162,10 +157,6 @@
                 }
             } else { // no last Modified date in response header, always setValue
                 property.setValue(jsonResponse);
-            }
-
-            if (property.getMetadata().refreshRate > 0) { // relaunch request..
-                makeRemoteRequest(property);
             }
         }
     }
@@ -324,7 +315,11 @@
      */
     function ObservableArray(myProperty, values) {
         this._prop = myProperty;
-        Array.call(this, values);
+        //Array.call(this);
+        for (var i =0; i < values.length; i++){
+            var property = _createProperty(i, values[i], this, {});
+            this.push(property);
+        }
     }
     ObservableArray.prototype = Object.create(Array.prototype);
 
@@ -336,7 +331,19 @@
     };
     ObservableArray.prototype.push = function () {
         var args = Array.prototype.slice.call(arguments),
-            newLength = Array.prototype.push.apply(this, args);
+            currentLength = this.length,
+            pushArgs = [],
+            property,
+            i = 0;
+        for (i = 0; i < args.length; i++){
+            property = args[i];
+            if (!(property instanceof Property)) {
+                property = _createProperty(currentLength + i, args[i], this, {});
+            }
+            pushArgs.push(property);
+        }
+        var newLength = Array.prototype.push.apply(this, pushArgs);
+
         this._prop.trigger(eventProxy.eventType.CHILD_CREATED, args);
         return newLength;
     };
@@ -400,11 +407,6 @@
             myName = parent.getName() + myName;
         }
 
-        var myValue = value;
-        if (Array.isArray(value)) {
-            myValue = new ObservableArray(this, value);
-        }
-
         Object.defineProperty(this, "_name", {
             value: myName,
             enumerable: false
@@ -420,16 +422,6 @@
             enumerable: false
         });
 
-        //make sure value is valid
-        if (!this.validateValue(myValue)) {
-            myValue = undefined;
-        }
-        Object.defineProperty(this, "_myValue", {
-            value: myValue,
-            enumerable: false,
-            writable: true
-        });
-
         Object.defineProperty(this, "_eventListeners", {
             value: { //map of eventName to listener array. The following are modeljs Events
                 propertyChange: [],
@@ -439,6 +431,18 @@
                 destroy: []
             },
             enumerable: false
+        });
+
+        var myValue = value;
+        //make sure value is valid
+        if (!this.validateValue(myValue)) {
+            myValue = undefined;
+        }
+
+        Object.defineProperty(this, "_myValue", {
+            value: myValue,
+            enumerable: false,
+            writable: true
         });
     }
 
@@ -721,6 +725,34 @@
     };
     //don't want a set validator function.
 
+    var arrayGetValue = function () {
+        var value = [],
+            i = 0;
+        for (i = 0; i < this.length; i++) {
+            value[i] = this[i].getValue();
+        }
+        return value;
+    };
+
+    function createProto(isA, inherits) {
+        var proto = Object.create(isA);
+        for (var i in inherits) {
+            if (inherits.hasOwnProperty(i)) {
+                proto[i] = inherits[i];
+            }
+        }
+        // array's getValue implementation is different
+        proto["getValue"] = arrayGetValue;
+
+        return proto;
+    }
+
+    function ArrayProperty(name, value, parent, metadata) {
+        Property.call(this, name, value, parent, metadata);
+        ObservableArray.call(this, this, value);
+    }
+    ArrayProperty.prototype = createProto(ObservableArray.prototype, Property.prototype);
+
    /**
      * The model Object that wraps the JSON.
      *
@@ -761,11 +793,19 @@
                 var value = jsonModel[name];
                 var propertyMetadata = json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
 
+
                 this.createProperty(name, value, propertyMetadata);
             }
         }
     }
     Model.prototype = Object.create(Property.prototype);
+
+    Model.isArray = function (property) {
+        return (property instanceof ArrayProperty);
+    };
+    Model.isProperty = function (property) {
+        return (property instanceof Property) && !(property instanceof Model);
+    };
 
     Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX = "__modeljs__metadata";
     Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX = /__modeljs__metadata$/;
@@ -780,6 +820,32 @@
     Model.prototype.getValue = function () {
         return this.toJSON();
     };
+
+    var MIN_MODEL_REFRESH_RATE = 100;
+    function _createProperty (name, value, parent, metadata) {
+        if (value instanceof Model || value instanceof Property) {
+            log('error', "Unsupported Operation: Try passing the Model/Properties value instead");
+            return;
+        } else if (Array.isArray(value)) {
+            return new ArrayProperty(name, value, parent, metadata);
+        } else if (isObject(value)) {
+            var modelMetadata = metadata || {};
+            modelMetadata.name = name;
+            var model = new Model(value, modelMetadata, parent);
+            if (modelMetadata.url && modelMetadata.refreshRate) {
+                if (modelMetadata.refreshRate === -1){
+                    makeRemoteRequest(model);
+                } else {
+                    var interval = Math.max(MIN_MODEL_REFRESH_RATE, modelMetadata.refreshRate);
+                    var intervalId = setInterval(makeRemoteRequest.bind(null, model), interval);
+                    model.getMetadata().intervalId = intervalId;
+                }
+            }
+            return model;
+        } else {
+            return new Property(name, value, parent, metadata);
+        }
+    }
 
     /**
      * Creates the property with the given name on this. This will fire the childCreated event on the parent. The
@@ -826,21 +892,12 @@
      * @return {Model}         Returns this for method chaining
      */
     Model.prototype.createProperty = function createProperty(name, value, metadata) {
+
         if (value instanceof Model || value instanceof Property) {
             log('error', "Unsupported Operation: Try passing the Model/Properties value instead");
             return;
-        } else if (isObject(value)) {
-            var modelMetadata = metadata || {};
-            modelMetadata.name = name;
-            this[name] = new Model(value, modelMetadata, this);
-
-            if (modelMetadata.url && modelMetadata.refreshRate) {
-                makeRemoteRequest(this[name]);
-            }
-
-        } else {
-            this[name] = new Property(name, value, this, metadata);
         }
+        this[name] = _createProperty(name, value, this, metadata);
         this.trigger(eventProxy.eventType.CHILD_CREATED, this[name]);
         return this;
     };
