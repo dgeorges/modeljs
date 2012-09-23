@@ -1,4 +1,19 @@
-test("testPrimitiveSaveLoad", function () {
+(function (globalNS) { //globalNS === window in the browser or GLOBAL in nodejs
+
+    if (globalNS.require) {
+        Model = require("./model");
+
+        if (!ok || !equal || !deppEqual) {
+            assert = require("assert");
+            ok = assert.ok;
+            equal = assert.equal;
+            deepEqual = assert.deepEqual;
+        }
+    }
+
+var ModelTests = {
+
+testPrimitiveSaveLoad : function () {
 
     var jsonModel = { number: 1,
         str : "aString",
@@ -12,9 +27,9 @@ test("testPrimitiveSaveLoad", function () {
     var m = new Model(jsonModel);
 
     deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(jsonModel), "Model From JSON and back equal");
-});
+},
 
-test("testObjectsSaveLoad", function () {
+testObjectsSaveLoad : function () {
     var jsonModel = {   number: 1,
                         str : "aString",
                         subModel: {
@@ -23,9 +38,9 @@ test("testObjectsSaveLoad", function () {
                     };
     var m = new Model(jsonModel);
     deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(jsonModel));
-});
+},
 
-test("testComplexSaveLoad", function () {
+testComplexSaveLoad : function () {
 
     var jsonModel = {   number: 1,
                         str : "aString",
@@ -49,9 +64,9 @@ test("testComplexSaveLoad", function () {
 
     deepEqual(JSON.stringify(jsonFromModel), JSON.stringify(jsonModel), "Complex Model From JSON and back equal");
 
-});
+},
 
-test("testPrimitiveSetGet", function () {
+testPrimitiveSetGet : function () {
 
     var jsonModel = { number: 1,
         str : "aString",
@@ -75,9 +90,9 @@ test("testPrimitiveSetGet", function () {
     };
 
     deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(jsonModelExpected), "toJSON method work after model modification");
-});
+},
 
-test("testGetNameMethod", function () {
+testGetNameMethod : function () {
 
     var jsonModel = {   number: 1,
                         str : "aString",
@@ -99,9 +114,9 @@ test("testGetNameMethod", function () {
     equal(m2.str.getName(), "/test/str");
     equal(m2.subModel.getName(), "/test/subModel");
     equal(m2.subModel.f.getName(), "/test/subModel/f");
-});
+},
 
-test("testOnChangeCallbackWhenSettingToSameValue", function () {
+testOnChangeCallbackWhenSettingToSameValue : function () {
     var jsonModel = { number: 1,
         str : "aString",
         bool : true,
@@ -120,10 +135,9 @@ test("testOnChangeCallbackWhenSettingToSameValue", function () {
     m.number.setValue(3); // value is the same should not fire a change
 
     equal(count, 2, "onChangeEvent only fires when OldValue != newValue");
-});
+},
 
-
-test("testModelCreationUsingCreatePropertyMethod", function () {
+testModelCreationUsingCreatePropertyMethod : function () {
     var expectedJSON = {
         x: 1,
         y: "y",
@@ -168,9 +182,9 @@ test("testModelCreationUsingCreatePropertyMethod", function () {
     ok(m.positiveNumber.hasValidator(), "'positiveNumber' property was created with a validator");
     ok (!m.positiveNumber.validateValue(-1), "'positiveNumber' property validator works");
     equal(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Model Creation from api generates correct JSON");
-});
+},
 
-test("testPropertyDestroyMethod", function() {
+testPropertyDestroyMethod : function() {
 
     var jsonModel = {
         number: 1,
@@ -197,9 +211,9 @@ test("testPropertyDestroyMethod", function() {
     model.subModel.destroy();
     ok(!model.subModel, "SubModel Property no longer exists it was destroyed");
 
-});
+},
 
-test("testModelMergeMethod", function () {
+testModelMergeMethod : function () {
      var modelJSON = {
         x: 1,
         y: "y",
@@ -246,14 +260,9 @@ test("testModelMergeMethod", function () {
     equal (m1.obj2.key1.getValue(), "new key1Value", "existing property overridden");
     equal (m1.obj2.key3.getValue(), "new key", "new property added");
     equal (callbackCount, 1, "new property added");
-});
+},
 
-/**
- * Shows correct and incorrect ways to use the setValue setter.
- * Note this test will log errors to the console
- * @return {[type]} [description]
- */
-test("testComplexChangePropertyValue", function () {
+testComplexChangePropertyValue : function () {
     var json = {
         x: 1,
         y: "y",
@@ -315,9 +324,9 @@ test("testComplexChangePropertyValue", function () {
         key3: "we have added a key"
     });
     deepEqual(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Incorrect sytax for setting does noop");
-});
+},
 
-test("testSuppressNotifications", function () {
+testSuppressNotifications : function () {
     var jsonModel = {
         x: 1,
         y: "y",
@@ -339,9 +348,9 @@ test("testSuppressNotifications", function () {
     m.x.setValue(5, true); // better way to set value and suppress notification
     ok(!notified, "onChange callback suppressed succesfully");
     equal(m.x.getValue(), 5, "Assignment successful when notification suppressed");
-});
+},
 
-test("testPropertyValidationFunction", function () {
+testPropertyValidation : function () {
 
     var onlyPositive = function (value){
         return value > 0;
@@ -357,10 +366,9 @@ test("testPropertyValidationFunction", function () {
     ok(!m.x.validateValue(-1), "Value should not pass the validator");
     m.x.setValue(-1); // try it anyways.
     equal(m.x.getValue(), 5, "Assignment failed because value did not pass validator");
-});
+},
 
-
-test("testSaveLoadWithMetaData", function () {
+testSaveLoadWithMetaData : function () {
 
     var expectedJSON = {
         x: 1,
@@ -384,9 +392,9 @@ test("testSaveLoadWithMetaData", function () {
     ok(m2.x.hasValidator(), "Loading Model using JSON w/ metadata keeps the validator");
     ok(!m2.x.validateValue(-1) && m2.x.validateValue(2), "loaded json validator functions correctly");
     equal(JSON.stringify(m2.toJSON(true)), JSON.stringify(expectedJSON), "Loading Model from JSON with metadata and saving back to JSON equal");
-});
+},
 
-test("testModelTransactions", function () {
+testModelTransactions : function () {
     var jsonModel = { number: 1,
         str : "aString",
         bool : true,
@@ -417,9 +425,9 @@ test("testModelTransactions", function () {
 
     ok(callbackCalled, "onChange Callback called after tranaction ended");
     equal(count, 2, "Expected number of callbacks after transaction completed");
-});
+},
 
-test("testBubbleUpEvents", function () {
+testBubbleUpEvents : function () {
     var jsonModel = {
         number: 1,
         str: "aString",
@@ -458,9 +466,9 @@ test("testBubbleUpEvents", function () {
 
     ok(callbackCalled, "Passed");
     equal(count, 2, "EventNotification bubbled up correctly");
-});
+},
 
-test("testModelClone", function (){
+testModelClone : function (){
     var jsonModel = {
             number: 1,
             number__modeljs__metadata: {
@@ -500,9 +508,9 @@ test("testModelClone", function (){
     equal(subModelClone.getName(), "/subModel", "Cloned name adjusted");
     equal(subModelClone.subProp.getName(), "/subModel/subProp", "Cloned child properties names adjusted");
 
-});
+},
 
-test("testGetFormattedValue", function() {
+testGetFormattedValue : function() {
 
     Model.Formatter = function (value) {
 
@@ -525,9 +533,9 @@ test("testGetFormattedValue", function() {
 
     Model.Formatter = undefined; //restore formatter
 
-});
+},
 
-test("testFireOnlyMostRecentPropertyEvent", function (){
+testFireOnlyMostRecentPropertyEvent : function (){
     var jsonModel = {
             number: 1,
             str: "aString",
@@ -583,9 +591,9 @@ test("testFireOnlyMostRecentPropertyEvent", function (){
 
     // This is what I expect. 2 different properties change but same callback called
     equal(count, 2, "fireOnlyMostRecentPropertyEvent does not effect bubbled events");
-});
+},
 
-test("testFlattenCallbacks", function (){
+testFlattenCallbacks : function (){
     var jsonModel = {
             number: 1,
             str: "aString",
@@ -625,9 +633,9 @@ test("testFlattenCallbacks", function (){
     equal(count, 1, "onChange callback called once, even though registared on different porperties");
     equal(count2, 1, "onChange callback2 called once because different than other callback");
     Model.TRANSACTION_OPTIONS.flattenCallbacks = false; //restore
-});
+},
 
-test("testFlattenCallbacksByHash", function (){
+testFlattenCallbacksByHash : function (){
     var jsonModel = {
             number: 1,
             str: "aString",
@@ -670,9 +678,9 @@ test("testFlattenCallbacksByHash", function (){
 
     equal(count, 1, "Hashed function called once when flattenCallbacksByHash set");
     equal(count2, 3, " unhashed function called more than once when flattenCallbacksByHash set");
-});
+},
 
-test("testSuppressAllEvents", function (){
+testSuppressAllEvents : function (){
     var jsonModel = {
             number: 1,
             str: "aString",
@@ -712,9 +720,9 @@ test("testSuppressAllEvents", function (){
     equal(count, 0, "suppress all fired no events");
     equal(count2, 0, "suppress all fired no events");
     Model.TRANSACTION_OPTIONS.suppressAllEvents = false; //restore
-});
+},
 
-test("testModelEndTransactionWithOptions", function () {
+testModelEndTransactionWithOptions : function () {
     var jsonModel = {
             number: 1,
             str: "aString",
@@ -770,9 +778,9 @@ test("testModelEndTransactionWithOptions", function () {
     Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = false; // test ended restore defaults
     Model.TRANSACTION_OPTIONS.flattenCallbacks = false;
     Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = false;
-});
+},
 
-test("testModelNoConflict", function () {
+testModelNoConflict : function () {
 
     ok (Model, "Model exists in global namespace prior to noConflict");
     var originalModel = Model;
@@ -782,9 +790,9 @@ test("testModelNoConflict", function () {
     equal(myModel, originalModel, "Model returned from noConflict Method");
     window.Model = myModel; //restore the world so other tests continue to work
 
-});
+},
 
-test("testInvalidInitialValue", function () {
+testInvalidInitialValue : function () {
     function isPositive(value) {
         return value > 0;
     }
@@ -821,9 +829,9 @@ test("testInvalidInitialValue", function () {
 
     equal(JSON.stringify(m.invalidCountable.getValue()), JSON.stringify({str:1, count:1}), "assignment to undefined Model");
     equal(m.negativeNumber.getValue(), 3, "assignment to undefined Property");
-});
+},
 
-test("testGetMetadataMethod", function (){
+testGetMetadataMethod : function (){
    var expectedJSON = {
         number: 1,
         number__modeljs__metadata: {
@@ -854,9 +862,9 @@ test("testGetMetadataMethod", function (){
     ok(model.str.getMetadata().addedCustomMetaDataProperty, "Can retrieve custom metadata set post construction");
 
     equal(JSON.stringify(model.toJSON(true)), JSON.stringify(expectedJSON), "metadata serialized correctly");
-});
+},
 
-test("testCustomEvent", function (){
+testCustomEvent : function (){
    var jsonModel = {
         number: 1,
         str: "aString",
@@ -900,9 +908,9 @@ test("testCustomEvent", function (){
     model.number.off("foo", numberCallback); // should remove everything
     model.number.trigger("foo", "bar");
     ok(callbackCalled === 0, "same event registered twice");
- });
+ },
 
-test("testChildCreatedEvent", function (){
+testChildCreatedEvent : function (){
    var jsonModel = {
         number: 1,
         str: "aString",
@@ -931,9 +939,9 @@ test("testChildCreatedEvent", function (){
 
     ok(callbackCalled, "childCreate callback called");
 
- });
+},
 
-test("testDoNotPresist", function (){
+testDoNotPresist : function (){
    var jsonModel = {
             number: 1,
             str: "aString",
@@ -993,9 +1001,9 @@ test("testDoNotPresist", function (){
 
     model.subModel.getMetadata().doNotPresist = true;
     equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPresistObjectPropertyJSON), "metadata serialized correctly");
-});
+},
 
-test("testPropertyArray", function (){
+testPropertyArray : function (){
 
     function testPropertyArrayOnlyContainsProperties(propertyArray) {
         for (var i = 0; i < propertyArray.length; i++){
@@ -1047,9 +1055,9 @@ test("testPropertyArray", function (){
     equal(model.oArray[0].getValue(), 12, "test Arrat setValueAt");
     // The following is a limitation we currently have. String doesn't get converted into a property
     //model.oArray[0] = "Inserted value by index";
-});
+},
 
-test("ModelFind", function () {
+testModelFind : function () {
     var json = {
         prop1:"prop1",
         subProp1:{
@@ -1069,9 +1077,9 @@ test("ModelFind", function () {
     ok(Model.find(baby, rootModel.subProp1.getName()), "search for direct parent");
     ok(Model.find(baby, rootModel.prop1.getName()), "search for sibling/cousin");
     ok(Model.find(baby, baby.getName()), "search for self");
-});
+},
 
-asyncTest("remoteModel", function () {
+testRemoteModel : function () {
 
     expect(3);
     var test = new Model();
@@ -1097,11 +1105,11 @@ asyncTest("remoteModel", function () {
         ok(test.remoteModel.query, "remoteModel was modified to have a count property");
         ok(onChangeRegistered, "onChange callback fired on remote Model");
 
-    }, 2000);
+    }, 2500);
 
-});
+},
 
-test("modlejsTutorial", function () {
+modlejsTutorial : function () {
 
     //The code below will teach you how to use modeljs by example. It attepts to go though all the features provided in modeljs in logical progression.
 
@@ -1267,4 +1275,20 @@ test("modlejsTutorial", function () {
 
    ok(JSON.stringify(modelFromJSON.toJSON()) !== JSON.stringify(modelAsJSON), "Passed");
 
-});
+}
+};
+
+   if (typeof define === "function" && define.amd) {
+        define([], function () { 
+            return ModelTests;
+        });
+    } else if (typeof exports !== 'undefined') {
+        if (typeof module !== 'undefined' && module.exports) {
+            exports = module.exports = ModelTests;
+        }
+        exports.Model = ModelTests;
+    } else {
+        /** @global */
+        window["ModelTests"] = ModelTests;
+    }
+}(this)); //this === window in the browser and GLOBAL in node
