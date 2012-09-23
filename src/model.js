@@ -819,7 +819,7 @@
     Model.prototype = Object.create(Property.prototype);
 
     /**
-     * Determins if the parameter passed in is an modeljs Array Property.
+     * Determines if the parameter passed in is an modeljs Array Property.
      *
      * @static
      * @method isArray
