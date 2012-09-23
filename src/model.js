@@ -747,6 +747,10 @@
         return value;
     };
 
+    var arraySetValueAt = function (index, value, metadata) {
+        this[index] = _createProperty(index, value, this, metadata || {});
+    };
+
     function createProto(isA, inherits) {
         var proto = Object.create(isA);
         for (var i in inherits) {
@@ -756,6 +760,7 @@
         }
         // array's getValue implementation is different
         proto["getValue"] = arrayGetValue;
+        proto["setValueAt"] = arraySetValueAt;
 
         return proto;
     }

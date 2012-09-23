@@ -1043,6 +1043,8 @@ test("testPropertyArray", function (){
     equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(newValue), "test Array setValue works as expected");
     var prop = Model.find(model, "/root/oArray/0");
     equal(prop.getValue(), 9, "test Model.find with array's");
+    model.oArray.setValueAt(0, 12);
+    equal(model.oArray[0].getValue(), 12, "test Arrat setValueAt");
     // The following is a limitation we currently have. String doesn't get converted into a property
     //model.oArray[0] = "Inserted value by index";
 });
