@@ -315,7 +315,7 @@
      */
     function ObservableArray(myProperty, values) {
         this._prop = myProperty;
-        //Array.call(this);
+        //Array.call(this); //not needed
         for (var i =0; i < values.length; i++){
             var property = _createProperty(i, values[i], this, {});
             this.push(property);
@@ -510,7 +510,7 @@
     Property.prototype.setValue = function (value, suppressNotifications) {
         var newValue = value;
 
-        if (newValue instanceof Property || newValue instanceof Model) {
+        if (newValue instanceof Property || Model.isArray(value)) {
             // this is misleading syntax because other property attributes are not copied like _listener and _parent
             // so prevent it and provide alternate.
             log('error', "Incorrect Syntax: use setValue([property|model].getValue()) instead");
@@ -533,14 +533,27 @@
                             this._myValue = newValue; //set Value if successful
                         }
                     }
-                } else { // newValue is a property
+                } else if (Array.isArray(newValue)) { // newValue is an Array
+                    if (!Model.isArray(this)) {
+                        log('error', "Not Supported: Can not set a non-Array Property to an Array. Delete the property and use createProperty passing it the array");
+                        return;
+                    } else {
+                        if (this.length > newValue.length) { //remove excess
+                            this.splice(newValue.length, this.length - newValue.length);
+                        }
+                        for (var i = 0; i < newValue.length; i++) {
+                            if (this[i]) {
+                                this[i].setValue(newValue[i]);
+                            } else {
+                                this.push(newValue[i]); // add extra
+                            }
+                        }
+                    }
+                } else { // newValue is a primative (non-object && non-Array)
                     if (this instanceof Model) {
                         log('error', "Not Supported: Can't set a Property value to a model. Delete the property and use createProperty");
                         return;
                     } else {
-                        if (Array.isArray(newValue)) {
-                            newValue = new ObservableArray(this, newValue);
-                        }
                         this._myValue = newValue;
                     }
                 }
@@ -804,7 +817,7 @@
         return (property instanceof ArrayProperty);
     };
     Model.isProperty = function (property) {
-        return (property instanceof Property) && !(property instanceof Model);
+        return Model.isArray(property) || ((property instanceof Property) && !(property instanceof Model));
     };
 
     Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX = "__modeljs__metadata";
@@ -823,7 +836,7 @@
 
     var MIN_MODEL_REFRESH_RATE = 100;
     function _createProperty (name, value, parent, metadata) {
-        if (value instanceof Model || value instanceof Property) {
+        if (value instanceof Property || Model.isArray(value)) {
             log('error', "Unsupported Operation: Try passing the Model/Properties value instead");
             return;
         } else if (Array.isArray(value)) {
@@ -893,7 +906,7 @@
      */
     Model.prototype.createProperty = function createProperty(name, value, metadata) {
 
-        if (value instanceof Model || value instanceof Property) {
+        if (value instanceof Property || Model.isArray(value)) {
             log('error', "Unsupported Operation: Try passing the Model/Properties value instead");
             return;
         }
@@ -930,7 +943,7 @@
             var value = json[name];
             if (model[name]) {
                 if (isObject(value)) { // right hand side is an object
-                    if (model[name] instanceof Model) { // merging objects
+                    if (model[name] instanceof Model) { // left is and Model. -> merging objects
                         var successful = mergeLoop(model[name], value, doModification, keepOldProperties);
                         if (!successful) {
                             return false;
@@ -940,8 +953,8 @@
                         return false;
                     }
 
-                } else { // right hand side is a property
-                    if (!(model[name] instanceof Model)) { // Its not a Model therefore it's a Property
+                } else { // right hand side is not an object.
+                    if (Model.isProperty(model[name])) { // left is a Property -> merging properties
                         if (doModification) {
                             model[name].setValue(value);
                         }
@@ -961,7 +974,7 @@
         if (!keepOldProperties && doModification) {
             for (var modelProp in model) {
                 if (!json[modelProp] && //property does exist in merge
-                        model.hasOwnProperty(modelProp) && model[modelProp] instanceof Property && modelProp !== '_parent') { // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
+                        model.hasOwnProperty(modelProp) && (model[modelProp] instanceof Property || Model.isArray(model[modelProp]))&& modelProp !== '_parent') { // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
                     model[modelProp].destroy();
                 }
             }
@@ -1033,7 +1046,7 @@
                     if (includeMetaData && !isEmptyObject(property.getMetadata())) {
                         json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
                     }
-                } else if (property instanceof Property) {
+                } else if (Model.isProperty(property)) {
                     if (property.getMetadata().doNotPresist) {
                         json[name] = null;
                     } else {

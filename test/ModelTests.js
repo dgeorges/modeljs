@@ -211,13 +211,14 @@ test("testModelMergeMethod", function () {
             key1: "key1",
             key2: "key2",
             subModel : {v1: "value1", v2: "value2"},
-            aArray: [1,2]
+            aArray: [1,2, 3, 8 , 5]
         }
     };
 
     var mergeObj = {
         key1: "new key1Value",
-        key3: "new key"
+        key3: "new key",
+        aArray: [1,4]
     };
 
     var callbackCount = 0;
@@ -1041,6 +1042,7 @@ test("testPropertyArray", function (){
     //model.oArray.setValue("test"); //does nothing
     //model.oArray.length;
     //what does merge do? and getName
+    //fix setValue
 });
 
 test("ModelFind", function () {
