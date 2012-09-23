@@ -552,7 +552,7 @@ test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
     //lets registar a bunch of onChangeListeners.
     model.number.onChange(callback);
 
-    Model.eventOptimization.suppressPreviousPropertyChangeEvents = true;
+    Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = true;
     Model.startTransaction();
     //Lets change number multiple time. should only be called once with last value of change
     model.number.setValue(2);
@@ -560,8 +560,8 @@ test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
     model.number.setValue(4);
     Model.endTransaction();
 
-    equal(count, 1, "suppressPreviousPropertyChangeEvents does suppress all but 1 onChangeEvent");
-    equal(callbackNewValue, 4, "suppressPreviousPropertyChangeEvents onChange event is the most recent");
+    equal(count, 1, "fireOnlyMostRecentPropertyEvent does suppress all but 1 onChangeEvent");
+    equal(callbackNewValue, 4, "fireOnlyMostRecentPropertyEvent onChange event is the most recent");
 
     //test on Model
     count = 0; //reset counter
@@ -572,17 +572,17 @@ test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
     model.subModel.subProp.setValue("new subProp value3");
     Model.endTransaction();
 
-    equal(count, 1, "suppressPreviousPropertyChangeEvents does suppress all but 1 onChangeEvent");
+    equal(count, 1, "fireOnlyMostRecentPropertyEvent does suppress all but 1 onChangeEvent");
 
     count = 0;
     Model.startTransaction();
     model.subModel.subProp.setValue("new subProp value");
     model.subModel.fun.setValue("replace function with string");
     Model.endTransaction();
-    Model.eventOptimization.suppressPreviousPropertyChangeEvents = false; //restore
+    Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = false; //restore
 
     // This is what I expect. 2 different properties change but same callback called
-    equal(count, 2, "suppressPreviousPropertyChangeEvents does not effect bubbled events");
+    equal(count, 2, "fireOnlyMostRecentPropertyEvent does not effect bubbled events");
 });
 
 test("testSingleCallbackEventOptimization", function (){
@@ -614,7 +614,7 @@ test("testSingleCallbackEventOptimization", function (){
     model.subModel.subProp.onChange(callback);
     model.str.onChange(callback2);
 
-    Model.eventOptimization.enableSingleCallbackCall = true;
+    Model.TRANSACTION_OPTIONS.flattenCallbacks = true;
 
     Model.startTransaction();
     model.number.setValue(3);
@@ -624,7 +624,7 @@ test("testSingleCallbackEventOptimization", function (){
 
     equal(count, 1, "onChange callback called once, even though registared on different porperties");
     equal(count2, 1, "onChange callback2 called once because different than other callback");
-    Model.eventOptimization.enableSingleCallbackCall = false; //restore
+    Model.TRANSACTION_OPTIONS.flattenCallbacks = false; //restore
 });
 
 test("testEnableCallbackHashOpimization", function (){
@@ -659,17 +659,17 @@ test("testEnableCallbackHashOpimization", function (){
     model.subModel.subProp.onChange(callback);
     model.subModel.subProp.onChange(callback2);
 
-    Model.eventOptimization.enableCallbackHashOpimization = true;
+    Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = true;
 
     Model.startTransaction();
     model.number.setValue(3);
     model.subModel.subProp.setValue("value Changed");
     model.str.setValue("new Value");
     Model.endTransaction();
-    Model.eventOptimization.enableCallbackHashOpimization = false;
+    Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = false;
 
-    equal(count, 1, "Hashed function called once when enableCallbackHashOpimization set");
-    equal(count2, 3, " unhashed function called more than once when enableCallbackHashOpimization set");
+    equal(count, 1, "Hashed function called once when flattenCallbacksByHash set");
+    equal(count2, 3, " unhashed function called more than once when flattenCallbacksByHash set");
 });
 
 test("testSuppressAllEventOptimization", function (){
@@ -701,7 +701,7 @@ test("testSuppressAllEventOptimization", function (){
     model.subModel.subProp.onChange(callback);
     model.str.onChange(callback2);
 
-    Model.eventOptimization.suppressAll = true;
+    Model.TRANSACTION_OPTIONS.suppressAllEvents = true;
 
     Model.startTransaction();
     model.number.setValue(3);
@@ -711,7 +711,7 @@ test("testSuppressAllEventOptimization", function (){
 
     equal(count, 0, "suppress all fired no events");
     equal(count2, 0, "suppress all fired no events");
-    Model.eventOptimization.suppressAll = false; //restore
+    Model.TRANSACTION_OPTIONS.suppressAllEvents = false; //restore
 });
 
 test("testModelEndTransactionWithOptions", function () {
@@ -746,30 +746,30 @@ test("testModelEndTransactionWithOptions", function () {
     model.subModel.subProp.onChange(callback);
     model.subModel.subProp.onChange(callback2);
 
-    Model.eventOptimization.enableCallbackHashOpimization = true; // to start change defaults
-    Model.eventOptimization.enableSingleCallbackCall = true;
-    Model.eventOptimization.suppressPreviousPropertyChangeEvents = true;
+    Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = true; // to start change defaults
+    Model.TRANSACTION_OPTIONS.flattenCallbacks = true;
+    Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = true;
 
     Model.startTransaction();
     model.number.setValue(3);
     model.subModel.subProp.setValue("value Changed");
     model.str.setValue("new Value");
     Model.endTransaction({
-        enableCallbackHashOpimization: true,
-        enableSingleCallbackCall: false,
-        suppressPreviousPropertyChangeEvents: false
+        flattenCallbacksByHash: true,
+        flattenCallbacks: false,
+        fireOnlyMostRecentPropertyEvent: false
     });
 
-    ok(Model.eventOptimization.enableCallbackHashOpimization, "global event setting restore after endTransaction with options");
-    ok(Model.eventOptimization.enableSingleCallbackCall, "global event setting restore after endTransaction with options");
-    ok(Model.eventOptimization.suppressPreviousPropertyChangeEvents, "global event setting restore after endTransaction with options");
+    ok(Model.TRANSACTION_OPTIONS.flattenCallbacksByHash, "global event setting restore after endTransaction with options");
+    ok(Model.TRANSACTION_OPTIONS.flattenCallbacks, "global event setting restore after endTransaction with options");
+    ok(Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent, "global event setting restore after endTransaction with options");
 
 
-    equal(count, 1, "Hashed function called once when enableCallbackHashOpimization set");
-    equal(count2, 3, " unhashed function called more than once when enableCallbackHashOpimization set");
-    Model.eventOptimization.enableCallbackHashOpimization = false; // test ended restore defaults
-    Model.eventOptimization.enableSingleCallbackCall = false;
-    Model.eventOptimization.suppressPreviousPropertyChangeEvents = false;
+    equal(count, 1, "Hashed function called once when flattenCallbacksByHash set");
+    equal(count2, 3, " unhashed function called more than once when flattenCallbacksByHash set");
+    Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = false; // test ended restore defaults
+    Model.TRANSACTION_OPTIONS.flattenCallbacks = false;
+    Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = false;
 });
 
 test("testModelNoConflict", function () {
@@ -1101,7 +1101,7 @@ asyncTest("remoteModel", function () {
 
 });
 
-test("modlejsTutorial", function (){
+test("modlejsTutorial", function () {
 
     //The code below will teach you how to use modeljs by example. It attepts to go though all the features provided in modeljs in logical progression.
 

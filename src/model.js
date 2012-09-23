@@ -189,16 +189,16 @@
             // used to get around the JSLint warning of creating a function within the while loop below
             var executeCallbacksFunction = function (changedProperty, listenerProperty, arg) {
                 return function (callback) {
-                    if (Model.eventOptimization.enableSingleCallbackCall || Model.eventOptimization.enableCallbackHashOpimization) {
+                    if (Model.TRANSACTION_OPTIONS.flattenCallbacks || Model.TRANSACTION_OPTIONS.flattenCallbacksByHash) {
                         var callbackExecuted = false;
-                        if (Model.eventOptimization.enableSingleCallbackCall) {
+                        if (Model.TRANSACTION_OPTIONS.flattenCallbacks) {
                             if (executedCallbacks.indexOf(callback) === -1) { // Only call callback once
                                 executedCallbacks.push(callback);
                                 callback.call(listenerProperty, changedProperty, arg);
                                 callbackExecuted = true;
                             }
                         }
-                        if (Model.eventOptimization.enableCallbackHashOpimization) {
+                        if (Model.TRANSACTION_OPTIONS.flattenCallbacksByHash) {
                             if (!callback.hash || callbackHashs.indexOf(callback.hash) === -1) { // Only call hash identified callback once
                                 if (callback.hash) {
                                     callbackHashs.push(callback.hash);
@@ -263,10 +263,10 @@
 
             executedCallbacks = []; //reset state
             callbackHashs = [];
-            if (Model.eventOptimization.suppressAll) {
+            if (Model.TRANSACTION_OPTIONS.suppressAllEvents) {
                 //discard all events
                 eventQueue = [];
-            } else if (Model.eventOptimization.suppressPreviousPropertyChangeEvents) {
+            } else if (Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent) {
                 var optimizedQueue = [];
                 var seenProperties = [];
                 for (var i = eventQueue.length - 1; i >= 0; i -= 1) { // iterate backwards since last events are most recent.
@@ -751,7 +751,7 @@
         this[index] = _createProperty(index, value, this, metadata || {});
     };
 
-    function createProto(isA, inherits) {
+    function createArrayPrototype(isA, inherits) {
         var proto = Object.create(isA);
         for (var i in inherits) {
             if (inherits.hasOwnProperty(i)) {
@@ -769,7 +769,7 @@
         Property.call(this, name, value, parent, metadata);
         ObservableArray.call(this, this, value);
     }
-    ArrayProperty.prototype = createProto(ObservableArray.prototype, Property.prototype);
+    ArrayProperty.prototype = createArrayPrototype(ObservableArray.prototype, Property.prototype);
 
    /**
      * The model Object that wraps the JSON.
@@ -1154,11 +1154,11 @@
      * Ends the current transaction causing all queued up events to be fired according to the global eventOptization settings or the settings passed in if they exist.
      *
      * @example
-     *     model.endTransaction(); //uses settings found in Model.eventOptimization
-     *     model.endTransaction({   // override the Model.eventOptimization settings for this transaction
-     *         suppressPreviousPropertyChangeEvents: false,
-     *         enableSingleCallbackCall: true,
-     *         enableCallbackHashOpimization: true
+     *     model.endTransaction(); //uses settings found in Model.TRANSACTION_OPTIONS
+     *     model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for this transaction
+     *         fireOnlyMostRecentPropertyEvent: false,
+     *         flattenCallbacks: true,
+     *         flattenCallbacksByHash: true
      *     })
      * For more examples see: <b>testSingleCallbackEventOptimization</b>, <b>testEnableCallbackHashOpimization</b>,
      *      <b>testModelEndTransactionWithOptions</b>
@@ -1167,24 +1167,25 @@
      * @method  endTransaction
      * @static
      *
-     * @param  {Object} options? A map of Model.eventOptimization options that you want overridden when clearing this transaction queue.
+     * @param  {Object} options? A map of Model.TRANSACTION_OPTIONS options that you want overridden when clearing this transaction queue.
      */
     Model.endTransaction = function (options) {
-        var originalEventOptimization;
+        var originalTransactionOptions;
 
         if (options) { // if option override global setting keeping them so they can be restored later
-            originalEventOptimization = JSON.parse(JSON.stringify(Model.eventOptimization));
-            Model.eventOptimization.suppressPreviousPropertyChangeEvents = !!options.suppressPreviousPropertyChangeEvents;
-            Model.eventOptimization.enableSingleCallbackCall = !!options.enableSingleCallbackCall;
-            Model.eventOptimization.enableCallbackHashOpimization = !!options.enableCallbackHashOpimization;
+            originalTransactionOptions = JSON.parse(JSON.stringify(Model.TRANSACTION_OPTIONS));
+            Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = !!options.fireOnlyMostRecentPropertyEvent;
+            Model.TRANSACTION_OPTIONS.flattenCallbacks = !!options.flattenCallbacks;
+            Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = !!options.flattenCallbacksByHash;
         }
 
         eventProxy.endTransaction();
 
         if (options) { //restore global settings
-            Model.eventOptimization.suppressPreviousPropertyChangeEvents = originalEventOptimization.suppressPreviousPropertyChangeEvents;
-            Model.eventOptimization.enableSingleCallbackCall = originalEventOptimization.enableSingleCallbackCall;
-            Model.eventOptimization.enableCallbackHashOpimization = originalEventOptimization.enableCallbackHashOpimization;
+            Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = originalTransactionOptions.fireOnlyMostRecentPropertyEvent;
+            Model.TRANSACTION_OPTIONS.flattenCallbacks = originalTransactionOptions.flattenCallbacks;
+            Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = originalTransactionOptions.flattenCallbacksByHash;
+            //Model.transactionOptions;
         }
 
     };
@@ -1205,46 +1206,46 @@
         return eventProxy.inTransaction();
     };
 
-    Model.eventOptimization = {
+    Model.TRANSACTION_OPTIONS = {
         /**
-            Only fires last Property Change of a property during a transaction.
+            Only fires the last event of a property during a transaction.
             @Example For an example see <b>testSuppressPreviousPropertyChangeEventsEventOptimization</b>
-            @property eventOptimization.suppressPreviousPropertyChangeEvents
+            @property TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent
             @default false
             @static
             @type {boolean}
         */
-        suppressPreviousPropertyChangeEvents: false,
+        fireOnlyMostRecentPropertyEvent: false, //onlyfirelastpce onlyFireLastPropertyEvents fireOnlyMostRecentPropertyEvent
         /**
             Will make sure a callback only gets called only once during a transaction. Even if registered with several properties.
             @Example For an example see <b>testSingleCallbackEventOptimization</b>
-            @property eventOptimization.enableSingleCallbackCall
+            @property TRANSACTION_OPTIONS.flattenCallbacks
             @default false
             @static
             @type {boolean}
          **/
-        enableSingleCallbackCall: false,
+        flattenCallbacks: false,
         /**
             Will make sure callbacks identified by .hash only gets called only once during a transaction. Even if registered with several properties.
             @Example For an example see <b>testEnableCallbackHashOpimization</b>
-            @property eventOptimization.enableCallbackHashOpimization
+            @property TRANSACTION_OPTIONS.flattenCallbacksByHash
             @default false
             @static
             @type {boolean}
         */
-        enableCallbackHashOpimization: false,
+        flattenCallbacksByHash: false, //flattenCallbacksByHash
         /**
             Will guarentee that no event are fired during a transaction
             @Example For an example see <b>testSuppressAllEventOptimization</b>
-            @property eventOptimization.supressAll
+            @property TRANSACTION_OPTIONS.suppressAllEvents
             @default false
             @static
             @type {boolean
         */
-        suppressAll: false
+        suppressAllEvents: false
 
     };
-    Object.seal(Model.eventOptimization);
+    Object.seal(Model.TRANSACTION_OPTIONS);
 
     var oldModel = globalNS.Model;
     /**
