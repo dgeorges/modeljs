@@ -1160,7 +1160,7 @@
      *         flattenCallbacks: true,
      *         flattenCallbacksByHash: true
      *     })
-     * For more examples see: <b>testSingleCallbackEventOptimization</b>, <b>testEnableCallbackHashOpimization</b>,
+     * For more examples see: <b>testFlattenCallbacks</b>, <b>testFlattenCallbacksByHash</b>,
      *      <b>testModelEndTransactionWithOptions</b>
      *
      * @for     Model
@@ -1209,16 +1209,16 @@
     Model.TRANSACTION_OPTIONS = {
         /**
             Only fires the last event of a property during a transaction.
-            @Example For an example see <b>testSuppressPreviousPropertyChangeEventsEventOptimization</b>
+            @Example For an example see <b>testFireOnlyMostRecentPropertyEvent</b>
             @property TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent
             @default false
             @static
             @type {boolean}
         */
-        fireOnlyMostRecentPropertyEvent: false, //onlyfirelastpce onlyFireLastPropertyEvents fireOnlyMostRecentPropertyEvent
+        fireOnlyMostRecentPropertyEvent: false,
         /**
             Will make sure a callback only gets called only once during a transaction. Even if registered with several properties.
-            @Example For an example see <b>testSingleCallbackEventOptimization</b>
+            @Example For an example see <b>testFlattenCallbacks</b>
             @property TRANSACTION_OPTIONS.flattenCallbacks
             @default false
             @static
@@ -1227,16 +1227,16 @@
         flattenCallbacks: false,
         /**
             Will make sure callbacks identified by .hash only gets called only once during a transaction. Even if registered with several properties.
-            @Example For an example see <b>testEnableCallbackHashOpimization</b>
+            @Example For an example see <b>testFlattenCallbacksByHash</b>
             @property TRANSACTION_OPTIONS.flattenCallbacksByHash
             @default false
             @static
             @type {boolean}
         */
-        flattenCallbacksByHash: false, //flattenCallbacksByHash
+        flattenCallbacksByHash: false,
         /**
             Will guarentee that no event are fired during a transaction
-            @Example For an example see <b>testSuppressAllEventOptimization</b>
+            @Example For an example see <b>testSuppressAllEvents</b>
             @property TRANSACTION_OPTIONS.suppressAllEvents
             @default false
             @static

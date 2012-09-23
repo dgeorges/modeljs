@@ -527,7 +527,7 @@ test("testGetFormattedValue", function() {
 
 });
 
-test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
+test("testFireOnlyMostRecentPropertyEvent", function (){
     var jsonModel = {
             number: 1,
             str: "aString",
@@ -585,7 +585,7 @@ test("testSuppressPreviousPropertyChangeEventsEventOptimization", function (){
     equal(count, 2, "fireOnlyMostRecentPropertyEvent does not effect bubbled events");
 });
 
-test("testSingleCallbackEventOptimization", function (){
+test("testFlattenCallbacks", function (){
     var jsonModel = {
             number: 1,
             str: "aString",
@@ -627,7 +627,7 @@ test("testSingleCallbackEventOptimization", function (){
     Model.TRANSACTION_OPTIONS.flattenCallbacks = false; //restore
 });
 
-test("testEnableCallbackHashOpimization", function (){
+test("testFlattenCallbacksByHash", function (){
     var jsonModel = {
             number: 1,
             str: "aString",
@@ -672,7 +672,7 @@ test("testEnableCallbackHashOpimization", function (){
     equal(count2, 3, " unhashed function called more than once when flattenCallbacksByHash set");
 });
 
-test("testSuppressAllEventOptimization", function (){
+test("testSuppressAllEvents", function (){
     var jsonModel = {
             number: 1,
             str: "aString",
