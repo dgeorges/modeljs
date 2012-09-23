@@ -818,9 +818,19 @@
     }
     Model.prototype = Object.create(Property.prototype);
 
+    /**
+     * Determins if the parameter passed in is an modeljs Array Property.
+     *
+     * @static
+     * @method isArray
+     *
+     * @param  {Property}  property  Property to test whether or not it is an Array Property.
+     * @return {Boolean}          true if the Property is an Array Property, false otherwise
+     */
     Model.isArray = function (property) {
         return (property instanceof ArrayProperty);
     };
+
     Model.isProperty = function (property) {
         return Model.isArray(property) || ((property instanceof Property) && !(property instanceof Model));
     };
@@ -1185,7 +1195,6 @@
             Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = originalTransactionOptions.fireOnlyMostRecentPropertyEvent;
             Model.TRANSACTION_OPTIONS.flattenCallbacks = originalTransactionOptions.flattenCallbacks;
             Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = originalTransactionOptions.flattenCallbacksByHash;
-            //Model.transactionOptions;
         }
 
     };

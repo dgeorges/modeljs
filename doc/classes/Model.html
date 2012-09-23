@@ -98,7 +98,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l724"><code>src\model.js:724</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l774"><code>src\model.js:774</code></a>
         </div>
     
 
@@ -168,7 +168,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l724"><code>src\model.js:724</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l774"><code>src\model.js:774</code></a>
         
         </p>
 
@@ -341,6 +341,15 @@
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_isArray">isArray</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_merge">merge</a>
 
                                 
@@ -425,42 +434,6 @@
                     <ul class="index-list properties extends">
                         
                             <li class="index-item property">
-                                <a href="#property_eventOptimization.enableCallbackHashOpimization">eventOptimization.enableCallbackHashOpimization</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_eventOptimization.enableSingleCallbackCall">eventOptimization.enableSingleCallbackCall</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_eventOptimization.suppressPreviousPropertyChangeEvents">eventOptimization.suppressPreviousPropertyChangeEvents</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_eventOptimization.supressAll">eventOptimization.supressAll</a>
-
-                                
-                                    <span class="flag static">static</span>
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
                                 <a href="#property_Formatter">Formatter</a>
 
                                 
@@ -471,6 +444,42 @@
                         
                             <li class="index-item property">
                                 <a href="#property_isLoggingEnabled">isLoggingEnabled</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent">TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_TRANSACTION_OPTIONS.flattenCallbacks">TRANSACTION_OPTIONS.flattenCallbacks</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_TRANSACTION_OPTIONS.flattenCallbacksByHash">TRANSACTION_OPTIONS.flattenCallbacksByHash</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_TRANSACTION_OPTIONS.suppressAllEvents">TRANSACTION_OPTIONS.suppressAllEvents</a>
 
                                 
                                     <span class="flag static">static</span>
@@ -528,7 +537,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l848"><code>src\model.js:848</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l933"><code>src\model.js:933</code></a>
         
         </p>
 
@@ -634,7 +643,7 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l784"><code>src\model.js:784</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l878"><code>src\model.js:878</code></a>
         
         </p>
 
@@ -794,7 +803,7 @@ model.createProperty("number", 1) // a simple property (model.number)
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l582"><code>src\model.js:582</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l599"><code>src\model.js:599</code></a>
         
         </p>
 
@@ -874,7 +883,7 @@ the 'childDestroyed' event on the parent.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1078"><code>src\model.js:1078</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1163"><code>src\model.js:1163</code></a>
         
         </p>
 
@@ -903,7 +912,7 @@ the 'childDestroyed' event on the parent.</p>
                     
 
                     <div class="param-description">
-                        <p>A map of Model.eventOptimization options that you want overridden when clearing this transaction queue.</p>
+                        <p>A map of Model.TRANSACTION_OPTIONS options that you want overridden when clearing this transaction queue.</p>
                     </div>
 
                     
@@ -920,15 +929,15 @@ the 'childDestroyed' event on the parent.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">model.endTransaction(); //uses settings found in Model.eventOptimization
-model.endTransaction({   // override the Model.eventOptimization settings for this transaction
-    suppressPreviousPropertyChangeEvents: false,
-    enableSingleCallbackCall: true,
-    enableCallbackHashOpimization: true
+                <pre class="code"><code class="prettyprint">model.endTransaction(); //uses settings found in Model.TRANSACTION_OPTIONS
+model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for this transaction
+    fireOnlyMostRecentPropertyEvent: false,
+    flattenCallbacks: true,
+    flattenCallbacksByHash: true
 })
 </code></pre>
 
-<p>For more examples see: <b>testSingleCallbackEventOptimization</b>, <b>testEnableCallbackHashOpimization</b>,
+<p>For more examples see: <b>testFlattenCallbacks</b>, <b>testFlattenCallbacksByHash</b>,
      <b>testModelEndTransactionWithOptions</b></p>
             </div>
         </div>
@@ -969,7 +978,7 @@ model.endTransaction({   // override the Model.eventOptimization settings for th
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l456"><code>src\model.js:456</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l460"><code>src\model.js:460</code></a>
         
         </p>
 
@@ -1037,7 +1046,7 @@ model.endTransaction({   // override the Model.eventOptimization settings for th
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l674"><code>src\model.js:674</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l691"><code>src\model.js:691</code></a>
         
         </p>
 
@@ -1111,7 +1120,7 @@ special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l470"><code>src\model.js:470</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l474"><code>src\model.js:474</code></a>
         
         </p>
 
@@ -1197,7 +1206,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l773"><code>src\model.js:773</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l841"><code>src\model.js:841</code></a>
         
         </p>
 
@@ -1265,7 +1274,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l691"><code>src\model.js:691</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l708"><code>src\model.js:708</code></a>
         
         </p>
 
@@ -1346,7 +1355,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1117"><code>src\model.js:1117</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1202"><code>src\model.js:1202</code></a>
         
         </p>
 
@@ -1385,6 +1394,112 @@ namedRoot.property1.getName();       // returns "/customName/property1"
                 <p>For an examples see <b>testModelTransactions</b></p>
             </div>
         </div>
+    
+</div>
+
+                
+                    <div id="method_isArray" class="method item">
+    <h3 class="name"><code>isArray</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>property</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">Boolean</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l821"><code>src\model.js:821</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Determins if the parameter passed in is an modeljs Array Property.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">property</code>
+                        <span class="type"><a href="..\classes\Property.html" class="crosslink">Property</a></span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Property to test whether or not it is an Array Property.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">Boolean</span>:
+                    
+                    true if the Property is an Array Property, false otherwise
+                
+            </div>
+        </div>
+    
+
     
 </div>
 
@@ -1441,7 +1556,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l915"><code>src\model.js:915</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1000"><code>src\model.js:1000</code></a>
         
         </p>
 
@@ -1564,7 +1679,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1175"><code>src\model.js:1175</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1260"><code>src\model.js:1260</code></a>
         
         </p>
 
@@ -1660,7 +1775,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l648"><code>src\model.js:648</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l665"><code>src\model.js:665</code></a>
         
         </p>
 
@@ -1782,7 +1897,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l618"><code>src\model.js:618</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l635"><code>src\model.js:635</code></a>
         
         </p>
 
@@ -1904,7 +2019,7 @@ event type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l552"><code>src\model.js:552</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l569"><code>src\model.js:569</code></a>
         
         </p>
 
@@ -2029,7 +2144,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l489"><code>src\model.js:489</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l493"><code>src\model.js:493</code></a>
         
         </p>
 
@@ -2147,7 +2262,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1062"><code>src\model.js:1062</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1147"><code>src\model.js:1147</code></a>
         
         </p>
 
@@ -2223,7 +2338,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l946"><code>src\model.js:946</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1031"><code>src\model.js:1031</code></a>
         
         </p>
 
@@ -2341,7 +2456,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l603"><code>src\model.js:603</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l620"><code>src\model.js:620</code></a>
         
         </p>
 
@@ -2457,7 +2572,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l705"><code>src\model.js:705</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l722"><code>src\model.js:722</code></a>
         
         </p>
 
@@ -2531,230 +2646,6 @@ properties will have the value set to 'undefined' while models will be set to an
                 <h2 class="off-left">Properties</h2>
 
                 
-                    <div id="property_eventOptimization.enableCallbackHashOpimization" class="property item">
-    <h3 class="name"><code>eventOptimization.enableCallbackHashOpimization</code></h3>
-    <span class="type">Boolean</span>
-
-    
-
-    
-
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1152"><code>src\model.js:1152</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Will make sure callbacks identified by .hash only gets called only once during a transaction. Even if registered with several properties.</p>
-    </div>
-
-    
-        <p><strong>Default:</strong> false</p>
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <p>For an example see <b>testEnableCallbackHashOpimization</b></p>
-            </div>
-        </div>
-    
-
-    
-</div>
-
-                
-                    <div id="property_eventOptimization.enableSingleCallbackCall" class="property item">
-    <h3 class="name"><code>eventOptimization.enableSingleCallbackCall</code></h3>
-    <span class="type">Boolean</span>
-
-    
-
-    
-
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1143"><code>src\model.js:1143</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Will make sure a callback only gets called only once during a transaction. Even if registered with several properties.</p>
-    </div>
-
-    
-        <p><strong>Default:</strong> false</p>
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <p>For an example see <b>testSingleCallbackEventOptimization</b></p>
-            </div>
-        </div>
-    
-
-    
-</div>
-
-                
-                    <div id="property_eventOptimization.suppressPreviousPropertyChangeEvents" class="property item">
-    <h3 class="name"><code>eventOptimization.suppressPreviousPropertyChangeEvents</code></h3>
-    <span class="type">Boolean</span>
-
-    
-
-    
-
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1134"><code>src\model.js:1134</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Only fires last Property Change of a property during a transaction.</p>
-    </div>
-
-    
-        <p><strong>Default:</strong> false</p>
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <p>For an example see <b>testSuppressPreviousPropertyChangeEventsEventOptimization</b></p>
-            </div>
-        </div>
-    
-
-    
-</div>
-
-                
-                    <div id="property_eventOptimization.supressAll" class="property item">
-    <h3 class="name"><code>eventOptimization.supressAll</code></h3>
-    <span class="type">Boolean</span>
-
-    
-
-    
-
-    
-
-    
-        <span class="flag static">static</span>
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1161"><code>src\model.js:1161</code></a>
-        
-        </p>
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Will guarentee that no event are fired during a transaction</p>
-    </div>
-
-    
-        <p><strong>Default:</strong> false</p>
-    
-
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <p>For an example see <b>testSuppressAllEventOptimization</b></p>
-            </div>
-        </div>
-    
-
-    
-</div>
-
-                
                     <div id="property_Formatter" class="property item">
     <h3 class="name"><code>Formatter</code></h3>
     <span class="type">Function A format function whose first argument is the value to be formatted</span>
@@ -2780,7 +2671,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l994"><code>src\model.js:994</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1079"><code>src\model.js:1079</code></a>
         
         </p>
 
@@ -2843,7 +2734,7 @@ input type as a value.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1017"><code>src\model.js:1017</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1102"><code>src\model.js:1102</code></a>
         
         </p>
 
@@ -2861,6 +2752,230 @@ if it exists.</p>
         <p><strong>Default:</strong> false</p>
     
 
+    
+
+    
+</div>
+
+                
+                    <div id="property_TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent" class="property item">
+    <h3 class="name"><code>TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent</code></h3>
+    <span class="type">Boolean</span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1219"><code>src\model.js:1219</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Only fires the last event of a property during a transaction.</p>
+    </div>
+
+    
+        <p><strong>Default:</strong> false</p>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>For an example see <b>testFireOnlyMostRecentPropertyEvent</b></p>
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
+                    <div id="property_TRANSACTION_OPTIONS.flattenCallbacks" class="property item">
+    <h3 class="name"><code>TRANSACTION_OPTIONS.flattenCallbacks</code></h3>
+    <span class="type">Boolean</span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1228"><code>src\model.js:1228</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Will make sure a callback only gets called only once during a transaction. Even if registered with several properties.</p>
+    </div>
+
+    
+        <p><strong>Default:</strong> false</p>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>For an example see <b>testFlattenCallbacks</b></p>
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
+                    <div id="property_TRANSACTION_OPTIONS.flattenCallbacksByHash" class="property item">
+    <h3 class="name"><code>TRANSACTION_OPTIONS.flattenCallbacksByHash</code></h3>
+    <span class="type">Boolean</span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1237"><code>src\model.js:1237</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Will make sure callbacks identified by .hash only gets called only once during a transaction. Even if registered with several properties.</p>
+    </div>
+
+    
+        <p><strong>Default:</strong> false</p>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>For an example see <b>testFlattenCallbacksByHash</b></p>
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
+                    <div id="property_TRANSACTION_OPTIONS.suppressAllEvents" class="property item">
+    <h3 class="name"><code>TRANSACTION_OPTIONS.suppressAllEvents</code></h3>
+    <span class="type">Boolean</span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1246"><code>src\model.js:1246</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Will guarentee that no event are fired during a transaction</p>
+    </div>
+
+    
+        <p><strong>Default:</strong> false</p>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>For an example see <b>testSuppressAllEvents</b></p>
+            </div>
+        </div>
     
 
     
