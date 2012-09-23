@@ -736,7 +736,6 @@
         }
         return true;
     };
-    //don't want a set validator function.
 
     var arrayGetValue = function () {
         var value = [],
