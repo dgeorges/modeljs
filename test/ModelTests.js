@@ -1,15 +1,23 @@
+/**
+ * Set up environment for tests.
+ * The following solely required for running the tests in the Node environment since the
+ * browser tests will import model.js and qunit prior to this file.
+ *
+ * FYI: There may be a better way to do this.
+ */
+var assert;
+try {
+    assert = require("assert");
+} catch (e) {
+}
+var Model = Model || require("./../src/model");
+
+var ok = ok || assert.ok;
+var equal = equal || assert.equal;
+var deepEqual = deepEqual || assert.deepEqual;
+
+
 (function (globalNS) { //globalNS === window in the browser or GLOBAL in nodejs
-
-    if (globalNS.require) {
-        Model = require("./model");
-
-        if (!ok || !equal || !deppEqual) {
-            assert = require("assert");
-            ok = assert.ok;
-            equal = assert.equal;
-            deepEqual = assert.deepEqual;
-        }
-    }
 
 var ModelTests = {
 
