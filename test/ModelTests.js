@@ -1037,12 +1037,14 @@ test("testPropertyArray", function (){
     model.oArray.sort();
     equal(callbackCount, 3);
 
+    var newValue = [9, 8, 7];
+    model.oArray.setValue(newValue);
+    equal(model.oArray.length, 3, "test Array setValue updates length");
+    equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(newValue), "test Array setValue works as expected");
+    var prop = Model.find(model, "/root/oArray/0");
+    equal(prop.getValue(), 9, "test Model.find with array's");
     // The following is a limitation we currently have. String doesn't get converted into a property
     //model.oArray[0] = "Inserted value by index";
-    //model.oArray.setValue("test"); //does nothing
-    //model.oArray.length;
-    //what does merge do? and getName
-    //fix setValue
 });
 
 test("ModelFind", function () {
