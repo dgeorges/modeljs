@@ -18,8 +18,10 @@ var deepEqual = deepEqual || assert.deepEqual;
 
 
 (function (globalNS) { //globalNS === window in the browser or GLOBAL in nodejs
+    "use strict";
+    var ModelTests = {};
 
-    var ModelTests = {
+    ModelTests.tests = {
         testPrimitiveSaveLoad : function () {
             var jsonModel = { number: 1,
                 str : "aString",
@@ -1083,36 +1085,6 @@ var deepEqual = deepEqual || assert.deepEqual;
             ok(Model.find(baby, baby.getName()), "search for self");
         },
 
-        testRemoteModel : function () {
-
-            expect(3);
-            var test = new Model();
-            test.createProperty ("remoteModel", {prop1: "defaultValue"}, {
-                url: "http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback",
-                doNotPresist: true,
-                refreshRate: -1, // -1 means fetch once.
-                isJSONPurl: true,
-                validator: function() {
-                    return true;
-                }
-            });
-
-            var onChangeRegistered = false;
-            function callback (property, oldValue) {
-                onChangeRegistered = true;
-            }
-            test.remoteModel.onChange(callback);
-
-            ok(!test.remoteModel.count, "remoteModel count property DNE");
-            setTimeout(function () {
-                start();
-                ok(test.remoteModel.query, "remoteModel was modified to have a count property");
-                ok(onChangeRegistered, "onChange callback fired on remote Model");
-
-            }, 2500);
-
-        },
-
         modlejsTutorial : function () {
 
             //The code below will teach you how to use modeljs by example. It attepts to go though all the features provided in modeljs in logical progression.
@@ -1280,6 +1252,38 @@ var deepEqual = deepEqual || assert.deepEqual;
            ok(JSON.stringify(modelFromJSON.toJSON()) !== JSON.stringify(modelAsJSON), "Passed");
 
         }
+    };
+
+    ModelTests.asyncTests = {
+                testRemoteModel : function () {
+
+                expect(3);
+                var test = new Model();
+                test.createProperty ("remoteModel", {prop1: "defaultValue"}, {
+                    url: "http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback",
+                    doNotPresist: true,
+                    refreshRate: -1, // -1 means fetch once.
+                    isJSONPurl: true,
+                    validator: function() {
+                        return true;
+                    }
+                });
+
+                var onChangeRegistered = false;
+                function callback (property, oldValue) {
+                    onChangeRegistered = true;
+                }
+                test.remoteModel.onChange(callback);
+
+                ok(!test.remoteModel.count, "remoteModel count property DNE");
+                setTimeout(function () {
+                    start();
+                    ok(test.remoteModel.query, "remoteModel was modified to have a count property");
+                    ok(onChangeRegistered, "onChange callback fired on remote Model");
+
+                }, 2500);
+
+            }
     };
 
    if (typeof define === "function" && define.amd) {
