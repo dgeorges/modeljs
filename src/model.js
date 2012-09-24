@@ -1186,6 +1186,7 @@
             Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = !!options.fireOnlyMostRecentPropertyEvent;
             Model.TRANSACTION_OPTIONS.flattenCallbacks = !!options.flattenCallbacks;
             Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = !!options.flattenCallbacksByHash;
+            Model.TRANSACTION_OPTIONS.suppressAllEvents = !!options.suppressAllEvents;
         }
 
         eventProxy.endTransaction();
@@ -1194,6 +1195,7 @@
             Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = originalTransactionOptions.fireOnlyMostRecentPropertyEvent;
             Model.TRANSACTION_OPTIONS.flattenCallbacks = originalTransactionOptions.flattenCallbacks;
             Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = originalTransactionOptions.flattenCallbacksByHash;
+            Model.TRANSACTION_OPTIONS.suppressAllEvents = !!options.suppressAllEvents;
         }
 
     };
