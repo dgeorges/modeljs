@@ -44,8 +44,8 @@
 
     function log(level, message) {
         //Only log when enabled and console log method is available
-        if (Model.enableLogging && globalNS.console && globalNS.console[level]) {
-            globalNS.console[level](message);
+        if (Model.enableLogging && typeof console === 'object' && console[level]) {
+            console[level](message);
         }
     }
 
@@ -514,7 +514,7 @@
             // this is misleading syntax because other property attributes are not copied like _listener and _parent
             // so prevent it and provide alternate.
             log('error', "Incorrect Syntax: use setValue([property|model].getValue()) instead");
-            return;
+            return this._myValue;
         }
 
         // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
@@ -526,7 +526,7 @@
                 if (isObject(newValue)) {
                     if (!(this instanceof Model)) {
                         log('error', "Not Supported: Can't set the Model value to a property. Delete the model and use createProperty");
-                        return;
+                        return this._myValue;
                     } else {
                         //This model need to be set to the newValue
                         if (this.merge(newValue, false)) {
@@ -536,7 +536,7 @@
                 } else if (Array.isArray(newValue)) { // newValue is an Array
                     if (!Model.isArray(this)) {
                         log('error', "Not Supported: Can not set a non-Array Property to an Array. Delete the property and use createProperty passing it the array");
-                        return;
+                        return this._myValue;
                     } else {
                         if (this.length > newValue.length) { //remove excess
                             this.splice(newValue.length, this.length - newValue.length);
@@ -552,7 +552,7 @@
                 } else { // newValue is a primative (non-object && non-Array)
                     if (this instanceof Model) {
                         log('error', "Not Supported: Can't set a Property value to a model. Delete the property and use createProperty");
-                        return;
+                        return this._myValue;
                     } else {
                         this._myValue = newValue;
                     }
