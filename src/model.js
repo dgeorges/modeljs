@@ -617,6 +617,19 @@
         return this.on(eventProxy.eventType.DESTROY, callback);
     };
 
+    Property.prototype.getRoot = function () {
+        var ancestor = this._parent;
+        while (ancestor._parent !== null) {
+            ancestor = ancestor._parent;
+        }
+        return ancestor;
+    };
+
+    // is this really needed?
+    Property.prototype.getParent = function () {
+        return this._parent;
+    };
+
     /**
      * Triggers the given event on this. Passing the optional argument.
      *
