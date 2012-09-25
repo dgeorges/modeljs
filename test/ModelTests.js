@@ -5,22 +5,28 @@
  *
  * FYI: There may be a better way to do this.
  */
-var assert;
-try {
-    assert = require("assert");
-} catch (e) {
-}
-var Model = Model || require("./../src/model");
-
-var ok = ok || assert.ok;
-var equal = equal || assert.equal;
-var deepEqual = deepEqual || assert.deepEqual;
-
 
 (function (globalNS) { //globalNS === window in the browser or GLOBAL in nodejs
     "use strict";
-    var ModelTests = {};
 
+    // tests assume Model has been loaded to the global NS and qunit has also defined its asserts globally.
+    // This is not the case when running tests on node. So we stub it out to get tests workng.
+    if (typeof require === 'function') {
+        try {
+            var assert = require("assert");
+            GLOBAL.Model = require("./../src/model");
+
+            if (assert && typeof ok !== 'function') {
+                GLOBAL.ok = assert.ok;
+                GLOBAL.equal = assert.equal;
+                GLOBAL.deepEqual = assert.deepEqual;
+            }
+        } catch (e) {
+            console.log("error setting up tests");
+        }
+    }
+
+    var ModelTests = {};
     ModelTests.tests = {
         testPrimitiveSaveLoad : function () {
             var jsonModel = { number: 1,
