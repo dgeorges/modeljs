@@ -215,35 +215,31 @@
                 };
             };
 
-            var propertyParent = property._parent;
             var eventListeners = property._eventListeners[eventName] || [];
-            if (eventName === eventType.CHANGE) { // Change is a special event it can propergate and it's eventArg is the oldValue
+            if (eventName === eventType.CHANGE || eventName === eventType.PROPERTY_CHANGE) {
+                // This event is special both property and model change listeners are notified.
                 var allPropertyListeners = property._eventListeners.propertyChange.concat(property._eventListeners.modelChange);
                 allPropertyListeners.forEach(
                     executeCallbacksFunction(property, property, eventArg)
                 );
 
+            } else { // update listeners registared for the event
+                eventListeners.forEach(
+                    executeCallbacksFunction(property, property, eventArg)
+                );
+            }
+
+
+            // propergate change up the stack for the following events by notifying all ModelChange listers registered.
+            var propertyParent = property._parent;
+            if (eventName === eventType.CHANGE || eventName === eventType.MODEL_CHANGE ||
+                    eventName === eventType.CHILD_CREATED || eventName === eventType.CHILD_DESTROYED) {
                 while (propertyParent) {
                     propertyParent._eventListeners.modelChange.forEach( // when we bubble the event we only notify modelListeners
                         executeCallbacksFunction(property, propertyParent, eventArg)
                     );
                     propertyParent = propertyParent._parent;
                 }
-            } else if (eventName === eventType.DESTROY) { //destroy also notifies its parent childDestroyed listeners
-                eventListeners.forEach(
-                    executeCallbacksFunction(property, property, eventArg)
-                );
-
-                if (propertyParent) {
-                    var childDestroyedListeners = propertyParent._eventListeners.childDestroyed || [];
-                    childDestroyedListeners.forEach(
-                        executeCallbacksFunction(property, propertyParent, eventArg)
-                    );
-                }
-            } else {
-                eventListeners.forEach(
-                    executeCallbacksFunction(property, property, eventArg)
-                );
             }
         }
 
@@ -608,8 +604,8 @@
         var myName = this.getName().substring(this.getName().lastIndexOf('/') + 1);
         delete this._parent[myName];
 
-        eventProxy.fireEvent(eventProxy.eventType.DESTROY, this);
-
+        this.trigger(eventProxy.eventType.DESTROY); //equivlant since no event arg.
+        this._parent.trigger(eventProxy.eventType.CHILD_DESTROYED, this);
         return this;
     };
 

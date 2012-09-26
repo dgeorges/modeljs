@@ -11,7 +11,7 @@
 
     // tests assume Model has been loaded to the global NS and qunit has also defined its asserts globally.
     // This is not the case when running tests on node. So we stub it out to get tests workng.
-    if (typeof require === 'function') {
+    if (typeof require === 'function' && typeof GLOBAL === 'object') {
         try {
             var assert = require("assert");
             GLOBAL.Model = require("./../src/model");
