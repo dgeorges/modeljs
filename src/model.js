@@ -722,16 +722,16 @@
         if (value instanceof Property || Model.isArray(value)) {
             // this is misleading syntax because other property attributes are not copied like _listener and _parent
             // so prevent it and provide alternate. Maybe we could clone, but the suggested is basically a clone and more transparent.
-            log('error', "1Incorrect Syntax: use setValue([property|model].getValue()) instead");
+            log('error', "Incorrect Syntax: use setValue([property|model].getValue()) instead");
             return false;
         } else if (isObject(value) && !(this instanceof Model)) {
             log('error', "1Not Supported: Can't set the Model value to a property. Delete the model and use createProperty");
             return false;
         } else if (Array.isArray(value) && !Model.isArray(this)) { // newValue is an Array
-            log('error', "1Not Supported: Can not set a non-Array Property to an Array. Delete the property and use createProperty passing it the array");
+            log('error', "Not Supported: Can not set a non-Array Property to an Array. Delete the property and use createProperty passing it the array");
             return false;
         } else if (!isObject(value) && !Array.isArray(value) && value !== undefined && (this instanceof Model || Model.isArray(this))) { // value is a primative (non-object && non-Array). this must be as well.
-            log('error', "1Not Supported: Can't set a Property value to a model or Array. Delete the property and use createProperty");
+            log('error', "Not Supported: Can't set a Property value to a model or Array. Delete the property and use createProperty");
             return false;
         }
 
