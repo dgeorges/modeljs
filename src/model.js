@@ -505,35 +505,18 @@
      */
     Property.prototype.setValue = function (value, suppressNotifications) {
         var newValue = value;
-
-        if (newValue instanceof Property || Model.isArray(value)) {
-            // this is misleading syntax because other property attributes are not copied like _listener and _parent
-            // so prevent it and provide alternate.
-            log('error', "Incorrect Syntax: use setValue([property|model].getValue()) instead");
-            return this._myValue;
-        }
-
         // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
         if (newValue !== undefined && newValue !== this._myValue) {
 
-            if (!this.hasValidator() || this.validateValue(newValue)) {
+            if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
 
-                if (isObject(newValue)) {
-                    if (!(this instanceof Model)) {
-                        log('error', "Not Supported: Can't set the Model value to a property. Delete the model and use createProperty");
-                        return this._myValue;
-                    } else {
+                if (isObject(newValue) && (this instanceof Model)) {
                         //This model need to be set to the newValue
                         if (this.merge(newValue, false)) {
                             this._myValue = newValue; //set Value if successful
                         }
-                    }
-                } else if (Array.isArray(newValue)) { // newValue is an Array
-                    if (!Model.isArray(this)) {
-                        log('error', "Not Supported: Can not set a non-Array Property to an Array. Delete the property and use createProperty passing it the array");
-                        return this._myValue;
-                    } else {
+                } else if (Array.isArray(newValue) && Model.isArray(this)) { // newValue is an Array
                         if (this.length > newValue.length) { //remove excess
                             this.splice(newValue.length, this.length - newValue.length);
                         }
@@ -544,14 +527,8 @@
                                 this.push(newValue[i]); // add extra
                             }
                         }
-                    }
                 } else { // newValue is a primative (non-object && non-Array)
-                    if (this instanceof Model) {
-                        log('error', "Not Supported: Can't set a Property value to a model. Delete the property and use createProperty");
-                        return this._myValue;
-                    } else {
-                        this._myValue = newValue;
-                    }
+                    this._myValue = newValue;
                 }
 
                 if (!suppressNotifications) {
@@ -559,7 +536,7 @@
                 }
             }
         }
-        return this._myValue;
+        return this;
     };
 
     /**
@@ -740,6 +717,25 @@
      * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
      */
     Property.prototype.validateValue = function (value) {
+
+        // disallow values that are Model Property or PropertyArray objects
+        if (value instanceof Property || Model.isArray(value)) {
+            // this is misleading syntax because other property attributes are not copied like _listener and _parent
+            // so prevent it and provide alternate. Maybe we could clone, but the suggested is basically a clone and more transparent.
+            log('error', "1Incorrect Syntax: use setValue([property|model].getValue()) instead");
+            return false;
+        } else if (isObject(value) && !(this instanceof Model)) {
+            log('error', "1Not Supported: Can't set the Model value to a property. Delete the model and use createProperty");
+            return false;
+        } else if (Array.isArray(value) && !Model.isArray(this)) { // newValue is an Array
+            log('error', "1Not Supported: Can not set a non-Array Property to an Array. Delete the property and use createProperty passing it the array");
+            return false;
+        } else if (!isObject(value) && !Array.isArray(value) && value !== undefined && (this instanceof Model || Model.isArray(this))) { // value is a primative (non-object && non-Array). this must be as well.
+            log('error', "1Not Supported: Can't set a Property value to a model or Array. Delete the property and use createProperty");
+            return false;
+        }
+
+
         if (this.hasValidator()) {
             return this._metadata.validator(value);
         }
