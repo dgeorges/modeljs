@@ -340,7 +340,7 @@
         }
         var newLength = Array.prototype.push.apply(this, pushArgs);
 
-        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, args);
+        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, pushArgs);
         return newLength;
     };
     ObservableArray.prototype.reverse = function () {
@@ -364,14 +364,16 @@
         return this;
     };
     ObservableArray.prototype.splice = function () {
-        // A little more difficult!!
         var args = Array.prototype.slice.call(arguments),
             removed = Array.prototype.splice.apply(this, args);
         if (removed.length > 0) {
             this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, removed);
         }
-        this._prop.trigger(eventProxy.eventType.CHILD_CREATED); // TODO use count to determin if should be called
-        return removed;
+        if (args.length > 2) { // we are adding new elements
+            var added = args.slice(2);
+            this._prop.trigger(eventProxy.eventType.CHILD_CREATED, added); // TODO use count to determin if should be called
+        }
+        return removed; //splice returns array of removed elements
     };
     ObservableArray.prototype.unshift = function () {
         var args = Array.prototype.slice.call(arguments),
