@@ -484,7 +484,10 @@
      *
      * @return {String} The fully qualified name of this.
      */
-    Property.prototype.getName = function () {
+    Property.prototype.getName = function (shortName) {
+        if (shortName) {
+            return this._name.substring(this._name.lastIndexOf("/") + 1);
+        }
         return this._name;
     };
 
@@ -797,7 +800,7 @@
     function Model(json, metadata, parent) {
         var jsonModel = json || {},
             modelMetadata = metadata || {},
-            modelName = (modelMetadata.name || "root"),
+            modelName = modelMetadata.name !== undefined? modelMetadata.name : "root",
             modelParent = parent || null;
 
         if (modelMetadata.name) { // name is not part of the metadata.
