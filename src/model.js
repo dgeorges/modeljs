@@ -44,8 +44,8 @@
 
     function log(level, message) {
         //Only log when enabled and console log method is available
-        if (Model.enableLogging && typeof console === 'object' && console[level]) {
-            console[level](message);
+        if (Model.enableLogging && typeof globalNS.console === 'object' && globalNS.console[level]) {
+            globalNS.console[level](message);
         }
     }
 
@@ -1299,4 +1299,4 @@
         window["Model"] = Model;
     }
 
-}(this)); //this === window in the browser and GLOBAL in node
+}(typeof window !== 'undefined' ? window : GLOBAL)); //window in the browser and GLOBAL in node
