@@ -311,10 +311,8 @@
      */
     function ObservableArray(myProperty, values) {
         this._prop = myProperty;
-        //Array.call(this); //not needed
         for (var i =0; i < values.length; i++){
-            var property = _createProperty(i, values[i], this, {});
-            this.push(property);
+            this.push(values[i]);
         }
     }
     ObservableArray.prototype = Object.create(Array.prototype);
@@ -328,7 +326,7 @@
     ObservableArray.prototype.push = function () {
         var args = Array.prototype.slice.call(arguments),
             currentLength = this.length,
-            pushArgs = [],
+            pushedArgs = [],
             property,
             i = 0;
         for (i = 0; i < args.length; i++){
@@ -336,11 +334,11 @@
             if (!(property instanceof Property)) {
                 property = _createProperty(currentLength + i, args[i], this, {});
             }
-            pushArgs.push(property);
+            pushedArgs.push(property);
         }
-        var newLength = Array.prototype.push.apply(this, pushArgs);
+        var newLength = Array.prototype.push.apply(this, pushedArgs);
 
-        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, pushArgs);
+        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, pushedArgs);
         return newLength;
     };
     ObservableArray.prototype.reverse = function () {

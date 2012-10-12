@@ -1015,6 +1015,26 @@
             equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPresistObjectPropertyJSON), "metadata serialized correctly");
         },
 
+        testPropertyArrayLoading : function () {
+            var jsonModel0 = {
+                matrix: {
+                    obj2: {
+                        obj3: {
+                            prop: "propValue"
+                        }
+                    }
+                }
+            };
+
+            var jsonModel = {
+                matrix: [[1, 2],[3,4]]
+            };
+
+            var model = new Model(jsonModel);
+
+            deepEqual(JSON.stringify(model.getValue()), JSON.stringify(jsonModel), "Complex Model From JSON and back equal");
+        },
+
         testPropertyArray : function (){
 
             function testPropertyArrayOnlyContainsProperties(propertyArray) {
