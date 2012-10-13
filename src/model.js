@@ -492,6 +492,11 @@
         return this._name;
     };
 
+    Property.prototype.getShortName = function () {
+            return this._name.substring(this._name.lastIndexOf("/") + 1);
+    };
+
+
     /**
      * Called upon a property or Model to set it's Value. If the setValue is the same as the current value,
      * nothing will happen and no change events will be fired. If the value is different it must pass
@@ -768,9 +773,10 @@
                 proto[i] = inherits[i];
             }
         }
-        // array's getValue implementation is different
+        // add array specific implementations
         proto["getValue"] = arrayGetValue;
         proto["setValueAt"] = arraySetValueAt;
+        proto["toJSON"] = arrayGetValue;
 
         return proto;
     }
@@ -1002,7 +1008,6 @@
                     if (!json[modelProp] && //property does exist in merge
                             model.hasOwnProperty(modelProp) &&
                             (model[modelProp] instanceof Property || Model.isArray(model[modelProp])) &&
-                            !modelProp.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX) &&
                             modelProp !== '_parent') { // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
                         model[modelProp].destroy();
                     }
