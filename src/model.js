@@ -461,9 +461,12 @@
      * @return {any} The formatted Value
      */
     Property.prototype.getFormattedValue = function () {
-        if (isFunction(Model.Formatter)) {
+        if (isFunction(this.getMetadata().Formatter)) {
+            return this.getMetadata().Formatter(this.getValue());
+        } else if (isFunction(Model.Formatter)) {
             return Model.Formatter.call(this, this.getValue());
         }
+        // default
         return this.getValue();
     };
 

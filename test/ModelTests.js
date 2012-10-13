@@ -548,6 +548,7 @@
             equal(model.str.getValue(), "unformattedString", "getValue returns raw value");
             equal(model.str.getFormattedValue(), "UNFORMATTEDSTRING", "getFormattedValue returns formatted value");
             equal(model.str.getValue(), "unformattedString", "getValue still returns raw value");
+            equal(model.str2.getValue(), "another string", "getValue return the raw value regardless of Formatters defined");
             equal(model.str2.getFormattedValue(), "localFormatedResult", "Formatter in metadata takes precedence over global Formatter");
 
             Model.Formatter = undefined; //restore formatter
