@@ -962,42 +962,47 @@
     function mergeLoop(model, json, doModification, keepOldProperties) {
 
         for (var name in json) {
-            var value = json[name];
-            if (model[name]) {
-                if (isObject(value)) { // right hand side is an object
-                    if (model[name] instanceof Model) { // left is and Model. -> merging objects
-                        var successful = mergeLoop(model[name], value, doModification, keepOldProperties);
-                        if (!successful) {
+            if (!name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)) {
+                var value = json[name];
+                if (model[name]) {
+                    if (isObject(value)) { // right hand side is an object
+                        if (model[name] instanceof Model) { // left is and Model. -> merging objects
+                            var successful = mergeLoop(model[name], value, doModification, keepOldProperties);
+                            if (!successful) {
+                                return false;
+                            }
+                        } else {
+                            // Trying to assign a model to a property. This will fail.
                             return false;
                         }
-                    } else {
-                        // Trying to assign a model to a property. This will fail.
-                        return false;
-                    }
 
-                } else { // right hand side is not an object.
-                    if (Model.isProperty(model[name])) { // left is a Property -> merging properties
-                        if (doModification) {
-                            model[name].setValue(value);
+                    } else { // right hand side is not an object.
+                        if (Model.isProperty(model[name])) { // left is a Property -> merging properties
+                            if (doModification) {
+                                model[name].setValue(value);
+                            }
+                        } else {
+                            // Trying to assign a property to a Model. This will fail.
+                            return false;
                         }
-                    } else {
-                        // Trying to assign a property to a Model. This will fail.
-                        return false;
                     }
-                }
-            } else { //create new property
-                if (doModification) {
-                    model.createProperty(name, value);
+                } else { //create new property
+                    if (doModification) {
+                        model.createProperty(name, value);
+                    }
                 }
             }
-        }
 
-        // delete properties that are not found in json
-        if (!keepOldProperties && doModification) {
-            for (var modelProp in model) {
-                if (!json[modelProp] && //property does exist in merge
-                        model.hasOwnProperty(modelProp) && (model[modelProp] instanceof Property || Model.isArray(model[modelProp]))&& modelProp !== '_parent') { // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
-                    model[modelProp].destroy();
+            // delete properties that are not found in json
+            if (!keepOldProperties && doModification) {
+                for (var modelProp in model) {
+                    if (!json[modelProp] && //property does exist in merge
+                            model.hasOwnProperty(modelProp) &&
+                            (model[modelProp] instanceof Property || Model.isArray(model[modelProp])) &&
+                            !modelProp.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX) &&
+                            modelProp !== '_parent') { // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
+                        model[modelProp].destroy();
+                    }
                 }
             }
         }
