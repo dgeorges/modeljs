@@ -1,0 +1,14 @@
+/* this is a sample style sheet for a widget */
+table.modeljs-table {
+    width: 60%;
+}
+table.modeljs-table thead th {
+    background-color: #808080;
+}
+
+table.modeljs-table tbody tr:nth-child(odd) {
+   background-color: #fafafa;
+}
+table.modeljs-table tbody tr:nth-child(even) {
+    background-color: #efefef;
+}

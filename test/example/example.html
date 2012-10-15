@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Modeljs Example</title>
+    <script src="../../src/model.js"></script>
+    <!-- import jQuery from a CDN -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+
+    <!-- my custom widget for an example. You could create your own or more likely use a common widget library -->
+    <link rel="stylesheet" type="text/css" href="tableWidget.css" />
+    <script src="tableWidget.js"></script>
+
+
+    <link href="./lib/google-code-prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="./lib/google-code-prettify/prettify.js"></script>
+    <style>
+        .tutorial {
+            height: 16em;
+            width: 100%;
+            position: relative;
+            bottom: 0px;
+            overflow-y: scroll;
+        }
+    </style>
+
+
+    <script type="text/javascript">
+        function addToTable() {
+            var month = $("#month").val();
+            var savings = parseInt($("#savings").val(), 10);
+            var rowJson = [month, savings];
+            model.table.data.push(rowJson);
+        }
+    </script>
+
+</head>
+<body onload="prettyPrint()">
+    <h1> Modeljs Example</h1>
+    <span>
+    This page is an example of how one may use modeljs. It demos the many features of modeljs by using modeljs to create a table widget (show below) and using that widget on this page. You can look directly at the source of how this is done. But I would recommend first going through the tutorial below.
+    </span>
+    <br/>
+    <hr/>
+    <h2>Tutorial</h2>
+    <div>Often when developing an software application of a moderate size an architecture using some varient of MVC is used. Modeljs was created to be the javascript library for the model portion of the MVC pattern for whichever MVC javascript architecture used. This page is an example of how to use Modlejs to create an application model and use that model to create a table widget (AKA the view). The buttons and samplecode below would be the logic found in the controllers. After completing this tutorial hopefully you can see the value of modeljs for whatever purpose brought you here.   </div><br/>
+    <div id="sampleTable2" border="1" class="sample-table">Table:</div>
+    <br/>
+
+    <b>Step 1</b>: The inputs below can be inserted in the table by clicking the "add row" button. While reset will reload the initial state of the table.
+    </br><br/>
+    <div>
+        Month: <input id="month" type='text' value="March"/> <!-- add validator and formatter show live example-->
+        Savings: <input id="savings" type='text' value="123" />
+        <button onclick="addToTable()">add row</button>
+        <button onclick="reset()">reset model</button>
+    </div>
+    <br/>
+
+    <b>Step 2</b>: press F12 to bring up firebug or your browsers equivlant debugger. If you are curious you can now look at the source code or wait till after the tutorial.<br/>
+
+    <br/>
+    <b>Step 3</b>: In the debugger console type the javaScript <code></code> below to learn more:<br/>
+
+    <br/>
+    <pre class="prettyprint tutorial">
+
+model // this is the modeljs model created and used by this page. Inspect it.
+model.getValue(); // this returns the value of the model you were just inspecting. This should be easier to inspect, since it's just a JSON object with the model Values only (no metadata). Notice the table property. We bind this object to the table widget. More on this later.
+
+model.exampleProperty // traversing the Model it is exactly the same as the JSON object.
+
+model.exampleProperty.getMetadata(); // returns he metadata associated with the property. 
+
+/** Feature: metadata custom and **/
+// you can easily add any custom metadata values directly to this object.
+model.exampleProperty.getMetadata().exampleCustomMetadata = "custom value";
+
+// There are a few metadata properties used by the modeljs famework that have special meaning. Lets inspect them now.
+
+// validators
+// lets create a validator that restricts the value to being a string.
+model.exampleProperty.getMetadata().validator = function (value) {
+    return typeof value === 'string'
+    };
+// Now only strings can be assigned to this property.
+// Lets test this.
+model.exampleProperty.setValue(100);
+model.exampleProperty.getValue(); // setValue didn't do anything. it fails silently
+model.exampleProperty.validateValue(100); // if needed we can test before assignment
+model.exampleProperty.hasValidator(); // indicates if a validator exists
+
+model.table.data.getMetadata().validator = function (value) {
+    return (value && value.length === 2 && value[0] && value[1]);
+}
+
+
+//( [validator, Formatter, name, url, refreshRate, isJSONPurl, doNotPresist ])
+    </pre>
+
+</body>
+<script>
+
+// example of a format function
+Model.Formatter = function (value) {
+    var formattedValue = value;
+    if (typeof value === 'number'){
+        formattedValue = "$" + value;
+    }
+    return formattedValue;
+};
+
+// The json model used for this example
+var modelJson =  {
+    exampleProperty: "This is a property whose value is this string",
+    exampleArray: [1,5,3,8,6],
+    exampleObject: {
+        anotherProperty: "we can create a model out of any JSON obect."
+    },
+    table: {
+        header: [
+            "Month",
+            "Savings"
+            ]
+        ,
+        data: [[
+            "January",
+            100
+        ], [
+            "February",
+            150
+        ]]
+    }
+};
+
+/* Logic for save/loading model */
+var LOCAL_STORAGE_ID = "modeljs.sample";
+function supportsLocalStorage() {
+    return ('localStorage' in window) && window['localStorage'] !== null;
+}
+
+function saveState(model) {
+    if (!supportsLocalStorage()) {
+        return false;
+    }
+    localStorage[LOCAL_STORAGE_ID] = JSON.stringify(model.toJSON());
+    return true;
+}
+
+function createNewModel() {
+    return new Model(modelJson);
+}
+
+function loadState() {
+    if (!supportsLocalStorage()) {
+        return new Model(createNewModel());
+    }
+    var saveData = localStorage[LOCAL_STORAGE_ID];
+    if (saveData){
+        var savedModel = JSON.parse(localStorage[LOCAL_STORAGE_ID]);
+        return new Model(savedModel);
+    }
+    return createNewModel();
+}
+
+
+// initiate model
+var model = loadState();
+
+function reset() {
+    model.merge(modelJson);
+}
+
+// every time the model changes we save it to local storage
+model.onChange(function (changedProperty, oldValue) {
+    saveState(this); // this is what the event was registared on. (ie. the model)
+}, true);
+
+// create a table widet from the model and add it to the page.
+var myTable = new TableWidget(model.table);
+$("#sampleTable2").append(myTable.getWidget());
+
+
+</script>
+</html>
