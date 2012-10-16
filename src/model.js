@@ -498,7 +498,7 @@
 
 
     /**
-     * Called upon a property or Model to set it's Value. If the setValue is the same as the current value,
+     * Called to set the value of a property. If the setValue is the same as the current value,
      * nothing will happen and no change events will be fired. If the value is different it must pass
      * the validator if there is one.  If it does pass the validator and the value is changed, all registered
      * listeners will be notified unless the suppressNotifications option indicates otherwise.
@@ -512,7 +512,7 @@
      * @param  {[String, Boolean, Number, null, Date, Function, Object]} newValue The Value you want to assign to the Property.
      * @param  {[Boolean]} suppressNotifications? Indicating if listeners should be notified of change.
      *
-     * @return {[string, boolean, number, null, function, object]}          The resulting value. If the operation was successful this will be the passed in value otherwise it will be the existing one.
+     * @return {[this]} this for method chaining.
      */
     Property.prototype.setValue = function (value, suppressNotifications) {
         var newValue = value;
@@ -522,25 +522,7 @@
             if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
 
-                if (isObject(newValue) && (this instanceof Model)) {
-                        //This model need to be set to the newValue
-                        if (this.merge(newValue, false)) {
-                            this._myValue = newValue; //set Value if successful
-                        }
-                } else if (Array.isArray(newValue) && Model.isArray(this)) { // newValue is an Array
-                        if (this.length > newValue.length) { //remove excess
-                            this.splice(newValue.length, this.length - newValue.length);
-                        }
-                        for (var i = 0; i < newValue.length; i++) {
-                            if (this[i]) {
-                                this[i].setValue(newValue[i]);
-                            } else {
-                                this.push(newValue[i]); // add extra
-                            }
-                        }
-                } else { // newValue is a primative (non-object && non-Array)
-                    this._myValue = newValue;
-                }
+                this._myValue = newValue;
 
                 if (!suppressNotifications) {
                     eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
@@ -724,7 +706,7 @@
      *
      * @method  validateValue
      *
-     * @param  {[String, Boolean, Number, null, Date, Function, Object]} value A value to test against the validation function if it exists.
+     * @param  {[String, Boolean, Number, null, Date, Function]} value A value to test against the validation function if it exists.
      * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
      */
     Property.prototype.validateValue = function (value) {
@@ -733,19 +715,12 @@
         if (value instanceof Property || Model.isArray(value)) {
             // this is misleading syntax because other property attributes are not copied like _listener and _parent
             // so prevent it and provide alternate. Maybe we could clone, but the suggested is basically a clone and more transparent.
-            log('error', "Incorrect Syntax: use setValue([property|model].getValue()) instead");
+            log('error', "Incorrect Syntax: use setValue([property].getValue()) instead");
             return false;
-        } else if (isObject(value) && !(this instanceof Model)) {
-            log('error', "1Not Supported: Can't set the Model value to a property. Delete the model and use createProperty");
-            return false;
-        } else if (Array.isArray(value) && !Model.isArray(this)) { // newValue is an Array
-            log('error', "Not Supported: Can not set a non-Array Property to an Array. Delete the property and use createProperty passing it the array");
-            return false;
-        } else if (!isObject(value) && !Array.isArray(value) && value !== undefined && (this instanceof Model || Model.isArray(this))) { // value is a primative (non-object && non-Array). this must be as well.
+        } else if (isObject(value) || Array.isArray(value)) { // value is a primative (non-object && non-Array). this must be as well.
             log('error', "Not Supported: Can't set a Property value to a model or Array. Delete the property and use createProperty");
             return false;
         }
-
 
         if (this.hasValidator()) {
             return this._metadata.validator(value);
@@ -753,18 +728,6 @@
         return true;
     };
 
-    var arrayGetValue = function () {
-        var value = [],
-            i = 0;
-        for (i = 0; i < this.length; i++) {
-            value[i] = this[i].getValue();
-        }
-        return value;
-    };
-
-    var arraySetValueAt = function (index, value, metadata) {
-        this[index] = _createProperty(index, value, this, metadata || {});
-    };
 
     function createArrayPrototype(isA, inherits) {
         var proto = Object.create(isA);
@@ -773,19 +736,119 @@
                 proto[i] = inherits[i];
             }
         }
-        // add array specific implementations
-        proto["getValue"] = arrayGetValue;
-        proto["setValueAt"] = arraySetValueAt;
-        proto["toJSON"] = arrayGetValue;
 
         return proto;
     }
 
+
+   /**
+     * The model Object that wraps an javaScript Array.
+     *
+     * @example
+     * For examples see: <b>testPrimitiveSaveLoad</b>,  <b>testObjectsSaveLoad</b>, <b>testComplexSaveLoad</b>
+     * <b>testGetNameMethod</b> and <b>testSaveLoadWithMetaData</b>
+     *
+     * @class ArrayProperty
+     * @constructor
+     * @extends Property
+     *
+     * @param {Object} json?    The json object to be modeled.
+     * @param {Object} metadata? May contain the following:
+     *                         name - name of the Model, defaults to "root"
+     *                         *plus any properties accepted by the createProperty method metadata argument or
+     *                          additional data you want stored in the metadata.
+     */
     function ArrayProperty(name, value, parent, metadata) {
         Property.call(this, name, value, parent, metadata);
         ObservableArray.call(this, this, value);
     }
     ArrayProperty.prototype = createArrayPrototype(ObservableArray.prototype, Property.prototype);
+
+    /**
+     * Called to set the value of a ArrayProperty. If the setValue is the same as the current value,
+     * nothing will happen and no change events will be fired. If the value is different it must pass
+     * the validator if there is one.  If it does pass the validator and the value is changed, all registered
+     * listeners will be notified unless the suppressNotifications option indicates otherwise.
+     *
+     * @method  setValue
+     * @for  ArrayProperty
+     *
+     * @param  {[Array]} newValue The Value you want to assign to this.
+     * @param  {[Boolean]} suppressNotifications? Indicating if listeners should be notified of change.
+     *
+     * @return {[this]} this for method chaining.
+     */
+    ArrayProperty.prototype.setValue = function (value, suppressNotifications) {
+        var newValue = value;
+        // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
+        if (newValue !== undefined && newValue !== this._myValue) { //!== needs to be done another way.
+
+            if (this.validateValue(newValue)) {
+                var oldValue = this._myValue;
+                 if (Array.isArray(newValue) && Model.isArray(this)) { // newValue is an Array
+                    if (this.length > newValue.length) { //remove excess
+                        this.splice(newValue.length, this.length - newValue.length);
+                    }
+                    for (var i = 0; i < newValue.length; i++) {
+                        if (this[i]) {
+                            this[i].setValue(newValue[i]);
+                        } else {
+                            this.push(newValue[i]); // add extra
+                        }
+                    }
+                }
+                // fix suppressNotifications. Should be in transaction. what if tranaction already there?
+                if (!suppressNotifications) {
+                    eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
+                }
+            }
+        }
+        return this;
+    };
+
+    ArrayProperty.prototype.getValue = function () {
+        var value = [],
+            i = 0;
+        for (i = 0; i < this.length; i++) {
+            value[i] = this[i].getValue();
+        }
+        return value;
+    };
+    ArrayProperty.prototype.toJSON = ArrayProperty.prototype.getValue;
+
+    ArrayProperty.prototype.setValueAt = function (index, value, metadata) {
+        this[index] = _createProperty(index, value, this, metadata || {});
+    };
+
+  /**
+     * Determines if the given value will pass the validation function of this.
+     *
+     * @example
+     * For examples see:  <b>testPropertyValidationFunction</b>
+     *
+     * @method  validateValue
+     *
+     * @param  {[Array]} value A value to test against the validation function if it exists.
+     * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
+     */
+    ArrayProperty.prototype.validateValue = function (value) {
+
+        // disallow values that are Model Property or PropertyArray objects
+        if (value instanceof Property || Model.isArray(value)) {
+            // this is misleading syntax because other property attributes are not copied like _listener and _parent
+            // so prevent it and provide alternate. Maybe we could clone, but the suggested is basically a clone and more transparent.
+            log('error', "Incorrect Syntax: use setValue([ArrayProperty].getValue()) instead");
+            return false;
+        } else if (!Array.isArray(value)) { // newValue is an Array
+            log('error', "Not Supported: Can not set a non-Array Property to an Array. Delete the property and use createProperty passing it the array");
+            return false;
+        }
+
+        if (this.hasValidator()) {
+            return this._metadata.validator(value);
+        }
+        return true;
+    };
 
    /**
      * The model Object that wraps the JSON.
@@ -817,7 +880,7 @@
         //A Model is in itself a Property so lets call our supers constructor
         Property.call(this, modelName, jsonModel, modelParent, modelMetadata);
 
-        if (this.validateValue(json)) {
+        if (this.validateValue(jsonModel)) {
 
             for (var name in jsonModel) {
                 if (name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)) { // skip special meta data properties
@@ -825,7 +888,7 @@
                 }
 
                 var value = jsonModel[name];
-                var propertyMetadata = json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
+                var propertyMetadata = jsonModel[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
 
 
                 this.createProperty(name, value, propertyMetadata);
@@ -864,6 +927,73 @@
     Model.prototype.getValue = function () {
         return this.toJSON();
     };
+
+    /**
+     * Called to set the value of a model. If the setValue is the same as the current value,
+     * nothing will happen and no change events will be fired. If the value is different it must pass
+     * the validator if there is one.  If it does pass the validator and the value is changed, all registered
+     * listeners will be notified unless the suppressNotifications option indicates otherwise.
+     *
+     * @method  setValue
+     * @for  Model
+     *
+     * @param  {[Object]} newValue The Value you want to assign to this.
+     * @param  {[Boolean]} suppressNotifications? Indicating if listeners should be notified of change.
+     *
+     * @return {[this]} this for method chaining.
+     */
+    Model.prototype.setValue = function (value, suppressNotifications) {
+        var newValue = value;
+        // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
+        if (newValue !== undefined && JSON.stringify(newValue) !== JSON.stringify(this.toJSON())) {  //TODO  figure this out
+
+            if (this.validateValue(newValue)) {
+                var oldValue = this._myValue;
+
+                //This model need to be set to the newValue
+                if (this.merge(newValue, false)) {
+                    this._myValue = newValue; //set Value if successful
+                }
+                // fix suppressNotification should go around Merge!
+                if (!suppressNotifications) {
+                    eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
+                }
+            }
+        }
+        return this;
+    };
+
+       /**
+     * Determines if the given value will pass the validation function of this.
+     *
+     * @example
+     * For examples see:  <b>testPropertyValidationFunction</b>
+     *
+     * @method  validateValue
+     * @for  Model
+     *
+     * @param  {[Object]} value A value to test against the validation function if it exists.
+     * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
+     */
+    Model.prototype.validateValue = function (value) {
+
+        // disallow values that are Model Property or PropertyArray objects
+        if (value instanceof Property || Model.isArray(value)) {
+            // this is misleading syntax because other property attributes are not copied like _listener and _parent
+            // so prevent it and provide alternate. Maybe we could clone, but the suggested is basically a clone and more transparent.
+            log('error', "Incorrect Syntax: use setValue([model].getValue()) instead");
+            return false;
+        } else if (!isObject(value)) {
+            log('error', "Not Supported: Can't set the Model value to a non Model value. Delete the model and use createProperty to change it's type");
+            return false;
+        }
+
+        if (this.hasValidator()) {
+            return this._metadata.validator(value);
+        }
+        return true;
+    };
+
 
     var MIN_MODEL_REFRESH_RATE = 100;
     function _createProperty (name, value, parent, metadata) {
