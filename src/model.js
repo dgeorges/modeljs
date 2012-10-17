@@ -570,12 +570,14 @@
      *
      * @return {Property}   The deleted Property.
      */
-    Property.prototype.destroy = function () {
+    Property.prototype.destroy = function (suppressNotifications) {
         var myName = this.getName().substring(this.getName().lastIndexOf('/') + 1);
         delete this._parent[myName];
 
-        this.trigger(eventProxy.eventType.DESTROY); //equivlant since no event arg.
-        this._parent.trigger(eventProxy.eventType.CHILD_DESTROYED, this);
+        if (!suppressNotifications) {
+            this.trigger(eventProxy.eventType.DESTROY); //equivlant since no event arg.
+            this._parent.trigger(eventProxy.eventType.CHILD_DESTROYED, this);
+        }
         return this;
     };
 
@@ -785,16 +787,14 @@
 
             if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
-                 if (Array.isArray(newValue) && Model.isArray(this)) { // newValue is an Array
-                    if (this.length > newValue.length) { //remove excess
-                        this.splice(newValue.length, this.length - newValue.length);
-                    }
-                    for (var i = 0; i < newValue.length; i++) {
-                        if (this[i]) {
-                            this[i].setValue(newValue[i]);
-                        } else {
-                            this.push(newValue[i]); // add extra
-                        }
+                if (this.length > newValue.length) { //remove excess
+                    this.splice(newValue.length, this.length - newValue.length);
+                }
+                for (var i = 0; i < newValue.length; i++) {
+                    if (this[i]) {
+                        this[i].setValue(newValue[i], suppressNotifications);
+                    } else {
+                        this.push(newValue[i]); // add extra
                     }
                 }
                 // fix suppressNotifications. Should be in transaction. what if tranaction already there?
@@ -817,6 +817,7 @@
     ArrayProperty.prototype.toJSON = ArrayProperty.prototype.getValue;
 
     ArrayProperty.prototype.setValueAt = function (index, value, metadata) {
+        // This doesn't fire any notifications! not sure if function required?
         this[index] = _createProperty(index, value, this, metadata || {});
     };
 
@@ -951,11 +952,12 @@
                 var oldValue = this._myValue;
 
                 //This model need to be set to the newValue
-                if (this.merge(newValue, false)) {
+                var mergeSuccessful = this.merge(newValue, false, suppressNotifications);
+                if (mergeSuccessful) {
                     this._myValue = newValue; //set Value if successful
                 }
                 // fix suppressNotification should go around Merge!
-                if (!suppressNotifications) {
+                if (mergeSuccessful && !suppressNotifications) {
                     eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
                 }
             }
@@ -1065,14 +1067,17 @@
      *
      * @return {Model}         Returns this for method chaining
      */
-    Model.prototype.createProperty = function createProperty(name, value, metadata) {
+    Model.prototype.createProperty = function createProperty(name, value, metadata, suppressNotifications) {
 
         if (value instanceof Property || Model.isArray(value)) {
             log('error', "Unsupported Operation: Try passing the Model/Properties value instead");
             return;
         }
-        this[name] = _createProperty(name, value, this, metadata);
-        this.trigger(eventProxy.eventType.CHILD_CREATED, this[name]);
+
+        if (!suppressNotifications) {
+            this[name] = _createProperty(name, value, this, metadata);
+            this.trigger(eventProxy.eventType.CHILD_CREATED, this[name]);
+        }
         return this;
     };
 
@@ -1098,7 +1103,7 @@
         return new Model(this.toJSON(true), options);
     };
 
-    function mergeLoop(model, json, doModification, keepOldProperties) {
+    function mergeLoop(model, json, doModification, keepOldProperties, suppressNotifications) {
 
         for (var name in json) {
             if (!name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)) {
@@ -1106,7 +1111,7 @@
                 if (model[name]) {
                     if (isObject(value)) { // right hand side is an object
                         if (model[name] instanceof Model) { // left is and Model. -> merging objects
-                            var successful = mergeLoop(model[name], value, doModification, keepOldProperties);
+                            var successful = mergeLoop(model[name], value, doModification, keepOldProperties, suppressNotifications);
                             if (!successful) {
                                 return false;
                             }
@@ -1118,7 +1123,7 @@
                     } else { // right hand side is not an object.
                         if (Model.isProperty(model[name])) { // left is a Property -> merging properties
                             if (doModification) {
-                                model[name].setValue(value);
+                                model[name].setValue(value, suppressNotifications);
                             }
                         } else {
                             // Trying to assign a property to a Model. This will fail.
@@ -1127,7 +1132,7 @@
                     }
                 } else { //create new property
                     if (doModification) {
-                        model.createProperty(name, value);
+                        model.createProperty(name, value, {}, suppressNotifications);
                     }
                 }
             }
@@ -1139,7 +1144,7 @@
                             model.hasOwnProperty(modelProp) &&
                             (model[modelProp] instanceof Property || Model.isArray(model[modelProp])) &&
                             modelProp !== '_parent') { // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
-                        model[modelProp].destroy();
+                        model[modelProp].destroy(suppressNotifications);
                     }
                 }
             }
@@ -1163,12 +1168,12 @@
      * @param  {[Boolean]} keepOldProperties? True if you want to keep properties that exist in this but not in the passed in json, Otherwise they will be deleted. Defaults to false.
      * @return {Boolean}                   Returns true if merge was successful, false otherwise.
      */
-    Model.prototype.merge = function (json, keepOldProperties) {
+    Model.prototype.merge = function (json, keepOldProperties, suppressNotifications) {
         //will merge the properties in json with this. result will be the same as the Object extend.
         //if a property exists in the model but not in the json it will only be kept if keepOldProperties is true.
         if (mergeLoop(this, json, false, keepOldProperties)) { // check if merge will be successful
             Model.startTransaction();
-            mergeLoop(this, json, true, keepOldProperties);
+            mergeLoop(this, json, true, keepOldProperties, suppressNotifications);
             Model.endTransaction();
             return true;
         } else {
