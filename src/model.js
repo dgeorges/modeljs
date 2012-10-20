@@ -568,7 +568,7 @@
      *
      * @method  destroy
      *
-     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of destroy.
      * @return {Property}   The deleted Property.
      */
     Property.prototype.destroy = function (suppressNotifications) {
@@ -745,7 +745,8 @@
 
 
    /**
-     * The modeljs Object that wraps an javaScript Array.
+     * The modeljs Object that extends a javaScript Array with Property methods.
+     * Array function like push, pop etc... can be used.
      *
      * @example
      * For examples see: <b>testPrimitiveSaveLoad</b>,  <b>testObjectsSaveLoad</b>, <b>testComplexSaveLoad</b>
@@ -811,6 +812,7 @@
         return value;
     };
     ArrayProperty.prototype.toJSON = ArrayProperty.prototype.getValue;
+
 
     ArrayProperty.prototype.setValueAt = function (index, value, metadata) {
         // This doesn't fire any notifications! not sure if function required?
@@ -887,8 +889,9 @@
                 var value = jsonModel[name];
                 var propertyMetadata = jsonModel[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
 
-
-                this.createProperty(name, value, propertyMetadata);
+                if (!modelMetadata.thin) {
+                    this.createProperty(name, value, propertyMetadata);
+                }
             }
         }
     }
@@ -922,6 +925,9 @@
      * @return {Object} The json Object represented by the model
      */
     Model.prototype.getValue = function () {
+        if (this._metadata.thin) {
+            return this._myValue;
+        }
         return this.toJSON();
     };
 
@@ -942,7 +948,7 @@
     Model.prototype.setValue = function (value, suppressNotifications) {
         var newValue = value;
         // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
-        if (newValue !== undefined && JSON.stringify(newValue) !== JSON.stringify(this.toJSON())) {  //TODO  figure this out
+        if (newValue !== undefined && JSON.stringify(newValue) !== JSON.stringify(this.getValue())) {  //TODO  figure this out
 
             if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
@@ -1060,6 +1066,7 @@
      *                         </li><li>
      *                             <b>doNotPersist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
      *                         </li></ul>
+     *
      * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
      *
      * @return {Model}         Returns this for method chaining
@@ -1068,11 +1075,14 @@
 
         if (value instanceof Property || Model.isArray(value)) {
             log('error', "Unsupported Operation: Try passing the Model/Properties value instead");
-            return;
+            return this;
+        } else if (this._metadata.thin) {
+            log('error', "Unsupported Operation: Can not create a property on a Thin model.");
+            return this;
         }
 
+        this[name] = _createProperty(name, value, this, metadata);
         if (!suppressNotifications) {
-            this[name] = _createProperty(name, value, this, metadata);
             this.trigger(eventProxy.eventType.CHILD_CREATED, this[name]);
         }
         return this;
@@ -1165,7 +1175,10 @@
     Model.prototype.merge = function (json, keepOldProperties, suppressNotifications) {
         //will merge the properties in json with this. result will be the same as the Object extend.
         //if a property exists in the model but not in the json it will only be kept if keepOldProperties is true.
-        if (mergeLoop(this, json, false, keepOldProperties)) { // check if merge will be successful
+        if (this._metadata.thin) {
+            this._myValue = json;
+            return true;
+        } else if (mergeLoop(this, json, false, keepOldProperties)) { // check if merge will be successful
             Model.startTransaction();
             mergeLoop(this, json, true, keepOldProperties, suppressNotifications);
             Model.endTransaction();
@@ -1195,6 +1208,13 @@
         var json = {};
         if (this._myValue === undefined) {
             return undefined;
+        }
+
+        if (this._metadata.thin) {
+            if (this._metadata.doNotPersist) {
+                return {};
+            }
+            return this.getValue();
         }
 
         for (var name in this) {

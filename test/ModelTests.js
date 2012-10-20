@@ -1023,6 +1023,39 @@
             equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPersistObjectPropertyJSON), "metadata serialized correctly");
         },
 
+        testThinModel : function () {
+            var jsonModel = {
+                matrix: {
+                    obj2: {
+                        obj3: {
+                            prop: "propValue"
+                        }
+                    }
+                }
+            };
+
+            var jsonModel2 = {
+                a: {
+                    b: {
+                        c:1
+                    }
+                }
+            };
+
+            var model = new Model(jsonModel, {thin:true});
+
+            // create property should fail
+            model.createProperty("subProp", "shouldFail");
+            equal(model.subProp, undefined, "Can not create Properties on a Model that is thin");
+
+            deepEqual(JSON.stringify(model.getValue()), JSON.stringify(jsonModel), "getValue still works on thin models");
+
+            model.merge(jsonModel2);
+            deepEqual(JSON.stringify(model.getValue()), JSON.stringify(jsonModel2), "merge still works on thin models");
+
+            deepEqual(JSON.stringify(model.toJSON(true)), JSON.stringify(jsonModel2), "toJSON still works on thin models");
+        },
+
         testPropertyArrayLoading : function () {
             var jsonModel0 = {
                 matrix: {
