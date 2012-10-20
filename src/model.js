@@ -744,7 +744,7 @@
 
 
    /**
-     * The model Object that wraps an javaScript Array.
+     * The modeljs Object that wraps an javaScript Array.
      *
      * @example
      * For examples see: <b>testPrimitiveSaveLoad</b>,  <b>testObjectsSaveLoad</b>, <b>testComplexSaveLoad</b>
@@ -754,11 +754,6 @@
      * @constructor
      * @extends Property
      *
-     * @param {Object} json?    The json object to be modeled.
-     * @param {Object} metadata? May contain the following:
-     *                         name - name of the Model, defaults to "root"
-     *                         *plus any properties accepted by the createProperty method metadata argument or
-     *                          additional data you want stored in the metadata.
      */
     function ArrayProperty(name, value, parent, metadata) {
         Property.call(this, name, value, parent, metadata);
@@ -1111,8 +1106,7 @@
                 if (model[name]) {
                     if (isObject(value)) { // right hand side is an object
                         if (model[name] instanceof Model) { // left is and Model. -> merging objects
-                            var successful = mergeLoop(model[name], value, doModification, keepOldProperties, suppressNotifications);
-                            if (!successful) {
+                            if (!mergeLoop(model[name], value, doModification, keepOldProperties, suppressNotifications)) {
                                 return false;
                             }
                         } else {

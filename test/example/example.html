@@ -47,7 +47,7 @@
     <div id="sampleTable2" border="1" class="sample-table">Table:</div>
     <br/>
 
-    <b>Step 1</b>: The inputs below can be inserted in the table by clicking the "add row" button. While reset will reload the initial state of the table.
+    <b>Step 1</b>: The inputs below can be inserted in the table by clicking the "add row" button. While reset will reload the initial state of the table. Play around with the buttons. Notice if you close the page and come back to it your state is saved.
     </br><br/>
     <div>
         Month: <input id="month" type='text' value="March"/> <!-- add validator and formatter show live example-->
@@ -68,26 +68,71 @@
 model // this is the modeljs model created and used by this page. Inspect it.
 model.getValue(); // this returns the value of the model you were just inspecting. This should be easier to inspect, since it's just a JSON object with the model Values only (no metadata). Notice the table property. We bind this object to the table widget. More on this later.
 
-model.exampleProperty // traversing the Model it is exactly the same as the JSON object.
+ // This is how you would traversing the Model and perform operations
+model.table.data;
+model.exampleProperty.getValue();
+model.table.data[1][1].getValue();
+model.table.data[1][1].setValue(999999); // Notice this changed the value on the table.
 
-model.exampleProperty.getMetadata(); // returns he metadata associated with the property. 
+/* Lets go through some features of modeljs using model and tableWidget found on this page */
 
-/** Feature: metadata custom and **/
-// you can easily add any custom metadata values directly to this object.
+/** Feature: Metadata **/
+// Every model object has a metadata object associated with it.
+model.exampleProperty.getMetadata();
+
+/** Feature: custom metadata **/
+// You can easily add any custom metadata values directly to this object.
 model.exampleProperty.getMetadata().exampleCustomMetadata = "custom value";
 
-// There are a few metadata properties used by the modeljs famework that have special meaning. Lets inspect them now.
+/** Feature: load/save **/
+// Model Metadata can be saved and loaded with the model. We've already see how closing and reopening the page keeps your state. Here is how it's done.
+model.toJSON(); // give you the model JSON to persist.
+model.toJSON(true); // passing true will return he metadata as well.
 
-// validators
-// lets create a validator that restricts the value to being a string.
+// This page uses your browser local storage to store its state. see http://diveintohtml5.info/storage.html#halma for more about this.
+
+// To restore your model from the JSON just use it to re-create the model. This is esentially what clone does.
+var tableModelFromJSON = new Model(model.table.toJSON(true));
+
+/** Feature: clone() **/
+var clonedTableModel = model.table.clone(); 
+
+/** Feature: getName() **/
+// get Name returns the fully qualified name of the property.
+model.table.data.getName(); // === "/root/table/data"
+
+//Notice the difference between the name of the tableModelFromJSON and your clone. read the jsdoc to learn more about what clone does exactly.
+tableModelFromJSON.getName(); // === "/root"
+clonedTableModel.getName(); // === "/data"
+
+// Keeping the name of the property is one thing clone does for you.
+
+// Let look at other thing stored in the metadata
+/** Feature: validators **/
+// We can add validation functions to any Property. Lets create a validator that restricts the value to being a string.
 model.exampleProperty.getMetadata().validator = function (value) {
     return typeof value === 'string'
     };
-// Now only strings can be assigned to this property.
-// Lets test this.
+// Now only strings can be assigned to this property. Lets test this.
 model.exampleProperty.setValue(100);
-model.exampleProperty.getValue(); // setValue didn't do anything. it fails silently
-model.exampleProperty.validateValue(100); // if needed we can test before assignment
+model.exampleProperty.getValue(); // setValue didn't do anything. it fails silently. 
+
+// We can explicitly test validation before assignment by calling validateValue();
+model.exampleProperty.validateValue(100); // returns false;
+model.exampleProperty.hasValidator(); // tell you if a validator exists
+
+
+// example of a format function
+Model.Formatter = function (value) {
+    var formattedValue = value;
+    if (typeof value === 'number'){
+        formattedValue = "$" + value;
+    }
+    return formattedValue;
+};
+
+
+
 model.exampleProperty.hasValidator(); // indicates if a validator exists
 
 model.table.data.getMetadata().validator = function (value) {
@@ -100,15 +145,6 @@ model.table.data.getMetadata().validator = function (value) {
 
 </body>
 <script>
-
-// example of a format function
-Model.Formatter = function (value) {
-    var formattedValue = value;
-    if (typeof value === 'number'){
-        formattedValue = "$" + value;
-    }
-    return formattedValue;
-};
 
 // The json model used for this example
 var modelJson =  {
