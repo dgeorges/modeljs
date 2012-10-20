@@ -961,7 +961,7 @@
 
         },
 
-        testDoNotPresist : function (){
+        testDoNotPersist : function (){
            var jsonModel = {
                     number: 1,
                     str: "aString",
@@ -982,10 +982,10 @@
             var model = new Model(jsonModel);
             equal(JSON.stringify(model.toJSON(true)), JSON.stringify(jsonModel), "metadata serialized correctly");
 
-            var doNotPresistNumberPropertyJSON = {
+            var doNotPersistNumberPropertyJSON = {
                     number: null,
                     number__modeljs__metadata: {
-                        doNotPresist: true
+                        doNotPersist: true
                     },
                     str: "aString",
                     bool: true,
@@ -1002,11 +1002,11 @@
                     }
                 };
 
-            model.number.getMetadata().doNotPresist = true;
-            equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPresistNumberPropertyJSON), "metadata serialized correctly");
-            delete model.number.getMetadata().doNotPresist; // restore original
+            model.number.getMetadata().doNotPersist = true;
+            equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPersistNumberPropertyJSON), "metadata serialized correctly");
+            delete model.number.getMetadata().doNotPersist; // restore original
 
-            var doNotPresistObjectPropertyJSON = {
+            var doNotPersistObjectPropertyJSON = {
                     number: 1,
                     str: "aString",
                     bool: true,
@@ -1015,12 +1015,12 @@
                     fun: function () {return "I am a function";},
                     subModel: {},
                     subModel__modeljs__metadata: {
-                        doNotPresist: true
+                        doNotPersist: true
                     }
                 };
 
-            model.subModel.getMetadata().doNotPresist = true;
-            equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPresistObjectPropertyJSON), "metadata serialized correctly");
+            model.subModel.getMetadata().doNotPersist = true;
+            equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPersistObjectPropertyJSON), "metadata serialized correctly");
         },
 
         testPropertyArrayLoading : function () {
@@ -1295,7 +1295,7 @@
                 var test = new Model();
                 test.createProperty ("remoteModel", {prop1: "defaultValue"}, {
                     url: "http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback",
-                    doNotPresist: true,
+                    doNotPersist: true,
                     refreshRate: -1, // -1 means fetch once.
                     isJSONPurl: true,
                     validator: function() {

@@ -674,7 +674,7 @@
      * pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
      * when creating a model from the very same json. Note: the modeljs framework uses the metadata to
      * store attributes associated the properties that is uses. As a result the following keys have
-     * special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]</b>
+     * special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPersist ]</b>
      *
      * For example see: <b>testGetMetadataMethod</b>
      *
@@ -1036,7 +1036,7 @@
      *     }),
      *     .createProperty ("remoteModel", {prop1: "defaultValue"}, { // a remote model populated via the twitter rest api.
      *         url: "http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback",
-     *         doNotPresist: true,
+     *         doNotPersist: true,
      *         refreshRate: -1, // -1 means fetch once.
      *         isJSONPurl: true
      *     }); // Note the method chaining.
@@ -1057,7 +1057,7 @@
      *                         </li><li>
      *                             <b>isJSONPurl</b> {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string "$jsonpCallback" where the jsonp callback function should be inserted.
      *                         </li><li>
-     *                             <b>doNotPresist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+     *                             <b>doNotPersist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
      *                         </li></ul>
      *
      * @return {Model}         Returns this for method chaining
@@ -1180,11 +1180,11 @@
     /**
      * Retrieves the json representation of this. This json representation can be used in the Model Constructor
      * to recreate the same Model object. If you use includeMetaData validator metadata will be included.
-     * Properties that have the doNotPresist flag in it's metadata will have it's value nullified. This means
+     * Properties that have the doNotPersist flag in it's metadata will have it's value nullified. This means
      * properties will have the value set to 'undefined' while models will be set to an empty object ({}).
      *
      * @example
-     * For an example see: <b>testSaveLoadWithMetaData</b> and <b>testDoNotPresist</b>
+     * For an example see: <b>testSaveLoadWithMetaData</b> and <b>testDoNotPersist</b>
      *
      * @method  toJSON
      *
@@ -1202,7 +1202,7 @@
                 // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable. and would cause infinite recursion
                 var property = this[name];
                 if (property instanceof Model) {
-                    if (property.getMetadata().doNotPresist) {
+                    if (property.getMetadata().doNotPersist) {
                         json[name] = {};
                     } else {
                         json[name] = property.toJSON(includeMetaData);
@@ -1211,7 +1211,7 @@
                         json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
                     }
                 } else if (Model.isProperty(property)) {
-                    if (property.getMetadata().doNotPresist) {
+                    if (property.getMetadata().doNotPersist) {
                         json[name] = null;
                     } else {
                         json[name] = property.getValue();
