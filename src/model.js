@@ -1090,12 +1090,9 @@
      * @return {Model}  Returns a new Model object rooted at this, keeping any metadata but no event listeners.
      */
     Model.prototype.clone = function () {
-        var myName = this.getName();
-        var options = {
-            name: myName.substring(myName.lastIndexOf("/") + 1),
-            validator: this._metadata.validator
-        };
-        return new Model(this.toJSON(true), options);
+        var metadata = JSON.parse(JSON.stringify(this.getMetadata()));
+        metadata.name = this.getShortName();
+        return new Model(this.toJSON(true), metadata);
     };
 
     function mergeLoop(model, json, doModification, keepOldProperties, suppressNotifications) {
