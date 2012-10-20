@@ -453,6 +453,13 @@
         return this._myValue;
     };
 
+    Property.prototype.toJSON = function () {
+        if (this.getMetadata().doNotPersist) {
+            return null; // is this correct? maybe undefined?
+        }
+        return this.getValue();
+    };
+
     /**
      * Return the formatted value calculated by asking the Model.Formatter to format the value of this.
      *
@@ -811,7 +818,19 @@
         }
         return value;
     };
-    ArrayProperty.prototype.toJSON = ArrayProperty.prototype.getValue;
+    ArrayProperty.prototype.toJSON = function (includeMetaData) {
+        var json = [],
+            i = 0;
+
+        if (this.getMetadata().doNotPersist){
+            return [];
+        }
+
+        for (i = 0; i < this.length; i++) {
+            json[i] = this[i].toJSON(includeMetaData);
+        }
+        return json;
+    };
 
 
     ArrayProperty.prototype.setValueAt = function (index, value, metadata) {
@@ -1208,41 +1227,23 @@
         var json = {};
         if (this._myValue === undefined) {
             return undefined;
-        }
-
-        if (this._metadata.thin) {
-            if (this._metadata.doNotPersist) {
-                return {};
-            }
+        } else if (this.getMetadata().doNotPersist){
+            return {};
+        } else if (this._metadata.thin) {
             return this.getValue();
-        }
-
-        for (var name in this) {
-            if (this.hasOwnProperty(name) && name !== '_parent') {
-                // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable. and would cause infinite recursion
-                var property = this[name];
-                if (property instanceof Model) {
-                    if (property.getMetadata().doNotPersist) {
-                        json[name] = {};
-                    } else {
-                        json[name] = property.toJSON(includeMetaData);
-                    }
-                    if (includeMetaData && !isEmptyObject(property.getMetadata())) {
-                        json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
-                    }
-                } else if (Model.isProperty(property)) {
-                    if (property.getMetadata().doNotPersist) {
-                        json[name] = null;
-                    } else {
-                        json[name] = property.getValue();
-                    }
+        } else {
+            for (var name in this) {
+                if (this.hasOwnProperty(name) && name !== '_parent') {
+                    // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable. and would cause infinite recursion
+                    var property = this[name];
+                    json[name] = property.toJSON(includeMetaData);
                     if (includeMetaData && !isEmptyObject(property.getMetadata())) {
                         json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
                     }
                 }
             }
+            return json;
         }
-        return json;
     };
 
     /**
