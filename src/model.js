@@ -510,7 +510,7 @@
      * @for Property
      *
      * @param  {[String, Boolean, Number, null, Date, Function, Object]} newValue The Value you want to assign to the Property.
-     * @param  {[Boolean]} suppressNotifications? Indicating if listeners should be notified of change.
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
      *
      * @return {[this]} this for method chaining.
      */
@@ -568,6 +568,7 @@
      *
      * @method  destroy
      *
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
      * @return {Property}   The deleted Property.
      */
     Property.prototype.destroy = function (suppressNotifications) {
@@ -771,7 +772,7 @@
      * @for  ArrayProperty
      *
      * @param  {[Array]} newValue The Value you want to assign to this.
-     * @param  {[Boolean]} suppressNotifications? Indicating if listeners should be notified of change.
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
      *
      * @return {[this]} this for method chaining.
      */
@@ -934,7 +935,7 @@
      * @for  Model
      *
      * @param  {[Object]} newValue The Value you want to assign to this.
-     * @param  {[Boolean]} suppressNotifications? Indicating if listeners should be notified of change.
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
      *
      * @return {[this]} this for method chaining.
      */
@@ -1059,6 +1060,7 @@
      *                         </li><li>
      *                             <b>doNotPersist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
      *                         </li></ul>
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
      *
      * @return {Model}         Returns this for method chaining
      */
@@ -1157,6 +1159,7 @@
      *
      * @param  {[Object]} json              The json object to have merged.
      * @param  {[Boolean]} keepOldProperties? True if you want to keep properties that exist in this but not in the passed in json, Otherwise they will be deleted. Defaults to false.
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
      * @return {Boolean}                   Returns true if merge was successful, false otherwise.
      */
     Model.prototype.merge = function (json, keepOldProperties, suppressNotifications) {
