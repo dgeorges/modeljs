@@ -85,17 +85,27 @@ model.exampleProperty.getMetadata();
 model.exampleProperty.getMetadata().exampleCustomMetadata = "custom value";
 
 /** Feature: load/save **/
-// Model Metadata can be saved and loaded with the model. We've already see how closing and reopening the page keeps your state. Here is how it's done.
+// Model Metadata can be saved and loaded with the model. We've already see how closing and reopening the page keeps your state. This is done by saving to JSON and loading from JSON.
 model.toJSON(); // give you the model JSON to persist.
-model.toJSON(true); // passing true will return he metadata as well.
+model.toJSON(true); // passing true will includ the model metadata as well.
+
+// To restore your model from the JSON just pass it to the constructor to re-create the model.
+var tableModelFromJSON = new Model(model.table.toJSON(true));
+
+// This is esentially what clone does for you.
+/** Feature: clone() **/
+var clonedTableModel = model.table.clone(); 
+
+/** Feature: do not persist **/
+// if you don't want a property to be presisted, just indicate so in the metadata.
+
+model.exampleProperty.getMetadata().doNotPersist = true;
+
+// Now model.toJSON(); will not return it.
 
 // This page uses your browser local storage to store its state. see http://diveintohtml5.info/storage.html#halma for more about this.
 
-// To restore your model from the JSON just use it to re-create the model. This is esentially what clone does.
-var tableModelFromJSON = new Model(model.table.toJSON(true));
 
-/** Feature: clone() **/
-var clonedTableModel = model.table.clone(); 
 
 /** Feature: getName() **/
 // get Name returns the fully qualified name of the property.

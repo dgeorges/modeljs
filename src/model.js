@@ -170,14 +170,6 @@
                 ACTIVE: "active",
                 TRANSACTION: "transaction"
             },
-            eventType = {
-                PROPERTY_CHANGE: "propertyChange",
-                MODEL_CHANGE: "modelChange",
-                CHANGE: "change", //special compound event that triggers propertyChange and bubble modelChange event. all other events do not bubble
-                DESTROY: "destroy",
-                CHILD_CREATED: "childCreated",
-                CHILD_DESTROYED: "childDestroyed"
-            },
             currentState = state.ACTIVE;
 
         var executedCallbacks = [];
@@ -187,7 +179,7 @@
 
             // This weird executeCallback function is a bit more complicated than it needs to be but is
             // used to get around the JSLint warning of creating a function within the while loop below
-            var executeCallbacksFunction = function (changedProperty, listenerProperty, arg) {
+            var executeCallbacksFunction = function (listenerProperty, changedProperty, arg) {
                 return function (callback) {
                     if (Model.TRANSACTION_OPTIONS.flattenCallbacks || Model.TRANSACTION_OPTIONS.flattenCallbacksByHash) {
                         var callbackExecuted = false;
@@ -215,32 +207,33 @@
                 };
             };
 
+            //new
             var eventListeners = property._eventListeners[eventName] || [];
-            if (eventName === eventType.CHANGE || eventName === eventType.PROPERTY_CHANGE) {
-                // This event is special both property and model change listeners are notified.
-                var allPropertyListeners = property._eventListeners.propertyChange.concat(property._eventListeners.modelChange);
-                allPropertyListeners.forEach(
-                    executeCallbacksFunction(property, property, eventArg)
-                );
-
-            } else { // update listeners registared for the event
-                eventListeners.forEach(
-                    executeCallbacksFunction(property, property, eventArg)
-                );
+            if (eventName === Model.Event.PROPERTY_CHANGE) {
+                eventListeners = eventListeners.concat(property._eventListeners.change);
+            } else if (eventName === Model.Event.MODEL_CHANGE) {
+                eventListeners = eventListeners.concat(property._eventListeners.change);
+            } else if (eventName === Model.Event.CHANGE) {
+                eventListeners = eventListeners.concat(property._eventListeners.propertyChange);
             }
 
+            // update listeners registared for the event
+            eventListeners.forEach(
+                executeCallbacksFunction(property, property, eventArg)
+            );
 
-            // propergate change up the stack for the following events by notifying all ModelChange listers registered.
+            // propergate change up the stack for the following events by notifying all parent ModelChange listers registered.
             var propertyParent = property._parent;
-            if (eventName === eventType.CHANGE || eventName === eventType.MODEL_CHANGE ||
-                    eventName === eventType.CHILD_CREATED || eventName === eventType.CHILD_DESTROYED) {
+            //if (eventName === Model.Event.CHANGE || eventName === Model.Event.MODEL_CHANGE ||
+            //        eventName === Model.Event.CHILD_CREATED || eventName === Model.Event.CHILD_DESTROYED) {
                 while (propertyParent) {
-                    propertyParent._eventListeners.modelChange.forEach( // when we bubble the event we only notify modelListeners
-                        executeCallbacksFunction(property, propertyParent, eventArg)
+                    var parentListeners = propertyParent._eventListeners.modelChange.concat(propertyParent._eventListeners.change);
+                    parentListeners.forEach( // when we bubble the event we only notify modelListeners
+                        executeCallbacksFunction(propertyParent, property, eventArg)
                     );
                     propertyParent = propertyParent._parent;
                 }
-            }
+            //}
         }
 
         function fireEvent(eventName, property, customArg) {
@@ -295,7 +288,6 @@
 
         return {
             fireEvent: fireEvent,
-            eventType: eventType,
             startTransaction: changeState.bind(null, state.TRANSACTION),
             endTransaction: changeState.bind(null, state.ACTIVE),
             inTransaction: function () {
@@ -320,7 +312,7 @@
     ObservableArray.prototype.pop = function () {
         var args = Array.prototype.slice.call(arguments),
             element = Array.prototype.pop.apply(this, args);
-        this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, element);
+        this._prop.trigger(Model.Event.CHILD_DESTROYED, element);
         return element;
     };
     ObservableArray.prototype.push = function () {
@@ -338,38 +330,38 @@
         }
         var newLength = Array.prototype.push.apply(this, pushedArgs);
 
-        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, pushedArgs);
+        this._prop.trigger(Model.Event.CHILD_CREATED, pushedArgs);
         return newLength;
     };
     ObservableArray.prototype.reverse = function () {
         var args = Array.prototype.slice.call(arguments),
             oldValue = Array.prototype.slice.call(this);
         Array.prototype.reverse.apply(this, args);
-        this._prop.trigger(eventProxy.eventType.PROPERTY_CHANGE, oldValue);
+        this._prop.trigger(Model.Event.CHANGE, oldValue);
         return this;
     };
     ObservableArray.prototype.shift = function () {
         var args = Array.prototype.slice.call(arguments),
             element = Array.prototype.shift.apply(this, args);
-        this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, element);
+        this._prop.trigger(Model.Event.CHILD_DESTROYED, element);
         return element;
     };
     ObservableArray.prototype.sort = function () {
         var args = Array.prototype.slice.call(arguments),
             oldValue = Array.prototype.slice.call(this);
         Array.prototype.sort.apply(this, args);
-        this._prop.trigger(eventProxy.eventType.PROPERTY_CHANGE, oldValue);
+        this._prop.trigger(Model.Event.CHANGE, oldValue);
         return this;
     };
     ObservableArray.prototype.splice = function () {
         var args = Array.prototype.slice.call(arguments),
             removed = Array.prototype.splice.apply(this, args);
         if (removed.length > 0) {
-            this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, removed);
+            this._prop.trigger(Model.Event.CHILD_DESTROYED, removed);
         }
         if (args.length > 2) { // we are adding new elements
             var added = args.slice(2);
-            this._prop.trigger(eventProxy.eventType.CHILD_CREATED, added); // TODO use count to determin if should be called
+            this._prop.trigger(Model.Event.CHILD_CREATED, added); // TODO use count to determin if should be called
         }
         return removed; //splice returns array of removed elements
     };
@@ -377,7 +369,7 @@
         var args = Array.prototype.slice.call(arguments),
             newElements = Array.prototype.slice(arguments),
             newLength = Array.prototype.unshift.apply(this, args);
-        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, newElements);
+        this._prop.trigger(Model.Event.CHILD_CREATED, newElements);
         return newLength;
     };
 
@@ -421,9 +413,10 @@
         Object.defineProperty(this, "_eventListeners", {
             value: { //map of eventName to listener array. The following are modeljs Events
                 propertyChange: [],
-                modelChange: [], //model "children" changed come from property change and listenToChildren true.
+                modelChange: [],
+                change: [],
                 childCreated: [],
-                childDestroyed: [], // child destroyed comes from destroy
+                childDestroyed: [],
                 destroy: []
             },
             enumerable: false
@@ -479,7 +472,7 @@
 
     /**
      * The fully qualified name of this. The name is calculated by concatenating the name
-     * of the parent, "/", and name of this. To create a named root pass in the name option key
+     * of the parent, "/", and name of this AKA the shortName. To create a named root pass in the name option key
      * to the Model Constructor.
      *
      * @example
@@ -499,6 +492,10 @@
         return this._name;
     };
 
+    /**
+     * The given name of the property.
+     * @return {[String]} The given name of the property.
+     */
     Property.prototype.getShortName = function () {
             return this._name.substring(this._name.lastIndexOf("/") + 1);
     };
@@ -532,7 +529,7 @@
                 this._myValue = newValue;
 
                 if (!suppressNotifications) {
-                    eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
+                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
                 }
             }
         }
@@ -562,7 +559,7 @@
             return;
         }
         if (listenToChildren) {
-            this._eventListeners.modelChange.push(callback);
+            this._eventListeners.change.push(callback);
         } else {
             this._eventListeners.propertyChange.push(callback);
         }
@@ -583,14 +580,14 @@
         delete this._parent[myName];
 
         if (!suppressNotifications) {
-            this.trigger(eventProxy.eventType.DESTROY); //equivlant since no event arg.
-            this._parent.trigger(eventProxy.eventType.CHILD_DESTROYED, this);
+            this.trigger(Model.Event.DESTROY); //equivlant since no event arg.
+            this._parent.trigger(Model.Event.CHILD_DESTROYED, this);
         }
         return this;
     };
 
     Property.prototype.onDestroy = function (callback) {
-        return this.on(eventProxy.eventType.DESTROY, callback);
+        return this.on(Model.Event.DESTROY, callback);
     };
 
     Property.prototype.getRoot = function () {
@@ -750,7 +747,6 @@
         return proto;
     }
 
-
    /**
      * The modeljs Object that extends a javaScript Array with Property methods.
      * Array function like push, pop etc... can be used.
@@ -803,7 +799,7 @@
                 }
                 // fix suppressNotifications. Should be in transaction. what if tranaction already there?
                 if (!suppressNotifications) {
-                    eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
+                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
                 }
             }
         }
@@ -979,7 +975,7 @@
                 }
                 // fix suppressNotification should go around Merge!
                 if (mergeSuccessful && !suppressNotifications) {
-                    eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
+                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
                 }
             }
         }
@@ -1102,7 +1098,7 @@
 
         this[name] = _createProperty(name, value, this, metadata);
         if (!suppressNotifications) {
-            this.trigger(eventProxy.eventType.CHILD_CREATED, this[name]);
+            this.trigger(Model.Event.CHILD_CREATED, this[name]);
         }
         return this;
     };
@@ -1386,6 +1382,99 @@
     Model.inTransaction = function() {
         return eventProxy.inTransaction();
     };
+
+    // does property change bubble a model change?
+    // does model change include this or just it's children?
+    // what about change?
+    Model.Event = {
+        /**
+         * The PROPERTY_CHANGE event is triggered only when the value of the property has changed
+         * via setValue. When triggered it will bubble up a MODEL_CHANGED event. Listen to this event
+         * if you only want to be notified of direct changes to the property and not changes to any of
+         * it's children. This is what the onChange(callback, false) does.
+         * PROPERTY_CHANGE event callbacks will be called with the following arguments:
+         *      <ul>
+         *      <li>this = the property listening to the event</li>
+         *      <li>arg[0] = the property in it's current state</li>
+         *      <li>arg[1] = the old value.</li>
+         *      </ul>
+         * @property Event.PROPERTY_CHANGE
+         * @static
+         * @type {String}
+         */
+        PROPERTY_CHANGE: "propertyChange",
+        /**
+         * The MODEL_CHANGE event is triggered when the value of any of the property's
+         * children have changed. This includes child properties being created or destroyed.
+         * When triggered on a property it will bubble the event up it's model tree.
+         * The callback will have the following arguments:
+         *      <ul>
+         *      <li>this = the property listening to the event. (or is registared with the callback)</li>
+         *      <li>arg[0] = the property that triggered the modelChange</li>
+         *      <li>arg[1] = the old value.</li>
+         *      </ul>
+         * @property Event.MODEL_CHANGE
+         * @static
+         */
+        MODEL_CHANGE: "modelChange",
+        /**
+         * The CHANGE event is psudo event equalvlant to triggering both a PROPERTY_CHANGE and MODEL_CHANGE event.
+         * It is the event used when registaring a listener using the onChange(callback, true) method.
+         * The callback will have the following arguments:
+         *      <ul>
+         *      <li>this = the property listening to the event</li>
+         *      <li>arg[0] = the property in it's current state</li>
+         *      <li>arg[1] = the old value.</li>
+         *      </ul>
+         * @property Event.CHANGE
+         * @static
+         * @type {String}
+         */
+        CHANGE: "change",
+        /**
+         * The DESTROY event is triggered when destroy() method called on a property. It than triggers
+         * a CHILD_DESTROYED event on it's parent.
+         * The callback will have the following arguments:
+         *      <ul>
+         *      <li>this = the destroyed property</li>
+         *      <li>arg[0] = the destroyed property</li>
+         *      <li>arg[1] = the old value.</li>
+         *      </ul>
+         * @property Event.DESTROY
+         * @static
+         * @type {String}
+         */
+        DESTROY: "destroy",
+        /**
+         * The CHILD_CREATED event is triggered when a new property is created. It's triggered on the
+         * parent and propergates a MODEL_CHANGE event up the model tree.
+         * The callback will have the following arguments:
+         *      <ul>
+         *      <li>this = the parent property</li>
+         *      <li>arg[0] = the created property</li>
+         *      <li>arg[1] = undefined</li>
+         *      </ul>
+         * @property Event.CHILD_CREATED
+         * @static
+         * @type {String}
+         */
+        CHILD_CREATED: "childCreated",
+        /**
+         * The CHILD_Destroyed event is triggered when a child property is destroyed. It triggered on the
+         * parent and propergates a MODEL_CHANGE event up the model tree.
+         * The callback will have the following arguments:
+         *      <ul>
+         *      <li>this = the parent property</li>
+         *      <li>arg[0] = the destroyed property</li>
+         *      <li>arg[1] = undefined</li>
+         *      </ul>
+         * @property Event.CHILD_DESTROYED
+         * @static
+         * @type {String}
+         */
+        CHILD_DESTROYED: "childDestroyed"
+    };
+
 
     Model.TRANSACTION_OPTIONS = {
         /**
