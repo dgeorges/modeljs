@@ -41,6 +41,8 @@
         <div id="api-tabview-panel">
             <ul id="api-classes" class="apis classes">
             
+                <li><a href="..&#x2F;classes/ArrayProperty.html">ArrayProperty</a></li>
+            
                 <li><a href="..&#x2F;classes/Model.html">Model</a></li>
             
                 <li><a href="..&#x2F;classes/Property.html">Property</a></li>
@@ -136,7 +138,7 @@
 
     function log(level, message) {
         &#x2F;&#x2F;Only log when enabled and console log method is available
-        if (Model.enableLogging &amp;&amp; globalNS.console &amp;&amp; globalNS.console[level]) {
+        if (Model.enableLogging &amp;&amp; typeof globalNS.console === &#x27;object&#x27; &amp;&amp; globalNS.console[level]) {
             globalNS.console[level](message);
         }
     }
@@ -262,14 +264,6 @@
                 ACTIVE: &quot;active&quot;,
                 TRANSACTION: &quot;transaction&quot;
             },
-            eventType = {
-                PROPERTY_CHANGE: &quot;propertyChange&quot;,
-                MODEL_CHANGE: &quot;modelChange&quot;,
-                CHANGE: &quot;change&quot;, &#x2F;&#x2F;special compound event that triggers propertyChange and bubble modelChange event. all other events do not bubble
-                DESTROY: &quot;destroy&quot;,
-                CHILD_CREATED: &quot;childCreated&quot;,
-                CHILD_DESTROYED: &quot;childDestroyed&quot;
-            },
             currentState = state.ACTIVE;
 
         var executedCallbacks = [];
@@ -279,7 +273,7 @@
 
             &#x2F;&#x2F; This weird executeCallback function is a bit more complicated than it needs to be but is
             &#x2F;&#x2F; used to get around the JSLint warning of creating a function within the while loop below
-            var executeCallbacksFunction = function (changedProperty, listenerProperty, arg) {
+            var executeCallbacksFunction = function (listenerProperty, changedProperty, arg) {
                 return function (callback) {
                     if (Model.TRANSACTION_OPTIONS.flattenCallbacks || Model.TRANSACTION_OPTIONS.flattenCallbacksByHash) {
                         var callbackExecuted = false;
@@ -307,36 +301,33 @@
                 };
             };
 
-            var propertyParent = property._parent;
+            &#x2F;&#x2F;new
             var eventListeners = property._eventListeners[eventName] || [];
-            if (eventName === eventType.CHANGE) { &#x2F;&#x2F; Change is a special event it can propergate and it&#x27;s eventArg is the oldValue
-                var allPropertyListeners = property._eventListeners.propertyChange.concat(property._eventListeners.modelChange);
-                allPropertyListeners.forEach(
-                    executeCallbacksFunction(property, property, eventArg)
-                );
+            if (eventName === Model.Event.PROPERTY_CHANGE) {
+                eventListeners = eventListeners.concat(property._eventListeners.change);
+            } else if (eventName === Model.Event.MODEL_CHANGE) {
+                eventListeners = eventListeners.concat(property._eventListeners.change);
+            } else if (eventName === Model.Event.CHANGE) {
+                eventListeners = eventListeners.concat(property._eventListeners.propertyChange);
+            }
 
+            &#x2F;&#x2F; update listeners registared for the event
+            eventListeners.forEach(
+                executeCallbacksFunction(property, property, eventArg)
+            );
+
+            &#x2F;&#x2F; propergate change up the stack for the following events by notifying all parent ModelChange listers registered.
+            var propertyParent = property._parent;
+            &#x2F;&#x2F;if (eventName === Model.Event.CHANGE || eventName === Model.Event.MODEL_CHANGE ||
+            &#x2F;&#x2F;        eventName === Model.Event.CHILD_CREATED || eventName === Model.Event.CHILD_DESTROYED) {
                 while (propertyParent) {
-                    propertyParent._eventListeners.modelChange.forEach( &#x2F;&#x2F; when we bubble the event we only notify modelListeners
-                        executeCallbacksFunction(property, propertyParent, eventArg)
+                    var parentListeners = propertyParent._eventListeners.modelChange.concat(propertyParent._eventListeners.change);
+                    parentListeners.forEach( &#x2F;&#x2F; when we bubble the event we only notify modelListeners
+                        executeCallbacksFunction(propertyParent, property, eventArg)
                     );
                     propertyParent = propertyParent._parent;
                 }
-            } else if (eventName === eventType.DESTROY) { &#x2F;&#x2F;destroy also notifies its parent childDestroyed listeners
-                eventListeners.forEach(
-                    executeCallbacksFunction(property, property, eventArg)
-                );
-
-                if (propertyParent) {
-                    var childDestroyedListeners = propertyParent._eventListeners.childDestroyed || [];
-                    childDestroyedListeners.forEach(
-                        executeCallbacksFunction(property, propertyParent, eventArg)
-                    );
-                }
-            } else {
-                eventListeners.forEach(
-                    executeCallbacksFunction(property, property, eventArg)
-                );
-            }
+            &#x2F;&#x2F;}
         }
 
         function fireEvent(eventName, property, customArg) {
@@ -391,7 +382,6 @@
 
         return {
             fireEvent: fireEvent,
-            eventType: eventType,
             startTransaction: changeState.bind(null, state.TRANSACTION),
             endTransaction: changeState.bind(null, state.ACTIVE),
             inTransaction: function () {
@@ -407,10 +397,8 @@
      *&#x2F;
     function ObservableArray(myProperty, values) {
         this._prop = myProperty;
-        &#x2F;&#x2F;Array.call(this); &#x2F;&#x2F;not needed
         for (var i =0; i &lt; values.length; i++){
-            var property = _createProperty(i, values[i], this, {});
-            this.push(property);
+            this.push(values[i]);
         }
     }
     ObservableArray.prototype = Object.create(Array.prototype);
@@ -418,13 +406,13 @@
     ObservableArray.prototype.pop = function () {
         var args = Array.prototype.slice.call(arguments),
             element = Array.prototype.pop.apply(this, args);
-        this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, element);
+        this._prop.trigger(Model.Event.CHILD_DESTROYED, element);
         return element;
     };
     ObservableArray.prototype.push = function () {
         var args = Array.prototype.slice.call(arguments),
             currentLength = this.length,
-            pushArgs = [],
+            pushedArgs = [],
             property,
             i = 0;
         for (i = 0; i &lt; args.length; i++){
@@ -432,48 +420,50 @@
             if (!(property instanceof Property)) {
                 property = _createProperty(currentLength + i, args[i], this, {});
             }
-            pushArgs.push(property);
+            pushedArgs.push(property);
         }
-        var newLength = Array.prototype.push.apply(this, pushArgs);
+        var newLength = Array.prototype.push.apply(this, pushedArgs);
 
-        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, args);
+        this._prop.trigger(Model.Event.CHILD_CREATED, pushedArgs);
         return newLength;
     };
     ObservableArray.prototype.reverse = function () {
         var args = Array.prototype.slice.call(arguments),
             oldValue = Array.prototype.slice.call(this);
         Array.prototype.reverse.apply(this, args);
-        this._prop.trigger(eventProxy.eventType.PROPERTY_CHANGE, oldValue);
+        this._prop.trigger(Model.Event.CHANGE, oldValue);
         return this;
     };
     ObservableArray.prototype.shift = function () {
         var args = Array.prototype.slice.call(arguments),
             element = Array.prototype.shift.apply(this, args);
-        this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, element);
+        this._prop.trigger(Model.Event.CHILD_DESTROYED, element);
         return element;
     };
     ObservableArray.prototype.sort = function () {
         var args = Array.prototype.slice.call(arguments),
             oldValue = Array.prototype.slice.call(this);
         Array.prototype.sort.apply(this, args);
-        this._prop.trigger(eventProxy.eventType.PROPERTY_CHANGE, oldValue);
+        this._prop.trigger(Model.Event.CHANGE, oldValue);
         return this;
     };
     ObservableArray.prototype.splice = function () {
-        &#x2F;&#x2F; A little more difficult!!
         var args = Array.prototype.slice.call(arguments),
             removed = Array.prototype.splice.apply(this, args);
         if (removed.length &gt; 0) {
-            this._prop.trigger(eventProxy.eventType.CHILD_DESTROYED, removed);
+            this._prop.trigger(Model.Event.CHILD_DESTROYED, removed);
         }
-        this._prop.trigger(eventProxy.eventType.CHILD_CREATED); &#x2F;&#x2F; TODO use count to determin if should be called
-        return removed;
+        if (args.length &gt; 2) { &#x2F;&#x2F; we are adding new elements
+            var added = args.slice(2);
+            this._prop.trigger(Model.Event.CHILD_CREATED, added); &#x2F;&#x2F; TODO use count to determin if should be called
+        }
+        return removed; &#x2F;&#x2F;splice returns array of removed elements
     };
     ObservableArray.prototype.unshift = function () {
         var args = Array.prototype.slice.call(arguments),
             newElements = Array.prototype.slice(arguments),
             newLength = Array.prototype.unshift.apply(this, args);
-        this._prop.trigger(eventProxy.eventType.CHILD_CREATED, newElements);
+        this._prop.trigger(Model.Event.CHILD_CREATED, newElements);
         return newLength;
     };
 
@@ -517,9 +507,10 @@
         Object.defineProperty(this, &quot;_eventListeners&quot;, {
             value: { &#x2F;&#x2F;map of eventName to listener array. The following are modeljs Events
                 propertyChange: [],
-                modelChange: [], &#x2F;&#x2F;model &quot;children&quot; changed come from property change and listenToChildren true.
+                modelChange: [],
+                change: [],
                 childCreated: [],
-                childDestroyed: [], &#x2F;&#x2F; child destroyed comes from destroy
+                childDestroyed: [],
                 destroy: []
             },
             enumerable: false
@@ -549,6 +540,13 @@
         return this._myValue;
     };
 
+    Property.prototype.toJSON = function () {
+        if (this.getMetadata().doNotPersist) {
+            return null; &#x2F;&#x2F; is this correct? maybe undefined?
+        }
+        return this.getValue();
+    };
+
     &#x2F;**
      * Return the formatted value calculated by asking the Model.Formatter to format the value of this.
      *
@@ -557,15 +555,18 @@
      * @return {any} The formatted Value
      *&#x2F;
     Property.prototype.getFormattedValue = function () {
-        if (isFunction(Model.Formatter)) {
+        if (isFunction(this.getMetadata().Formatter)) {
+            return this.getMetadata().Formatter(this.getValue());
+        } else if (isFunction(Model.Formatter)) {
             return Model.Formatter.call(this, this.getValue());
         }
+        &#x2F;&#x2F; default
         return this.getValue();
     };
 
     &#x2F;**
      * The fully qualified name of this. The name is calculated by concatenating the name
-     * of the parent, &quot;&#x2F;&quot;, and name of this. To create a named root pass in the name option key
+     * of the parent, &quot;&#x2F;&quot;, and name of this AKA the shortName. To create a named root pass in the name option key
      * to the Model Constructor.
      *
      * @example
@@ -578,12 +579,24 @@
      *
      * @return {String} The fully qualified name of this.
      *&#x2F;
-    Property.prototype.getName = function () {
+    Property.prototype.getName = function (shortName) {
+        if (shortName) {
+            return this._name.substring(this._name.lastIndexOf(&quot;&#x2F;&quot;) + 1);
+        }
         return this._name;
     };
 
     &#x2F;**
-     * Called upon a property or Model to set it&#x27;s Value. If the setValue is the same as the current value,
+     * The given name of the property.
+     * @return {[String]} The given name of the property.
+     *&#x2F;
+    Property.prototype.getShortName = function () {
+            return this._name.substring(this._name.lastIndexOf(&quot;&#x2F;&quot;) + 1);
+    };
+
+
+    &#x2F;**
+     * Called to set the value of a property. If the setValue is the same as the current value,
      * nothing will happen and no change events will be fired. If the value is different it must pass
      * the validator if there is one.  If it does pass the validator and the value is changed, all registered
      * listeners will be notified unless the suppressNotifications option indicates otherwise.
@@ -595,67 +608,26 @@
      * @for Property
      *
      * @param  {[String, Boolean, Number, null, Date, Function, Object]} newValue The Value you want to assign to the Property.
-     * @param  {[Boolean]} suppressNotifications? Indicating if listeners should be notified of change.
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
      *
-     * @return {[string, boolean, number, null, function, object]}          The resulting value. If the operation was successful this will be the passed in value otherwise it will be the existing one.
+     * @return {[this]} this for method chaining.
      *&#x2F;
     Property.prototype.setValue = function (value, suppressNotifications) {
         var newValue = value;
-
-        if (newValue instanceof Property || Model.isArray(value)) {
-            &#x2F;&#x2F; this is misleading syntax because other property attributes are not copied like _listener and _parent
-            &#x2F;&#x2F; so prevent it and provide alternate.
-            log(&#x27;error&#x27;, &quot;Incorrect Syntax: use setValue([property|model].getValue()) instead&quot;);
-            return;
-        }
-
         &#x2F;&#x2F; Note: this disallows setting a property to undefined. Only when it&#x27;s first created can it be undefined.
         if (newValue !== undefined &amp;&amp; newValue !== this._myValue) {
 
-            if (!this.hasValidator() || this.validateValue(newValue)) {
+            if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
 
-                if (isObject(newValue)) {
-                    if (!(this instanceof Model)) {
-                        log(&#x27;error&#x27;, &quot;Not Supported: Can&#x27;t set the Model value to a property. Delete the model and use createProperty&quot;);
-                        return;
-                    } else {
-                        &#x2F;&#x2F;This model need to be set to the newValue
-                        if (this.merge(newValue, false)) {
-                            this._myValue = newValue; &#x2F;&#x2F;set Value if successful
-                        }
-                    }
-                } else if (Array.isArray(newValue)) { &#x2F;&#x2F; newValue is an Array
-                    if (!Model.isArray(this)) {
-                        log(&#x27;error&#x27;, &quot;Not Supported: Can not set a non-Array Property to an Array. Delete the property and use createProperty passing it the array&quot;);
-                        return;
-                    } else {
-                        if (this.length &gt; newValue.length) { &#x2F;&#x2F;remove excess
-                            this.splice(newValue.length, this.length - newValue.length);
-                        }
-                        for (var i = 0; i &lt; newValue.length; i++) {
-                            if (this[i]) {
-                                this[i].setValue(newValue[i]);
-                            } else {
-                                this.push(newValue[i]); &#x2F;&#x2F; add extra
-                            }
-                        }
-                    }
-                } else { &#x2F;&#x2F; newValue is a primative (non-object &amp;&amp; non-Array)
-                    if (this instanceof Model) {
-                        log(&#x27;error&#x27;, &quot;Not Supported: Can&#x27;t set a Property value to a model. Delete the property and use createProperty&quot;);
-                        return;
-                    } else {
-                        this._myValue = newValue;
-                    }
-                }
+                this._myValue = newValue;
 
                 if (!suppressNotifications) {
-                    eventProxy.fireEvent(eventProxy.eventType.CHANGE, this, oldValue);
+                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
                 }
             }
         }
-        return this._myValue;
+        return this;
     };
 
     &#x2F;**
@@ -681,7 +653,7 @@
             return;
         }
         if (listenToChildren) {
-            this._eventListeners.modelChange.push(callback);
+            this._eventListeners.change.push(callback);
         } else {
             this._eventListeners.propertyChange.push(callback);
         }
@@ -694,19 +666,35 @@
      *
      * @method  destroy
      *
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of destroy.
      * @return {Property}   The deleted Property.
      *&#x2F;
-    Property.prototype.destroy = function () {
+    Property.prototype.destroy = function (suppressNotifications) {
         var myName = this.getName().substring(this.getName().lastIndexOf(&#x27;&#x2F;&#x27;) + 1);
         delete this._parent[myName];
 
-        eventProxy.fireEvent(eventProxy.eventType.DESTROY, this);
-
+        if (!suppressNotifications) {
+            this.trigger(Model.Event.DESTROY); &#x2F;&#x2F;equivlant since no event arg.
+            this._parent.trigger(Model.Event.CHILD_DESTROYED, this);
+        }
         return this;
     };
 
     Property.prototype.onDestroy = function (callback) {
-        return this.on(eventProxy.eventType.DESTROY, callback);
+        return this.on(Model.Event.DESTROY, callback);
+    };
+
+    Property.prototype.getRoot = function () {
+        var ancestor = this._parent;
+        while (ancestor._parent !== null) {
+            ancestor = ancestor._parent;
+        }
+        return ancestor;
+    };
+
+    &#x2F;&#x2F; is this really needed?
+    Property.prototype.getParent = function () {
+        return this._parent;
     };
 
     &#x2F;**
@@ -785,7 +773,7 @@
      * pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
      * when creating a model from the very same json. Note: the modeljs framework uses the metadata to
      * store attributes associated the properties that is uses. As a result the following keys have
-     * special meaning. &lt;b&gt;[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]&lt;&#x2F;b&gt;
+     * special meaning. &lt;b&gt;[validator, name, url, refreshRate, isJSONPurl, doNotPersist ]&lt;&#x2F;b&gt;
      *
      * For example see: &lt;b&gt;testGetMetadataMethod&lt;&#x2F;b&gt;
      *
@@ -819,29 +807,28 @@
      *
      * @method  validateValue
      *
-     * @param  {[String, Boolean, Number, null, Date, Function, Object]} value A value to test against the validation function if it exists.
+     * @param  {[String, Boolean, Number, null, Date, Function]} value A value to test against the validation function if it exists.
      * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
      *&#x2F;
     Property.prototype.validateValue = function (value) {
+
+        &#x2F;&#x2F; disallow values that are Model Property or PropertyArray objects
+        if (value instanceof Property || Model.isArray(value)) {
+            &#x2F;&#x2F; this is misleading syntax because other property attributes are not copied like _listener and _parent
+            &#x2F;&#x2F; so prevent it and provide alternate. Maybe we could clone, but the suggested is basically a clone and more transparent.
+            log(&#x27;error&#x27;, &quot;Incorrect Syntax: use setValue([property].getValue()) instead&quot;);
+            return false;
+        } else if (isObject(value) || Array.isArray(value)) { &#x2F;&#x2F; value is a primative (non-object &amp;&amp; non-Array). this must be as well.
+            log(&#x27;error&#x27;, &quot;Not Supported: Can&#x27;t set a Property value to a model or Array. Delete the property and use createProperty&quot;);
+            return false;
+        }
+
         if (this.hasValidator()) {
             return this._metadata.validator(value);
         }
         return true;
     };
-    &#x2F;&#x2F;don&#x27;t want a set validator function.
 
-    var arrayGetValue = function () {
-        var value = [],
-            i = 0;
-        for (i = 0; i &lt; this.length; i++) {
-            value[i] = this[i].getValue();
-        }
-        return value;
-    };
-
-    var arraySetValueAt = function (index, value, metadata) {
-        this[index] = _createProperty(index, value, this, metadata || {});
-    };
 
     function createArrayPrototype(isA, inherits) {
         var proto = Object.create(isA);
@@ -850,18 +837,126 @@
                 proto[i] = inherits[i];
             }
         }
-        &#x2F;&#x2F; array&#x27;s getValue implementation is different
-        proto[&quot;getValue&quot;] = arrayGetValue;
-        proto[&quot;setValueAt&quot;] = arraySetValueAt;
 
         return proto;
     }
 
+   &#x2F;**
+     * The modeljs Object that extends a javaScript Array with Property methods.
+     * Array function like push, pop etc... can be used.
+     *
+     * @example
+     * For examples see: &lt;b&gt;testPrimitiveSaveLoad&lt;&#x2F;b&gt;,  &lt;b&gt;testObjectsSaveLoad&lt;&#x2F;b&gt;, &lt;b&gt;testComplexSaveLoad&lt;&#x2F;b&gt;
+     * &lt;b&gt;testGetNameMethod&lt;&#x2F;b&gt; and &lt;b&gt;testSaveLoadWithMetaData&lt;&#x2F;b&gt;
+     *
+     * @class ArrayProperty
+     * @constructor
+     * @extends Property
+     *
+     *&#x2F;
     function ArrayProperty(name, value, parent, metadata) {
         Property.call(this, name, value, parent, metadata);
         ObservableArray.call(this, this, value);
     }
     ArrayProperty.prototype = createArrayPrototype(ObservableArray.prototype, Property.prototype);
+
+    &#x2F;**
+     * Called to set the value of a ArrayProperty. If the setValue is the same as the current value,
+     * nothing will happen and no change events will be fired. If the value is different it must pass
+     * the validator if there is one.  If it does pass the validator and the value is changed, all registered
+     * listeners will be notified unless the suppressNotifications option indicates otherwise.
+     *
+     * @method  setValue
+     * @for  ArrayProperty
+     *
+     * @param  {[Array]} newValue The Value you want to assign to this.
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
+     *
+     * @return {[this]} this for method chaining.
+     *&#x2F;
+    ArrayProperty.prototype.setValue = function (value, suppressNotifications) {
+        var newValue = value;
+        &#x2F;&#x2F; Note: this disallows setting a property to undefined. Only when it&#x27;s first created can it be undefined.
+        if (newValue !== undefined &amp;&amp; newValue !== this._myValue) { &#x2F;&#x2F;!== needs to be done another way.
+
+            if (this.validateValue(newValue)) {
+                var oldValue = this._myValue;
+                if (this.length &gt; newValue.length) { &#x2F;&#x2F;remove excess
+                    this.splice(newValue.length, this.length - newValue.length);
+                }
+                for (var i = 0; i &lt; newValue.length; i++) {
+                    if (this[i]) {
+                        this[i].setValue(newValue[i], suppressNotifications);
+                    } else {
+                        this.push(newValue[i]); &#x2F;&#x2F; add extra
+                    }
+                }
+                &#x2F;&#x2F; fix suppressNotifications. Should be in transaction. what if tranaction already there?
+                if (!suppressNotifications) {
+                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
+                }
+            }
+        }
+        return this;
+    };
+
+    ArrayProperty.prototype.getValue = function () {
+        var value = [],
+            i = 0;
+        for (i = 0; i &lt; this.length; i++) {
+            value[i] = this[i].getValue();
+        }
+        return value;
+    };
+    ArrayProperty.prototype.toJSON = function (includeMetaData) {
+        var json = [],
+            i = 0;
+
+        if (this.getMetadata().doNotPersist){
+            return [];
+        }
+
+        for (i = 0; i &lt; this.length; i++) {
+            json[i] = this[i].toJSON(includeMetaData);
+        }
+        return json;
+    };
+
+
+    ArrayProperty.prototype.setValueAt = function (index, value, metadata) {
+        &#x2F;&#x2F; This doesn&#x27;t fire any notifications! not sure if function required?
+        this[index] = _createProperty(index, value, this, metadata || {});
+    };
+
+  &#x2F;**
+     * Determines if the given value will pass the validation function of this.
+     *
+     * @example
+     * For examples see:  &lt;b&gt;testPropertyValidationFunction&lt;&#x2F;b&gt;
+     *
+     * @method  validateValue
+     *
+     * @param  {[Array]} value A value to test against the validation function if it exists.
+     * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
+     *&#x2F;
+    ArrayProperty.prototype.validateValue = function (value) {
+
+        &#x2F;&#x2F; disallow values that are Model Property or PropertyArray objects
+        if (value instanceof Property || Model.isArray(value)) {
+            &#x2F;&#x2F; this is misleading syntax because other property attributes are not copied like _listener and _parent
+            &#x2F;&#x2F; so prevent it and provide alternate. Maybe we could clone, but the suggested is basically a clone and more transparent.
+            log(&#x27;error&#x27;, &quot;Incorrect Syntax: use setValue([ArrayProperty].getValue()) instead&quot;);
+            return false;
+        } else if (!Array.isArray(value)) { &#x2F;&#x2F; newValue is an Array
+            log(&#x27;error&#x27;, &quot;Not Supported: Can not set a non-Array Property to an Array. Delete the property and use createProperty passing it the array&quot;);
+            return false;
+        }
+
+        if (this.hasValidator()) {
+            return this._metadata.validator(value);
+        }
+        return true;
+    };
 
    &#x2F;**
      * The model Object that wraps the JSON.
@@ -883,7 +978,7 @@
     function Model(json, metadata, parent) {
         var jsonModel = json || {},
             modelMetadata = metadata || {},
-            modelName = (modelMetadata.name || &quot;root&quot;),
+            modelName = modelMetadata.name !== undefined? modelMetadata.name : &quot;root&quot;,
             modelParent = parent || null;
 
         if (modelMetadata.name) { &#x2F;&#x2F; name is not part of the metadata.
@@ -893,7 +988,7 @@
         &#x2F;&#x2F;A Model is in itself a Property so lets call our supers constructor
         Property.call(this, modelName, jsonModel, modelParent, modelMetadata);
 
-        if (this.validateValue(json)) {
+        if (this.validateValue(jsonModel)) {
 
             for (var name in jsonModel) {
                 if (name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)) { &#x2F;&#x2F; skip special meta data properties
@@ -901,10 +996,11 @@
                 }
 
                 var value = jsonModel[name];
-                var propertyMetadata = json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
+                var propertyMetadata = jsonModel[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX];
 
-
-                this.createProperty(name, value, propertyMetadata);
+                if (!modelMetadata.thin) {
+                    this.createProperty(name, value, propertyMetadata);
+                }
             }
         }
     }
@@ -938,8 +1034,79 @@
      * @return {Object} The json Object represented by the model
      *&#x2F;
     Model.prototype.getValue = function () {
+        if (this._metadata.thin) {
+            return this._myValue;
+        }
         return this.toJSON();
     };
+
+    &#x2F;**
+     * Called to set the value of a model. If the setValue is the same as the current value,
+     * nothing will happen and no change events will be fired. If the value is different it must pass
+     * the validator if there is one.  If it does pass the validator and the value is changed, all registered
+     * listeners will be notified unless the suppressNotifications option indicates otherwise.
+     *
+     * @method  setValue
+     * @for  Model
+     *
+     * @param  {[Object]} newValue The Value you want to assign to this.
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
+     *
+     * @return {[this]} this for method chaining.
+     *&#x2F;
+    Model.prototype.setValue = function (value, suppressNotifications) {
+        var newValue = value;
+        &#x2F;&#x2F; Note: this disallows setting a property to undefined. Only when it&#x27;s first created can it be undefined.
+        if (newValue !== undefined &amp;&amp; JSON.stringify(newValue) !== JSON.stringify(this.getValue())) {  &#x2F;&#x2F;TODO  figure this out
+
+            if (this.validateValue(newValue)) {
+                var oldValue = this._myValue;
+
+                &#x2F;&#x2F;This model need to be set to the newValue
+                var mergeSuccessful = this.merge(newValue, false, suppressNotifications);
+                if (mergeSuccessful) {
+                    this._myValue = newValue; &#x2F;&#x2F;set Value if successful
+                }
+                &#x2F;&#x2F; fix suppressNotification should go around Merge!
+                if (mergeSuccessful &amp;&amp; !suppressNotifications) {
+                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
+                }
+            }
+        }
+        return this;
+    };
+
+       &#x2F;**
+     * Determines if the given value will pass the validation function of this.
+     *
+     * @example
+     * For examples see:  &lt;b&gt;testPropertyValidationFunction&lt;&#x2F;b&gt;
+     *
+     * @method  validateValue
+     * @for  Model
+     *
+     * @param  {[Object]} value A value to test against the validation function if it exists.
+     * @return {Boolean}      The result of passing value against the validation function if it exists. True otherwise.
+     *&#x2F;
+    Model.prototype.validateValue = function (value) {
+
+        &#x2F;&#x2F; disallow values that are Model Property or PropertyArray objects
+        if (value instanceof Property || Model.isArray(value)) {
+            &#x2F;&#x2F; this is misleading syntax because other property attributes are not copied like _listener and _parent
+            &#x2F;&#x2F; so prevent it and provide alternate. Maybe we could clone, but the suggested is basically a clone and more transparent.
+            log(&#x27;error&#x27;, &quot;Incorrect Syntax: use setValue([model].getValue()) instead&quot;);
+            return false;
+        } else if (!isObject(value)) {
+            log(&#x27;error&#x27;, &quot;Not Supported: Can&#x27;t set the Model value to a non Model value. Delete the model and use createProperty to change it&#x27;s type&quot;);
+            return false;
+        }
+
+        if (this.hasValidator()) {
+            return this._metadata.validator(value);
+        }
+        return true;
+    };
+
 
     var MIN_MODEL_REFRESH_RATE = 100;
     function _createProperty (name, value, parent, metadata) {
@@ -985,7 +1152,7 @@
      *     }),
      *     .createProperty (&quot;remoteModel&quot;, {prop1: &quot;defaultValue&quot;}, { &#x2F;&#x2F; a remote model populated via the twitter rest api.
      *         url: &quot;http:&#x2F;&#x2F;search.twitter.com&#x2F;search.json?q=tennis&amp;callback=$jsonpCallback&quot;,
-     *         doNotPresist: true,
+     *         doNotPersist: true,
      *         refreshRate: -1, &#x2F;&#x2F; -1 means fetch once.
      *         isJSONPurl: true
      *     }); &#x2F;&#x2F; Note the method chaining.
@@ -1006,19 +1173,27 @@
      *                         &lt;&#x2F;li&gt;&lt;li&gt;
      *                             &lt;b&gt;isJSONPurl&lt;&#x2F;b&gt; {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string &quot;$jsonpCallback&quot; where the jsonp callback function should be inserted.
      *                         &lt;&#x2F;li&gt;&lt;li&gt;
-     *                             &lt;b&gt;doNotPresist&lt;&#x2F;b&gt; {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+     *                             &lt;b&gt;doNotPersist&lt;&#x2F;b&gt; {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
      *                         &lt;&#x2F;li&gt;&lt;&#x2F;ul&gt;
+     *
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
      *
      * @return {Model}         Returns this for method chaining
      *&#x2F;
-    Model.prototype.createProperty = function createProperty(name, value, metadata) {
+    Model.prototype.createProperty = function createProperty(name, value, metadata, suppressNotifications) {
 
         if (value instanceof Property || Model.isArray(value)) {
             log(&#x27;error&#x27;, &quot;Unsupported Operation: Try passing the Model&#x2F;Properties value instead&quot;);
-            return;
+            return this;
+        } else if (this._metadata.thin) {
+            log(&#x27;error&#x27;, &quot;Unsupported Operation: Can not create a property on a Thin model.&quot;);
+            return this;
         }
+
         this[name] = _createProperty(name, value, this, metadata);
-        this.trigger(eventProxy.eventType.CHILD_CREATED, this[name]);
+        if (!suppressNotifications) {
+            this.trigger(Model.Event.CHILD_CREATED, this[name]);
+        }
         return this;
     };
 
@@ -1036,53 +1211,53 @@
      * @return {Model}  Returns a new Model object rooted at this, keeping any metadata but no event listeners.
      *&#x2F;
     Model.prototype.clone = function () {
-        var myName = this.getName();
-        var options = {
-            name: myName.substring(myName.lastIndexOf(&quot;&#x2F;&quot;) + 1),
-            validator: this._metadata.validator
-        };
-        return new Model(this.toJSON(true), options);
+        var metadata = JSON.parse(JSON.stringify(this.getMetadata()));
+        metadata.name = this.getShortName();
+        return new Model(this.toJSON(true), metadata);
     };
 
-    function mergeLoop(model, json, doModification, keepOldProperties) {
+    function mergeLoop(model, json, doModification, keepOldProperties, suppressNotifications) {
 
         for (var name in json) {
-            var value = json[name];
-            if (model[name]) {
-                if (isObject(value)) { &#x2F;&#x2F; right hand side is an object
-                    if (model[name] instanceof Model) { &#x2F;&#x2F; left is and Model. -&gt; merging objects
-                        var successful = mergeLoop(model[name], value, doModification, keepOldProperties);
-                        if (!successful) {
+            if (!name.match(Model.PROPERTY_METADATA_SERIALIZED_NAME_REGEX)) {
+                var value = json[name];
+                if (model[name]) {
+                    if (isObject(value)) { &#x2F;&#x2F; right hand side is an object
+                        if (model[name] instanceof Model) { &#x2F;&#x2F; left is and Model. -&gt; merging objects
+                            if (!mergeLoop(model[name], value, doModification, keepOldProperties, suppressNotifications)) {
+                                return false;
+                            }
+                        } else {
+                            &#x2F;&#x2F; Trying to assign a model to a property. This will fail.
                             return false;
                         }
-                    } else {
-                        &#x2F;&#x2F; Trying to assign a model to a property. This will fail.
-                        return false;
-                    }
 
-                } else { &#x2F;&#x2F; right hand side is not an object.
-                    if (Model.isProperty(model[name])) { &#x2F;&#x2F; left is a Property -&gt; merging properties
-                        if (doModification) {
-                            model[name].setValue(value);
+                    } else { &#x2F;&#x2F; right hand side is not an object.
+                        if (Model.isProperty(model[name])) { &#x2F;&#x2F; left is a Property -&gt; merging properties
+                            if (doModification) {
+                                model[name].setValue(value, suppressNotifications);
+                            }
+                        } else {
+                            &#x2F;&#x2F; Trying to assign a property to a Model. This will fail.
+                            return false;
                         }
-                    } else {
-                        &#x2F;&#x2F; Trying to assign a property to a Model. This will fail.
-                        return false;
                     }
-                }
-            } else { &#x2F;&#x2F;create new property
-                if (doModification) {
-                    model.createProperty(name, value);
+                } else { &#x2F;&#x2F;create new property
+                    if (doModification) {
+                        model.createProperty(name, value, {}, suppressNotifications);
+                    }
                 }
             }
-        }
 
-        &#x2F;&#x2F; delete properties that are not found in json
-        if (!keepOldProperties &amp;&amp; doModification) {
-            for (var modelProp in model) {
-                if (!json[modelProp] &amp;&amp; &#x2F;&#x2F;property does exist in merge
-                        model.hasOwnProperty(modelProp) &amp;&amp; (model[modelProp] instanceof Property || Model.isArray(model[modelProp]))&amp;&amp; modelProp !== &#x27;_parent&#x27;) { &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable
-                    model[modelProp].destroy();
+            &#x2F;&#x2F; delete properties that are not found in json
+            if (!keepOldProperties &amp;&amp; doModification) {
+                for (var modelProp in model) {
+                    if (!json[modelProp] &amp;&amp; &#x2F;&#x2F;property does exist in merge
+                            model.hasOwnProperty(modelProp) &amp;&amp;
+                            (model[modelProp] instanceof Property || Model.isArray(model[modelProp])) &amp;&amp;
+                            modelProp !== &#x27;_parent&#x27;) { &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable
+                        model[modelProp].destroy(suppressNotifications);
+                    }
                 }
             }
         }
@@ -1103,14 +1278,18 @@
      *
      * @param  {[Object]} json              The json object to have merged.
      * @param  {[Boolean]} keepOldProperties? True if you want to keep properties that exist in this but not in the passed in json, Otherwise they will be deleted. Defaults to false.
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
      * @return {Boolean}                   Returns true if merge was successful, false otherwise.
      *&#x2F;
-    Model.prototype.merge = function (json, keepOldProperties) {
+    Model.prototype.merge = function (json, keepOldProperties, suppressNotifications) {
         &#x2F;&#x2F;will merge the properties in json with this. result will be the same as the Object extend.
         &#x2F;&#x2F;if a property exists in the model but not in the json it will only be kept if keepOldProperties is true.
-        if (mergeLoop(this, json, false, keepOldProperties)) { &#x2F;&#x2F; check if merge will be successful
+        if (this._metadata.thin) {
+            this._myValue = json;
+            return true;
+        } else if (mergeLoop(this, json, false, keepOldProperties)) { &#x2F;&#x2F; check if merge will be successful
             Model.startTransaction();
-            mergeLoop(this, json, true, keepOldProperties);
+            mergeLoop(this, json, true, keepOldProperties, suppressNotifications);
             Model.endTransaction();
             return true;
         } else {
@@ -1123,11 +1302,11 @@
     &#x2F;**
      * Retrieves the json representation of this. This json representation can be used in the Model Constructor
      * to recreate the same Model object. If you use includeMetaData validator metadata will be included.
-     * Properties that have the doNotPresist flag in it&#x27;s metadata will have it&#x27;s value nullified. This means
+     * Properties that have the doNotPersist flag in it&#x27;s metadata will have it&#x27;s value nullified. This means
      * properties will have the value set to &#x27;undefined&#x27; while models will be set to an empty object ({}).
      *
      * @example
-     * For an example see: &lt;b&gt;testSaveLoadWithMetaData&lt;&#x2F;b&gt; and &lt;b&gt;testDoNotPresist&lt;&#x2F;b&gt;
+     * For an example see: &lt;b&gt;testSaveLoadWithMetaData&lt;&#x2F;b&gt; and &lt;b&gt;testDoNotPersist&lt;&#x2F;b&gt;
      *
      * @method  toJSON
      *
@@ -1138,34 +1317,23 @@
         var json = {};
         if (this._myValue === undefined) {
             return undefined;
-        }
-
-        for (var name in this) {
-            if (this.hasOwnProperty(name) &amp;&amp; name !== &#x27;_parent&#x27;) {
-                &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable. and would cause infinite recursion
-                var property = this[name];
-                if (property instanceof Model) {
-                    if (property.getMetadata().doNotPresist) {
-                        json[name] = {};
-                    } else {
-                        json[name] = property.toJSON(includeMetaData);
-                    }
-                    if (includeMetaData &amp;&amp; !isEmptyObject(property.getMetadata())) {
-                        json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
-                    }
-                } else if (Model.isProperty(property)) {
-                    if (property.getMetadata().doNotPresist) {
-                        json[name] = null;
-                    } else {
-                        json[name] = property.getValue();
-                    }
+        } else if (this.getMetadata().doNotPersist){
+            return {};
+        } else if (this._metadata.thin) {
+            return this.getValue();
+        } else {
+            for (var name in this) {
+                if (this.hasOwnProperty(name) &amp;&amp; name !== &#x27;_parent&#x27;) {
+                    &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable. and would cause infinite recursion
+                    var property = this[name];
+                    json[name] = property.toJSON(includeMetaData);
                     if (includeMetaData &amp;&amp; !isEmptyObject(property.getMetadata())) {
                         json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
                     }
                 }
             }
+            return json;
         }
-        return json;
     };
 
     &#x2F;**
@@ -1279,6 +1447,7 @@
             Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = !!options.fireOnlyMostRecentPropertyEvent;
             Model.TRANSACTION_OPTIONS.flattenCallbacks = !!options.flattenCallbacks;
             Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = !!options.flattenCallbacksByHash;
+            Model.TRANSACTION_OPTIONS.suppressAllEvents = !!options.suppressAllEvents;
         }
 
         eventProxy.endTransaction();
@@ -1287,6 +1456,7 @@
             Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = originalTransactionOptions.fireOnlyMostRecentPropertyEvent;
             Model.TRANSACTION_OPTIONS.flattenCallbacks = originalTransactionOptions.flattenCallbacks;
             Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = originalTransactionOptions.flattenCallbacksByHash;
+            Model.TRANSACTION_OPTIONS.suppressAllEvents = !!options.suppressAllEvents;
         }
 
     };
@@ -1306,6 +1476,99 @@
     Model.inTransaction = function() {
         return eventProxy.inTransaction();
     };
+
+    &#x2F;&#x2F; does property change bubble a model change?
+    &#x2F;&#x2F; does model change include this or just it&#x27;s children?
+    &#x2F;&#x2F; what about change?
+    Model.Event = {
+        &#x2F;**
+         * The PROPERTY_CHANGE event is triggered only when the value of the property has changed
+         * via setValue. When triggered it will bubble up a MODEL_CHANGED event. Listen to this event
+         * if you only want to be notified of direct changes to the property and not changes to any of
+         * it&#x27;s children. This is what the onChange(callback, false) does.
+         * PROPERTY_CHANGE event callbacks will be called with the following arguments:
+         *      &lt;ul&gt;
+         *      &lt;li&gt;this = the property listening to the event&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[0] = the property in it&#x27;s current state&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[1] = the old value.&lt;&#x2F;li&gt;
+         *      &lt;&#x2F;ul&gt;
+         * @property Event.PROPERTY_CHANGE
+         * @static
+         * @type {String}
+         *&#x2F;
+        PROPERTY_CHANGE: &quot;propertyChange&quot;,
+        &#x2F;**
+         * The MODEL_CHANGE event is triggered when the value of any of the property&#x27;s
+         * children have changed. This includes child properties being created or destroyed.
+         * When triggered on a property it will bubble the event up it&#x27;s model tree.
+         * The callback will have the following arguments:
+         *      &lt;ul&gt;
+         *      &lt;li&gt;this = the property listening to the event. (or is registared with the callback)&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[0] = the property that triggered the modelChange&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[1] = the old value.&lt;&#x2F;li&gt;
+         *      &lt;&#x2F;ul&gt;
+         * @property Event.MODEL_CHANGE
+         * @static
+         *&#x2F;
+        MODEL_CHANGE: &quot;modelChange&quot;,
+        &#x2F;**
+         * The CHANGE event is psudo event equalvlant to triggering both a PROPERTY_CHANGE and MODEL_CHANGE event.
+         * It is the event used when registaring a listener using the onChange(callback, true) method.
+         * The callback will have the following arguments:
+         *      &lt;ul&gt;
+         *      &lt;li&gt;this = the property listening to the event&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[0] = the property in it&#x27;s current state&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[1] = the old value.&lt;&#x2F;li&gt;
+         *      &lt;&#x2F;ul&gt;
+         * @property Event.CHANGE
+         * @static
+         * @type {String}
+         *&#x2F;
+        CHANGE: &quot;change&quot;,
+        &#x2F;**
+         * The DESTROY event is triggered when destroy() method called on a property. It than triggers
+         * a CHILD_DESTROYED event on it&#x27;s parent.
+         * The callback will have the following arguments:
+         *      &lt;ul&gt;
+         *      &lt;li&gt;this = the destroyed property&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[0] = the destroyed property&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[1] = the old value.&lt;&#x2F;li&gt;
+         *      &lt;&#x2F;ul&gt;
+         * @property Event.DESTROY
+         * @static
+         * @type {String}
+         *&#x2F;
+        DESTROY: &quot;destroy&quot;,
+        &#x2F;**
+         * The CHILD_CREATED event is triggered when a new property is created. It&#x27;s triggered on the
+         * parent and propergates a MODEL_CHANGE event up the model tree.
+         * The callback will have the following arguments:
+         *      &lt;ul&gt;
+         *      &lt;li&gt;this = the parent property&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[0] = the created property&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[1] = undefined&lt;&#x2F;li&gt;
+         *      &lt;&#x2F;ul&gt;
+         * @property Event.CHILD_CREATED
+         * @static
+         * @type {String}
+         *&#x2F;
+        CHILD_CREATED: &quot;childCreated&quot;,
+        &#x2F;**
+         * The CHILD_Destroyed event is triggered when a child property is destroyed. It triggered on the
+         * parent and propergates a MODEL_CHANGE event up the model tree.
+         * The callback will have the following arguments:
+         *      &lt;ul&gt;
+         *      &lt;li&gt;this = the parent property&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[0] = the destroyed property&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[1] = undefined&lt;&#x2F;li&gt;
+         *      &lt;&#x2F;ul&gt;
+         * @property Event.CHILD_DESTROYED
+         * @static
+         * @type {String}
+         *&#x2F;
+        CHILD_DESTROYED: &quot;childDestroyed&quot;
+    };
+
 
     Model.TRANSACTION_OPTIONS = {
         &#x2F;**
@@ -1383,7 +1646,7 @@
         window[&quot;Model&quot;] = Model;
     }
 
-}(this)); &#x2F;&#x2F;this === window in the browser and GLOBAL in node
+}(typeof window !== &#x27;undefined&#x27; ? window : GLOBAL)); &#x2F;&#x2F;window in the browser and GLOBAL in node
     </pre>
 </div>
 

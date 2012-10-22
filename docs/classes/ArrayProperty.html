@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Property</title>
+    <title>ArrayProperty</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
     <link rel="stylesheet" href="..&#x2F;assets/vendor/prettify/prettify-min.css">
     <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
@@ -88,15 +88,19 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1>Property Class</h1>
+                        <h1>ArrayProperty Class</h1>
 <div class="box meta">
     
 
     
+        <div class="extends">
+            Extends <a href="..\classes\Property.html" class="crosslink">Property</a>
+        </div>
+    
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l376"><code>src\model.js:376</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l750"><code>src\model.js:750</code></a>
         </div>
     
 
@@ -112,53 +116,24 @@
 
 
 <div class="box intro">
-    <p>A Property is a name value pair belonging to a Model.</p>
+    <p>The modeljs Object that extends a javaScript Array with Property methods.
+Array function like push, pop etc... can be used.</p>
 </div>
 
 
     <div class="constructor">
         <h2>Constructor</h2>
-        <div id="method_Property" class="method item private">
-    <h3 class="name"><code>Property</code></h3>
+        <div id="method_ArrayProperty" class="method item">
+    <h3 class="name"><code>ArrayProperty</code></h3>
 
     
-        <div class="args">
-            <span class="paren">(</span><ul class="args-list inline commas">
-            
-                <li class="arg">
-                    
-                        <code>name</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code>value</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code>parent</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code>metadata</code>
-                    
-                </li>
-            
-            </ul><span class="paren">)</span>
-        </div>
+        <span class="paren">()</span>
     
 
     
 
     
 
-    
-        <span class="flag private">private</span>
     
 
     
@@ -180,7 +155,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l376"><code>src\model.js:376</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l750"><code>src\model.js:750</code></a>
         
         </p>
 
@@ -195,80 +170,18 @@
     </div>
 
     
-        <div class="params">
-            <h4>Parameters:</h4>
 
-            <ul class="params-list">
-            
-                <li class="param">
-                    
-                        <code class="param-name">name</code>
-                        <span class="type">String</span>
-                    
+    
 
-                    
+    
+        <div class="example">
+            <h4>Example:</h4>
 
-                    <div class="param-description">
-                        <p>The name of the property</p>
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name">value</code>
-                        <span class="type">String, Boolean, Number, null, Date, Function, Object</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>The Property Value</p>
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name">parent</code>
-                        <span class="type"><a href="..\classes\Model.html" class="crosslink">[Model]</a></span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>The parent property</p>
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name">metadata</code>
-                        <span class="type">Object</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>The metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
-                        validator - a function to validate if the new value is valid before it is assigned.
-                        url - the resource this model should use to get it's value. Resource must return json. <em>Must be used with refreshRate</em>
-                        refreshRate - the interval used to query the url for changes. must be > 0. minimal value used is 100. -1 indicates to only fetch value once. <em>Must be used with url</em></p>
-                    </div>
-
-                    
-                </li>
-            
-            </ul>
+            <div class="example-content">
+                <p>For examples see: <b>testPrimitiveSaveLoad</b>,  <b>testObjectsSaveLoad</b>, <b>testComplexSaveLoad</b>
+<b>testGetNameMethod</b> and <b>testSaveLoadWithMetaData</b></p>
+            </div>
         </div>
-    
-
-    
-
     
 </div>
 
@@ -295,86 +208,86 @@
                 <div class="index-section methods">
                     <h3>Methods</h3>
 
-                    <ul class="index-list methods">
+                    <ul class="index-list methods extends">
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_destroy">destroy</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_getFormattedValue">getFormattedValue</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_getMetadata">getMetadata</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_getName">getName</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_getValue">getValue</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_hasValidator">hasValidator</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_off">off</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_on">on</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_onChange">onChange</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_setValue">setValue</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_trigger">trigger</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_validateValue">validateValue</a>
 
                                 
@@ -397,7 +310,7 @@
                 <h2 class="off-left">Methods</h2>
 
                 
-                    <div id="method_destroy" class="method item">
+                    <div id="method_destroy" class="method item inherited">
     <h3 class="name"><code>destroy</code></h3>
 
     
@@ -435,11 +348,8 @@
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_destroy">Property</a>:
             
         
         
@@ -502,7 +412,7 @@ the 'childDestroyed' event on the parent.</p>
 </div>
 
                 
-                    <div id="method_getFormattedValue" class="method item">
+                    <div id="method_getFormattedValue" class="method item inherited">
     <h3 class="name"><code>getFormattedValue</code></h3>
 
     
@@ -530,11 +440,8 @@ the 'childDestroyed' event on the parent.</p>
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_getFormattedValue">Property</a>:
             
         
         
@@ -573,7 +480,7 @@ the 'childDestroyed' event on the parent.</p>
 </div>
 
                 
-                    <div id="method_getMetadata" class="method item">
+                    <div id="method_getMetadata" class="method item inherited">
     <h3 class="name"><code>getMetadata</code></h3>
 
     
@@ -601,11 +508,8 @@ the 'childDestroyed' event on the parent.</p>
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_getMetadata">Property</a>:
             
         
         
@@ -650,7 +554,7 @@ special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPersist
 </div>
 
                 
-                    <div id="method_getName" class="method item">
+                    <div id="method_getName" class="method item inherited">
     <h3 class="name"><code>getName</code></h3>
 
     
@@ -678,11 +582,8 @@ special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPersist
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_getName">Property</a>:
             
         
         
@@ -736,7 +637,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
 </div>
 
                 
-                    <div id="method_getValue" class="method item">
+                    <div id="method_getValue" class="method item inherited">
     <h3 class="name"><code>getValue</code></h3>
 
     
@@ -764,11 +665,8 @@ namedRoot.property1.getName();       // returns "/customName/property1"
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_getValue">Property</a>:
             
         
         
@@ -807,7 +705,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
 </div>
 
                 
-                    <div id="method_hasValidator" class="method item">
+                    <div id="method_hasValidator" class="method item inherited">
     <h3 class="name"><code>hasValidator</code></h3>
 
     
@@ -835,11 +733,8 @@ namedRoot.property1.getName();       // returns "/customName/property1"
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_hasValidator">Property</a>:
             
         
         
@@ -886,7 +781,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
 </div>
 
                 
-                    <div id="method_off" class="method item">
+                    <div id="method_off" class="method item inherited">
     <h3 class="name"><code>off</code></h3>
 
     
@@ -930,11 +825,8 @@ namedRoot.property1.getName();       // returns "/customName/property1"
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_off">Property</a>:
             
         
         
@@ -1011,7 +903,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
 </div>
 
                 
-                    <div id="method_on" class="method item">
+                    <div id="method_on" class="method item inherited">
     <h3 class="name"><code>on</code></h3>
 
     
@@ -1055,11 +947,8 @@ namedRoot.property1.getName();       // returns "/customName/property1"
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_on">Property</a>:
             
         
         
@@ -1140,7 +1029,7 @@ event type.</p>
 </div>
 
                 
-                    <div id="method_onChange" class="method item">
+                    <div id="method_onChange" class="method item inherited">
     <h3 class="name"><code>onChange</code></h3>
 
     
@@ -1180,11 +1069,8 @@ event type.</p>
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_onChange">Property</a>:
             
         
         
@@ -1307,16 +1193,16 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
 
     <div class="meta">
         
+            <p>Inherited from
+            <a href="..\classes\Property.html#method_setValue">
+                Property
+            </a>
             
-                
-                <p>
-                
-                Defined in
-                
+            but overwritten in
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l504"><code>src\model.js:504</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l769"><code>src\model.js:769</code></a>
         
         </p>
 
@@ -1327,7 +1213,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
     </div>
 
     <div class="description">
-        <p>Called to set the value of a property. If the setValue is the same as the current value,
+        <p>Called to set the value of a ArrayProperty. If the setValue is the same as the current value,
 nothing will happen and no change events will be fired. If the value is different it must pass
 the validator if there is one.  If it does pass the validator and the value is changed, all registered
 listeners will be notified unless the suppressNotifications option indicates otherwise.</p>
@@ -1342,13 +1228,13 @@ listeners will be notified unless the suppressNotifications option indicates oth
                 <li class="param">
                     
                         <code class="param-name">newValue</code>
-                        <span class="type">String, Boolean, Number, null, Date, Function, Object</span>
+                        <span class="type">Array</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>The Value you want to assign to the Property.</p>
+                        <p>The Value you want to assign to this.</p>
                     </div>
 
                     
@@ -1389,18 +1275,10 @@ listeners will be notified unless the suppressNotifications option indicates oth
     
 
     
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <p>For more examples see:  <b>testPrimitiveSetGet</b>, <b>testComplexChangePropertyValue</b> and <b>testSuppressNotifications</b></p>
-            </div>
-        </div>
-    
 </div>
 
                 
-                    <div id="method_trigger" class="method item">
+                    <div id="method_trigger" class="method item inherited">
     <h3 class="name"><code>trigger</code></h3>
 
     
@@ -1444,11 +1322,8 @@ listeners will be notified unless the suppressNotifications option indicates oth
     <div class="meta">
         
             
-                
-                <p>
-                
-                Defined in
-                
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_trigger">Property</a>:
             
         
         
@@ -1562,16 +1437,16 @@ listeners will be notified unless the suppressNotifications option indicates oth
 
     <div class="meta">
         
+            <p>Inherited from
+            <a href="..\classes\Property.html#method_validateValue">
+                Property
+            </a>
             
-                
-                <p>
-                
-                Defined in
-                
+            but overwritten in
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l708"><code>src\model.js:708</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l837"><code>src\model.js:837</code></a>
         
         </p>
 
@@ -1594,7 +1469,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
                 <li class="param">
                     
                         <code class="param-name">value</code>
-                        <span class="type">String, Boolean, Number, null, Date, Function</span>
+                        <span class="type">Array</span>
                     
 
                     

@@ -41,6 +41,8 @@
         <div id="api-tabview-panel">
             <ul id="api-classes" class="apis classes">
             
+                <li><a href="..&#x2F;classes/ArrayProperty.html">ArrayProperty</a></li>
+            
                 <li><a href="..&#x2F;classes/Model.html">Model</a></li>
             
                 <li><a href="..&#x2F;classes/Property.html">Property</a></li>
@@ -98,7 +100,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l774"><code>src\model.js:774</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l867"><code>src\model.js:867</code></a>
         </div>
     
 
@@ -168,7 +170,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l774"><code>src\model.js:774</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l867"><code>src\model.js:867</code></a>
         
         </p>
 
@@ -434,6 +436,60 @@
                     <ul class="index-list properties extends">
                         
                             <li class="index-item property">
+                                <a href="#property_Event.CHANGE">Event.CHANGE</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_Event.CHILD_CREATED">Event.CHILD_CREATED</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_Event.CHILD_DESTROYED">Event.CHILD_DESTROYED</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_Event.DESTROY">Event.DESTROY</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_Event.MODEL_CHANGE">Event.MODEL_CHANGE</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_Event.PROPERTY_CHANGE">Event.PROPERTY_CHANGE</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
                                 <a href="#property_Formatter">Formatter</a>
 
                                 
@@ -537,7 +593,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l933"><code>src\model.js:933</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1106"><code>src\model.js:1106</code></a>
         
         </p>
 
@@ -610,6 +666,12 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
                     
                 </li>
             
+                <li class="arg">
+                    
+                        <code>suppressNotifications?</code>
+                    
+                </li>
+            
             </ul><span class="paren">)</span>
         </div>
     
@@ -643,7 +705,7 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l878"><code>src\model.js:878</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1043"><code>src\model.js:1043</code></a>
         
         </p>
 
@@ -713,8 +775,23 @@ metadata can contain custom keys or any of the special keys below.</p>
                         </li><li>
                             <b>isJSONPurl</b> {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string "$jsonpCallback" where the jsonp callback function should be inserted.
                         </li><li>
-                            <b>doNotPresist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+                            <b>doNotPersist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
                         </li></ul></p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">suppressNotifications?</code>
+                        <span class="type">Boolean</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>indicates if listeners should be notified of change.</p>
                     </div>
 
                     
@@ -757,7 +834,7 @@ model.createProperty("number", 1) // a simple property (model.number)
 }),
 .createProperty ("remoteModel", {prop1: "defaultValue"}, { // a remote model populated via the twitter rest api.
     url: "http://search.twitter.com/search.json?q=tennis&amp;callback=$jsonpCallback",
-    doNotPresist: true,
+    doNotPersist: true,
     refreshRate: -1, // -1 means fetch once.
     isJSONPurl: true
 }); // Note the method chaining.
@@ -774,7 +851,17 @@ model.createProperty("number", 1) // a simple property (model.number)
     <h3 class="name"><code>destroy</code></h3>
 
     
-        <span class="paren">()</span>
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>suppressNotifications?</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
     
 
     
@@ -803,7 +890,7 @@ model.createProperty("number", 1) // a simple property (model.number)
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l599"><code>src\model.js:599</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l569"><code>src\model.js:569</code></a>
         
         </p>
 
@@ -818,6 +905,29 @@ model.createProperty("number", 1) // a simple property (model.number)
 the 'childDestroyed' event on the parent.</p>
     </div>
 
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">suppressNotifications?</code>
+                        <span class="type">Boolean</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>indicates if listeners should be notified of destroy.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
     
 
     
@@ -883,7 +993,7 @@ the 'childDestroyed' event on the parent.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1163"><code>src\model.js:1163</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1329"><code>src\model.js:1329</code></a>
         
         </p>
 
@@ -978,7 +1088,7 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l460"><code>src\model.js:460</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l456"><code>src\model.js:456</code></a>
         
         </p>
 
@@ -1046,7 +1156,7 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l691"><code>src\model.js:691</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l677"><code>src\model.js:677</code></a>
         
         </p>
 
@@ -1061,7 +1171,7 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
 pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
 when creating a model from the very same json. Note: the modeljs framework uses the metadata to
 store attributes associated the properties that is uses. As a result the following keys have
-special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist ]</b></p>
+special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPersist ]</b></p>
 
 <p>For example see: <b>testGetMetadataMethod</b></p>
     </div>
@@ -1120,7 +1230,7 @@ special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l474"><code>src\model.js:474</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l473"><code>src\model.js:473</code></a>
         
         </p>
 
@@ -1132,7 +1242,7 @@ special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPresist
 
     <div class="description">
         <p>The fully qualified name of this. The name is calculated by concatenating the name
-of the parent, "/", and name of this. To create a named root pass in the name option key
+of the parent, "/", and name of this AKA the shortName. To create a named root pass in the name option key
 to the Model Constructor.</p>
     </div>
 
@@ -1206,7 +1316,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l841"><code>src\model.js:841</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l935"><code>src\model.js:935</code></a>
         
         </p>
 
@@ -1274,7 +1384,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l708"><code>src\model.js:708</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l694"><code>src\model.js:694</code></a>
         
         </p>
 
@@ -1355,7 +1465,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1202"><code>src\model.js:1202</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1370"><code>src\model.js:1370</code></a>
         
         </p>
 
@@ -1446,7 +1556,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l821"><code>src\model.js:821</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l915"><code>src\model.js:915</code></a>
         
         </p>
 
@@ -1523,6 +1633,12 @@ namedRoot.property1.getName();       // returns "/customName/property1"
                     
                 </li>
             
+                <li class="arg">
+                    
+                        <code>suppressNotifications?</code>
+                    
+                </li>
+            
             </ul><span class="paren">)</span>
         </div>
     
@@ -1556,7 +1672,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1000"><code>src\model.js:1000</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1173"><code>src\model.js:1173</code></a>
         
         </p>
 
@@ -1605,6 +1721,21 @@ those that try to set a value from a property to a model and vise versa.</p>
 
                     <div class="param-description">
                         <p>True if you want to keep properties that exist in this but not in the passed in json, Otherwise they will be deleted. Defaults to false.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">suppressNotifications?</code>
+                        <span class="type">Boolean</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>indicates if listeners should be notified of change.</p>
                     </div>
 
                     
@@ -1679,7 +1810,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1260"><code>src\model.js:1260</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1521"><code>src\model.js:1521</code></a>
         
         </p>
 
@@ -1775,7 +1906,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l665"><code>src\model.js:665</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l651"><code>src\model.js:651</code></a>
         
         </p>
 
@@ -1897,7 +2028,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l635"><code>src\model.js:635</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l621"><code>src\model.js:621</code></a>
         
         </p>
 
@@ -2019,7 +2150,7 @@ event type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l569"><code>src\model.js:569</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l539"><code>src\model.js:539</code></a>
         
         </p>
 
@@ -2095,7 +2226,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
 </div>
 
                 
-                    <div id="method_setValue" class="method item inherited">
+                    <div id="method_setValue" class="method item">
     <h3 class="name"><code>setValue</code></h3>
 
     
@@ -2120,7 +2251,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
 
     
         <span class="returns-inline">
-            <span class="type">string, boolean, number, null, function, object</span>
+            <span class="type">this</span>
         </span>
     
 
@@ -2138,13 +2269,16 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
 
     <div class="meta">
         
+            <p>Inherited from
+            <a href="..\classes\Property.html#method_setValue">
+                Property
+            </a>
             
-                <p>Inherited from
-                <a href="..\classes\Property.html#method_setValue">Property</a>:
+            but overwritten in
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l493"><code>src\model.js:493</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l949"><code>src\model.js:949</code></a>
         
         </p>
 
@@ -2155,7 +2289,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
     </div>
 
     <div class="description">
-        <p>Called upon a property or Model to set it's Value. If the setValue is the same as the current value,
+        <p>Called to set the value of a model. If the setValue is the same as the current value,
 nothing will happen and no change events will be fired. If the value is different it must pass
 the validator if there is one.  If it does pass the validator and the value is changed, all registered
 listeners will be notified unless the suppressNotifications option indicates otherwise.</p>
@@ -2170,13 +2304,13 @@ listeners will be notified unless the suppressNotifications option indicates oth
                 <li class="param">
                     
                         <code class="param-name">newValue</code>
-                        <span class="type">String, Boolean, Number, null, Date, Function, Object</span>
+                        <span class="type">Object</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>The Value you want to assign to the Property.</p>
+                        <p>The Value you want to assign to this.</p>
                     </div>
 
                     
@@ -2191,7 +2325,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
                     
 
                     <div class="param-description">
-                        <p>Indicating if listeners should be notified of change.</p>
+                        <p>indicates if listeners should be notified of change.</p>
                     </div>
 
                     
@@ -2208,22 +2342,14 @@ listeners will be notified unless the suppressNotifications option indicates oth
             <div class="returns-description">
                 
                     
-                        <span class="type">string, boolean, number, null, function, object</span>:
+                        <span class="type">this</span>:
                     
-                    The resulting value. If the operation was successful this will be the passed in value otherwise it will be the existing one.
+                    this for method chaining.
                 
             </div>
         </div>
     
 
-    
-        <div class="example">
-            <h4>Example:</h4>
-
-            <div class="example-content">
-                <p>For more examples see:  <b>testPrimitiveSetGet</b>, <b>testComplexChangePropertyValue</b> and <b>testSuppressNotifications</b></p>
-            </div>
-        </div>
     
 </div>
 
@@ -2262,7 +2388,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1147"><code>src\model.js:1147</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1313"><code>src\model.js:1313</code></a>
         
         </p>
 
@@ -2338,7 +2464,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1031"><code>src\model.js:1031</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1208"><code>src\model.js:1208</code></a>
         
         </p>
 
@@ -2351,7 +2477,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
     <div class="description">
         <p>Retrieves the json representation of this. This json representation can be used in the Model Constructor
 to recreate the same Model object. If you use includeMetaData validator metadata will be included.
-Properties that have the doNotPresist flag in it's metadata will have it's value nullified. This means
+Properties that have the doNotPersist flag in it's metadata will have it's value nullified. This means
 properties will have the value set to 'undefined' while models will be set to an empty object ({}).</p>
     </div>
 
@@ -2400,7 +2526,7 @@ properties will have the value set to 'undefined' while models will be set to an
             <h4>Example:</h4>
 
             <div class="example-content">
-                <p>For an example see: <b>testSaveLoadWithMetaData</b> and <b>testDoNotPresist</b></p>
+                <p>For an example see: <b>testSaveLoadWithMetaData</b> and <b>testDoNotPersist</b></p>
             </div>
         </div>
     
@@ -2456,7 +2582,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l620"><code>src\model.js:620</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l606"><code>src\model.js:606</code></a>
         
         </p>
 
@@ -2529,7 +2655,7 @@ properties will have the value set to 'undefined' while models will be set to an
 </div>
 
                 
-                    <div id="method_validateValue" class="method item inherited">
+                    <div id="method_validateValue" class="method item">
     <h3 class="name"><code>validateValue</code></h3>
 
     
@@ -2566,13 +2692,16 @@ properties will have the value set to 'undefined' while models will be set to an
 
     <div class="meta">
         
+            <p>Inherited from
+            <a href="..\classes\Property.html#method_validateValue">
+                Property
+            </a>
             
-                <p>Inherited from
-                <a href="..\classes\Property.html#method_validateValue">Property</a>:
+            but overwritten in
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l722"><code>src\model.js:722</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l985"><code>src\model.js:985</code></a>
         
         </p>
 
@@ -2595,7 +2724,7 @@ properties will have the value set to 'undefined' while models will be set to an
                 <li class="param">
                     
                         <code class="param-name">value</code>
-                        <span class="type">String, Boolean, Number, null, Date, Function, Object</span>
+                        <span class="type">Object</span>
                     
 
                     
@@ -2646,6 +2775,327 @@ properties will have the value set to 'undefined' while models will be set to an
                 <h2 class="off-left">Properties</h2>
 
                 
+                    <div id="property_Event.CHANGE" class="property item">
+    <h3 class="name"><code>Event.CHANGE</code></h3>
+    <span class="type">String</span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1420"><code>src\model.js:1420</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The CHANGE event is psudo event equalvlant to triggering both a PROPERTY<em>CHANGE and MODEL</em>CHANGE event.
+It is the event used when registaring a listener using the onChange(callback, true) method.
+The callback will have the following arguments:
+     <ul>
+     <li>this = the property listening to the event</li>
+     <li>arg[0] = the property in it's current state</li>
+     <li>arg[1] = the old value.</li>
+     </ul></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_Event.CHILD_CREATED" class="property item">
+    <h3 class="name"><code>Event.CHILD_CREATED</code></h3>
+    <span class="type">String</span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1448"><code>src\model.js:1448</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The CHILD<em>CREATED event is triggered when a new property is created. It's triggered on the
+parent and propergates a MODEL</em>CHANGE event up the model tree.
+The callback will have the following arguments:
+     <ul>
+     <li>this = the parent property</li>
+     <li>arg[0] = the created property</li>
+     <li>arg[1] = undefined</li>
+     </ul></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_Event.CHILD_DESTROYED" class="property item">
+    <h3 class="name"><code>Event.CHILD_DESTROYED</code></h3>
+    <span class="type">String</span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1462"><code>src\model.js:1462</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The CHILD<em>Destroyed event is triggered when a child property is destroyed. It triggered on the
+parent and propergates a MODEL</em>CHANGE event up the model tree.
+The callback will have the following arguments:
+     <ul>
+     <li>this = the parent property</li>
+     <li>arg[0] = the destroyed property</li>
+     <li>arg[1] = undefined</li>
+     </ul></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_Event.DESTROY" class="property item">
+    <h3 class="name"><code>Event.DESTROY</code></h3>
+    <span class="type">String</span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1434"><code>src\model.js:1434</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The DESTROY event is triggered when destroy() method called on a property. It than triggers
+a CHILD_DESTROYED event on it's parent.
+The callback will have the following arguments:
+     <ul>
+     <li>this = the destroyed property</li>
+     <li>arg[0] = the destroyed property</li>
+     <li>arg[1] = the old value.</li>
+     </ul></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_Event.MODEL_CHANGE" class="property item">
+    <h3 class="name"><code>Event.MODEL_CHANGE</code></h3>
+    <span class="type">Unknown</span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1406"><code>src\model.js:1406</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The MODEL_CHANGE event is triggered when the value of any of the property's
+children have changed. This includes child properties being created or destroyed.
+When triggered on a property it will bubble the event up it's model tree.
+The callback will have the following arguments:
+     <ul>
+     <li>this = the property listening to the event. (or is registared with the callback)</li>
+     <li>arg[0] = the property that triggered the modelChange</li>
+     <li>arg[1] = the old value.</li>
+     </ul></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_Event.PROPERTY_CHANGE" class="property item">
+    <h3 class="name"><code>Event.PROPERTY_CHANGE</code></h3>
+    <span class="type">String</span>
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1390"><code>src\model.js:1390</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The PROPERTY<em>CHANGE event is triggered only when the value of the property has changed
+via setValue. When triggered it will bubble up a MODEL</em>CHANGED event. Listen to this event
+if you only want to be notified of direct changes to the property and not changes to any of
+it's children. This is what the onChange(callback, false) does.
+PROPERTY_CHANGE event callbacks will be called with the following arguments:
+     <ul>
+     <li>this = the property listening to the event</li>
+     <li>arg[0] = the property in it's current state</li>
+     <li>arg[1] = the old value.</li>
+     </ul></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
                     <div id="property_Formatter" class="property item">
     <h3 class="name"><code>Formatter</code></h3>
     <span class="type">Function A format function whose first argument is the value to be formatted</span>
@@ -2671,7 +3121,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1079"><code>src\model.js:1079</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1245"><code>src\model.js:1245</code></a>
         
         </p>
 
@@ -2734,7 +3184,7 @@ input type as a value.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1102"><code>src\model.js:1102</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1268"><code>src\model.js:1268</code></a>
         
         </p>
 
@@ -2783,7 +3233,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1219"><code>src\model.js:1219</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1480"><code>src\model.js:1480</code></a>
         
         </p>
 
@@ -2839,7 +3289,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1228"><code>src\model.js:1228</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1489"><code>src\model.js:1489</code></a>
         
         </p>
 
@@ -2895,7 +3345,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1237"><code>src\model.js:1237</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1498"><code>src\model.js:1498</code></a>
         
         </p>
 
@@ -2951,7 +3401,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1246"><code>src\model.js:1246</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1507"><code>src\model.js:1507</code></a>
         
         </p>
 
