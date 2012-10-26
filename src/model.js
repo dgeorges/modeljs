@@ -1236,6 +1236,7 @@
                     if (includeMetaData && !isEmptyObject(property.getMetadata())) {
                         json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
                     }
+
                 }
             }
             return json;
@@ -1277,9 +1278,11 @@
     Model.enableLogging = false;
 
     /**
-     * TODO figure out how I want to expose this.
-     * Hence the no documentation.
+     * Searchs the given model for the property of the given name and returns it.
      *
+     * @param  {[Property, Model, ArrayProperty]} model        The model to search.
+     * @param  {[String]} propertyName The fully quialified name of the property. Equal to the getName() value.
+     * @return {[Property, Model, ArrayProperty]}   The model object of the given name,
      */
     Model.find = function (model, propertyName) {
         var modelName = model.getName();
@@ -1418,7 +1421,7 @@
          */
         MODEL_CHANGE: "modelChange",
         /**
-         * The CHANGE event is psudo event equalvlant to triggering both a PROPERTY_CHANGE and MODEL_CHANGE event.
+         * The CHANGE event is psudo event equalvlant to a PROPERTY_CHANGE and MODEL_CHANGE event.
          * It is the event used when registaring a listener using the onChange(callback, true) method.
          * The callback will have the following arguments:
          *      <ul>
