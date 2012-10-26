@@ -16,7 +16,7 @@
     <script type="text/javascript" src="./lib/google-code-prettify/prettify.js"></script>
     <style>
         .tutorial {
-            height: 16em;
+            height: 18em;
             width: 100%;
             position: relative;
             bottom: 0px;
@@ -86,8 +86,8 @@ model.exampleProperty.getMetadata().exampleCustomMetadata = "custom value";
 
 /** Feature: load/save **/
 // Model Metadata can be saved and loaded with the model. We've already see how closing and reopening the page keeps your state. This is done by saving to JSON and loading from JSON.
-model.toJSON(); // give you the model JSON to persist.
-model.toJSON(true); // passing true will includ the model metadata as well.
+model.toJSON(); // returns the model JSON to persist.
+model.toJSON(true); // passing true will include the model metadata as well.
 
 // To restore your model from the JSON just pass it to the constructor to re-create the model.
 var tableModelFromJSON = new Model(model.table.toJSON(true));
@@ -98,24 +98,21 @@ var clonedTableModel = model.table.clone();
 
 /** Feature: do not persist **/
 // if you don't want a property to be presisted, just indicate so in the metadata.
-
 model.exampleProperty.getMetadata().doNotPersist = true;
 
-// Now model.toJSON(); will not return it.
+model.toJSON(); // Notice it is not return it.
 
-// This page uses your browser local storage to store its state. see http://diveintohtml5.info/storage.html#halma for more about this.
-
-
+// This page uses your browser local storage to save/load the model. read http://diveintohtml5.info/storage.html#halma for more about this.
 
 /** Feature: getName() **/
 // get Name returns the fully qualified name of the property.
 model.table.data.getName(); // === "/root/table/data"
+// but we can also get the shortName
+model.table.data.getShortName(); // === "data"
 
-//Notice the difference between the name of the tableModelFromJSON and your clone. read the jsdoc to learn more about what clone does exactly.
+//Notice the difference between the name of the tableModelFromJSON and your clone. If you metadata object passed to the model constructor does not have a 'name' key/value pair it will always be named /root. read the jsdoc to learn more about the Model constructor and what clone does exactly.
 tableModelFromJSON.getName(); // === "/root"
 clonedTableModel.getName(); // === "/data"
-
-// Keeping the name of the property is one thing clone does for you.
 
 // Let look at other thing stored in the metadata
 /** Feature: validators **/
@@ -131,24 +128,94 @@ model.exampleProperty.getValue(); // setValue didn't do anything. it fails silen
 model.exampleProperty.validateValue(100); // returns false;
 model.exampleProperty.hasValidator(); // tell you if a validator exists
 
+// In addition to validating input values we can also define how our output values should be formatted by calling getFormattedValue()
+/** Feature: getFormattedValue() **/
+// By default there is no Formatter defined and getFormattedValue() will return the raw value equal to getValue()
+model.table.header[0].getFormattedValue(); // returns "Month"
+// To format our model Values we have two options, define a global Formatter or define a local formatter function.
 
-// example of a format function
+// Defining a global formatter. Which returns all String in upper case.
 Model.Formatter = function (value) {
     var formattedValue = value;
-    if (typeof value === 'number'){
-        formattedValue = "$" + value;
+    if (typeof value === 'string'){
+        formattedValue =  value.toUpperCase();
     }
     return formattedValue;
-};
+}
 
+model.table.header[0].getFormattedValue(); // now returns "MONTH"
 
+// We can also define a Formatter on a specific property which will override the global formatter.
+model.table.header[0].getMetadata().Formatter = function (value) {
+    var formattedValue = value;
+    if (typeof value === 'string'){
+        formattedValue =  "--" + value + "--";
+    }
+    return formattedValue;
+}
 
-model.exampleProperty.hasValidator(); // indicates if a validator exists
+model.table.header[0].getFormattedValue(); // now returns "--Month--"
+
+/** Feature: Events **/
+// Next up Events. Events are the primary mechanism that decouples the Model from the view which makes the MVC pattern so powerful. modeljs has the following events: PROPERTY_CHANGE, MODEL_CHANGE, DESTROY, CHILD_CREATED, CHILD_DESTROYED and CHANGE. Read the jsdoc for details on each event type.
+
+// We can listen to change event by registering callbacks.
+// The following are example of different ways to registar your callback
+
+model.exampleObject.onChange(function () {
+    window.console.log("exampleObject PROPERTY_CHANGE event fired");
+}); // equavlant to model.exampleObject.on(Model.Event.PROPERTY_CHANGE, callback);
+
+model.exampleObject.onChange(function () {
+    window.console.log("exampleObject CHANGE (ie. PROPERTY OR MODEL) event fired");
+}, true); // equavlant to model.exampleObject.on(Model.Event.CHANGE, callback); which is equavilant to registaring it on both PROPERTY_CHANGE and MODEL_CHANGE
+
+model.exampleObject.on(Model.Event.MODEL_EVENT, function () {
+    window.console.log("exampleObject MODEL_EVENT event fired");
+}); // equavlant to model.exampleObject.on(Model.Event.MODEL_CHANGE, callback);
+
+model.exampleObject.on(Model.Event.CHILD_CREATED, function () {
+    window.console.log("exampleObject CHILD_CREATED event fired");
+}); // equavlant to model.exampleObject.on(Model.Event.CHILD_CREATED, callback);
+
+model.exampleObject.on(Model.Event.CHILD_DESTROYED, function () {
+    window.console.log("exampleObject CHILD_DESTROYED event fired");
+});
+
+// Now lets do actions that fire events
+model.exampleObject.anotherProperty.setValue("new Value"); // triggers a PROPERTY_CHANGE event on anotherProperty and bubbles up a MODEL_CHANGE event which triggers 2 callbacks.
+
+// We can also trigger events manually
+model.exampleObject.anotherProperty.trigger(Model.Event.PROPERTY_CHANGE);
+
+model.exampleObject.createProperty("newProp", "newValue"); // triggers a CHILD_CREATED event
+model.exampleObject.newProp.destroy(); // triggers the CHILD_DESTROYED event
+
+/** Feature: custom Events **/
+// Finally you can listen and trigger your own custom events.
+model.exampleObject.on("Foo", function () {
+    window.console.log("bar");
+});
+model.exampleObject.trigger("Foo");
+
+// Note, any method that triggers an event will usually take a SuppressNotifications flag. 
+/** Feature: suppress Notifications **/
+model.exampleObject.anotherProperty.setValue("Change Value but don't notify listeners", true);
+
+/** Feature: Transactions **/
+// Read the jsdoc for more information on transactions.
+Model.startTransaction();
+
+model.exampleObject.anotherProperty.setValue("set inside transaction");
+model.exampleObject.anotherProperty.getValue();
+model.exampleObject.trigger("Foo");
+model.exampleObject.trigger("Foo");
+Model.endTransaction();
 
 model.table.data.getMetadata().validator = function (value) {
     return (value && value.length === 2 && value[0] && value[1]);
 }
-
+//TO DEMO: custom events, suppressions, transactions
 
 //( [validator, Formatter, name, url, refreshRate, isJSONPurl, doNotPresist ])
     </pre>
