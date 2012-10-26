@@ -1280,9 +1280,12 @@
     /**
      * Searchs the given model for the property of the given name and returns it.
      *
+     * @method find
+     * @static
+     *
      * @param  {[Property, Model, ArrayProperty]} model        The model to search.
      * @param  {[String]} propertyName The fully quialified name of the property. Equal to the getName() value.
-     * @return {[Property, Model, ArrayProperty]}   The model object of the given name,
+     * @return {[Property, Model, ArrayProperty]}   The model object of the given name, null otherwise.
      */
     Model.find = function (model, propertyName) {
         var modelName = model.getName();
@@ -1309,7 +1312,10 @@
         for (var k = i; k < propertyParts.length; k++) {
             prop = prop[propertyParts[k]];
         }
-        return prop;
+        if (prop.getName() === propertyName){
+            return prop;
+        }
+        return null;
     };
 
 
