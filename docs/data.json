@@ -632,7 +632,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1245,
+            "line": 1246,
             "description": "A global formatter used to calculate the formatted value of a Property. If defined the function\nwill be called when getFormattedValue gets called. The function should accept the value to be formatted\nas the first argument and expect 'this' to be the Property. The formatter must be able to handle any\ninput type as a value.",
             "example": [
                 "\n    Model.Formatter = function (value) { //makes all strings uppercase\n        if (typeof value === 'string') {\n            return value.toUpperCase();\n        }\n        return value;\n    }"
@@ -650,7 +650,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1268,
+            "line": 1269,
             "description": "If logging is enabled any warning or incorrect uses of the api will result in output to the console\nif it exists.",
             "itemtype": "property",
             "name": "isLoggingEnabled",
@@ -662,14 +662,33 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1279,
-            "description": "TODO figure out how I want to expose this.\nHence the no documentation.",
+            "line": 1280,
+            "description": "Searchs the given model for the property of the given name and returns it.",
+            "itemtype": "method",
+            "name": "find",
+            "static": 1,
+            "params": [
+                {
+                    "name": "model",
+                    "description": "The model to search.",
+                    "type": "[Property, Model, ArrayProperty]"
+                },
+                {
+                    "name": "propertyName",
+                    "description": "The fully quialified name of the property. Equal to the getName() value.",
+                    "type": "[String]"
+                }
+            ],
+            "return": {
+                "description": "The model object of the given name, null otherwise.",
+                "type": "[Property, Model, ArrayProperty]"
+            },
             "class": "Model",
             "module": "Model"
         },
         {
             "file": "src\\model.js",
-            "line": 1313,
+            "line": 1322,
             "description": "Begins a transaction. All events will be put into the queued. To be fired when endTransaction is called.",
             "example": [
                 "\nFor an examples see <b>testModelTransactions</b>"
@@ -682,7 +701,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1329,
+            "line": 1338,
             "description": "Ends the current transaction causing all queued up events to be fired according to the global eventOptization settings or the settings passed in if they exist.",
             "example": [
                 "\n    model.endTransaction(); //uses settings found in Model.TRANSACTION_OPTIONS\n    model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for this transaction\n        fireOnlyMostRecentPropertyEvent: false,\n        flattenCallbacks: true,\n        flattenCallbacksByHash: true\n    })\nFor more examples see: <b>testFlattenCallbacks</b>, <b>testFlattenCallbacksByHash</b>,\n     <b>testModelEndTransactionWithOptions</b>"
@@ -702,7 +721,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1370,
+            "line": 1379,
             "description": "Determines if you are currently in a start/end transaction block.",
             "example": [
                 "\nFor an examples see <b>testModelTransactions</b>"
@@ -719,7 +738,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1390,
+            "line": 1399,
             "description": "The PROPERTY_CHANGE event is triggered only when the value of the property has changed\nvia setValue. When triggered it will bubble up a MODEL_CHANGED event. Listen to this event\nif you only want to be notified of direct changes to the property and not changes to any of\nit's children. This is what the onChange(callback, false) does.\nPROPERTY_CHANGE event callbacks will be called with the following arguments:\n     <ul>\n     <li>this = the property listening to the event</li>\n     <li>arg[0] = the property in it's current state</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.PROPERTY_CHANGE",
@@ -730,7 +749,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1406,
+            "line": 1415,
             "description": "The MODEL_CHANGE event is triggered when the value of any of the property's\nchildren have changed. This includes child properties being created or destroyed.\nWhen triggered on a property it will bubble the event up it's model tree.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the property listening to the event. (or is registared with the callback)</li>\n     <li>arg[0] = the property that triggered the modelChange</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.MODEL_CHANGE",
@@ -740,8 +759,8 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1420,
-            "description": "The CHANGE event is psudo event equalvlant to triggering both a PROPERTY_CHANGE and MODEL_CHANGE event.\nIt is the event used when registaring a listener using the onChange(callback, true) method.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the property listening to the event</li>\n     <li>arg[0] = the property in it's current state</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
+            "line": 1429,
+            "description": "The CHANGE event is psudo event equalvlant to a PROPERTY_CHANGE and MODEL_CHANGE event.\nIt is the event used when registaring a listener using the onChange(callback, true) method.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the property listening to the event</li>\n     <li>arg[0] = the property in it's current state</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.CHANGE",
             "static": 1,
@@ -751,7 +770,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1434,
+            "line": 1443,
             "description": "The DESTROY event is triggered when destroy() method called on a property. It than triggers\na CHILD_DESTROYED event on it's parent.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the destroyed property</li>\n     <li>arg[0] = the destroyed property</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.DESTROY",
@@ -762,7 +781,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1448,
+            "line": 1457,
             "description": "The CHILD_CREATED event is triggered when a new property is created. It's triggered on the\nparent and propergates a MODEL_CHANGE event up the model tree.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the parent property</li>\n     <li>arg[0] = the created property</li>\n     <li>arg[1] = undefined</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.CHILD_CREATED",
@@ -773,7 +792,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1462,
+            "line": 1471,
             "description": "The CHILD_Destroyed event is triggered when a child property is destroyed. It triggered on the\nparent and propergates a MODEL_CHANGE event up the model tree.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the parent property</li>\n     <li>arg[0] = the destroyed property</li>\n     <li>arg[1] = undefined</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.CHILD_DESTROYED",
@@ -784,7 +803,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1480,
+            "line": 1489,
             "description": "Only fires the last event of a property during a transaction.",
             "example": [
                 " For an example see <b>testFireOnlyMostRecentPropertyEvent</b>"
@@ -799,7 +818,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1489,
+            "line": 1498,
             "description": "Will make sure a callback only gets called only once during a transaction. Even if registered with several properties.",
             "example": [
                 " For an example see <b>testFlattenCallbacks</b>"
@@ -814,7 +833,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1498,
+            "line": 1507,
             "description": "Will make sure callbacks identified by .hash only gets called only once during a transaction. Even if registered with several properties.",
             "example": [
                 " For an example see <b>testFlattenCallbacksByHash</b>"
@@ -829,7 +848,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1507,
+            "line": 1516,
             "description": "Will guarentee that no event are fired during a transaction",
             "example": [
                 " For an example see <b>testSuppressAllEvents</b>"
@@ -844,7 +863,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1521,
+            "line": 1530,
             "description": "Release control of the global window.Model variable restoring it to its previous value",
             "example": [
                 "\n    // window.Model is restore to previous value and localModel now holds the window.Model reference\n    var localModel = window.Model.noConflict();\nFor an example see <b>testModelNoConflict</b>"
@@ -861,7 +880,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1551,
+            "line": 1560,
             "class": "Model",
             "module": "Model"
         }
