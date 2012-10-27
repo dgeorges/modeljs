@@ -1063,7 +1063,7 @@
      *         isJSONPurl: true
      *     }); // Note the method chaining.
      *
-     * For examples see: <b>testModelCreationUsingCreatePropertyMethod</b>
+     * For examples see: <b>testModelCreationUsingCreatePropertyMethod, testThinModel</b>
      *
      * @method  createProperty
      *
@@ -1080,6 +1080,8 @@
      *                             <b>isJSONPurl</b> {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string "$jsonpCallback" where the jsonp callback function should be inserted.
      *                         </li><li>
      *                             <b>doNotPersist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+     *                         </li><li>
+     *                             <b>thin</b> {Boolean} - will create a model property representing this but not model any of it's children properties
      *                         </li></ul>
      *
      * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.

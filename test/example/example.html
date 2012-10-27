@@ -100,7 +100,7 @@ var clonedTableModel = model.table.clone();
 // if you don't want a property to be presisted, just indicate so in the metadata.
 model.exampleProperty.getMetadata().doNotPersist = true;
 
-model.toJSON(); // Notice it is not return it.
+model.toJSON(); // Notice it has been nullified..
 
 // This page uses your browser local storage to save/load the model. read http://diveintohtml5.info/storage.html#halma for more about this.
 
@@ -112,7 +112,7 @@ model.table.data.getShortName(); // === "data"
 
 //Notice the difference between the name of the tableModelFromJSON and your clone. If you metadata object passed to the model constructor does not have a 'name' key/value pair it will always be named /root. read the jsdoc to learn more about the Model constructor and what clone does exactly.
 tableModelFromJSON.getName(); // === "/root"
-clonedTableModel.getName(); // === "/data"
+clonedTableModel.getName(); // === "/table"
 
 // Let look at other thing stored in the metadata
 /** Feature: validators **/
@@ -141,7 +141,7 @@ Model.Formatter = function (value) {
         formattedValue =  value.toUpperCase();
     }
     return formattedValue;
-}
+};
 
 model.table.header[0].getFormattedValue(); // now returns "MONTH"
 
@@ -152,7 +152,7 @@ model.table.header[0].getMetadata().Formatter = function (value) {
         formattedValue =  "--" + value + "--";
     }
     return formattedValue;
-}
+};
 
 model.table.header[0].getFormattedValue(); // now returns "--Month--"
 
@@ -170,8 +170,8 @@ model.exampleObject.onChange(function () {
     window.console.log("exampleObject CHANGE (ie. PROPERTY OR MODEL) event fired");
 }, true); // equavlant to model.exampleObject.on(Model.Event.CHANGE, callback); which is equavilant to registaring it on both PROPERTY_CHANGE and MODEL_CHANGE
 
-model.exampleObject.on(Model.Event.MODEL_EVENT, function () {
-    window.console.log("exampleObject MODEL_EVENT event fired");
+model.exampleObject.on(Model.Event.MODEL_CHANGE, function () {
+    window.console.log("exampleObject MODEL_CHANGE event fired");
 }); // equavlant to model.exampleObject.on(Model.Event.MODEL_CHANGE, callback);
 
 model.exampleObject.on(Model.Event.CHILD_CREATED, function () {
@@ -212,12 +212,8 @@ model.exampleObject.trigger("Foo");
 model.exampleObject.trigger("Foo");
 Model.endTransaction();
 
-model.table.data.getMetadata().validator = function (value) {
-    return (value && value.length === 2 && value[0] && value[1]);
-}
-//TO DEMO: custom events, suppressions, transactions
+// Notice transaction are fired at the end. Read jsdoc for more information about transaction options.
 
-//( [validator, Formatter, name, url, refreshRate, isJSONPurl, doNotPresist ])
     </pre>
 
 </body>
