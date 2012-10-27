@@ -100,7 +100,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l885"><code>src\model.js:885</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l887"><code>src\model.js:887</code></a>
         </div>
     
 
@@ -170,7 +170,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l885"><code>src\model.js:885</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l887"><code>src\model.js:887</code></a>
         
         </p>
 
@@ -602,7 +602,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1128"><code>src\model.js:1128</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1132"><code>src\model.js:1132</code></a>
         
         </p>
 
@@ -714,7 +714,7 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1061"><code>src\model.js:1061</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1063"><code>src\model.js:1063</code></a>
         
         </p>
 
@@ -777,6 +777,8 @@ metadata can contain custom keys or any of the special keys below.</p>
                         <p>A hash of metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.
                         <ul><li>
                             <b>validator</b> {Function} - a function to validate if the new value is valid before it is assigned.
+                        </li><li>
+                            <b>Formatter</b> {Function} - a function that takes this.getValue() as input and output the value you want returned by the getFormattedValue function. See the documentation of getFormattedValue for more details.
                         </li><li>
                             <b>url</b> {String} - the resource this model should use to get it's value. Resource must return json. <em>Must be used with refreshRate</em>
                         </li><li>
@@ -903,7 +905,7 @@ model.createProperty("number", 1) // a simple property (model.number)
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l569"><code>src\model.js:569</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l571"><code>src\model.js:571</code></a>
         
         </p>
 
@@ -1006,7 +1008,7 @@ the 'childDestroyed' event on the parent.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1361"><code>src\model.js:1361</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1365"><code>src\model.js:1365</code></a>
         
         </p>
 
@@ -1122,7 +1124,7 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1303"><code>src\model.js:1303</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1307"><code>src\model.js:1307</code></a>
         
         </p>
 
@@ -1239,7 +1241,9 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
     </div>
 
     <div class="description">
-        <p>Return the formatted value calculated by asking the Model.Formatter to format the value of this.</p>
+        <p>Return the formatted value calculated by passing this.getValue() to the this.getMetadata().Formatter function
+if it exists. If the metadata Formatter does not exist it will fall back to the global Formatter located at
+Model.Formatter. If that does not exist it will return this.getValue();</p>
     </div>
 
     
@@ -1296,7 +1300,7 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l677"><code>src\model.js:677</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l679"><code>src\model.js:679</code></a>
         
         </p>
 
@@ -1310,8 +1314,8 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
         <p>Retrieves the metadata associated with this. The metadata is persisted with the json when you
 pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
 when creating a model from the very same json. Note: the modeljs framework uses the metadata to
-store attributes associated the properties that is uses. As a result the following keys have
-special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPersist ]</b></p>
+store attributes associated the properties that is uses. As a result the following keys have special
+meaning. <b>[validator, Fromatter, name, url, refreshRate, isJSONPurl, doNotPersist, doNotPersistValue, thin]</b></p>
 
 <p>For example see: <b>testGetMetadataMethod</b></p>
     </div>
@@ -1370,7 +1374,7 @@ special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPersist
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l473"><code>src\model.js:473</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l475"><code>src\model.js:475</code></a>
         
         </p>
 
@@ -1456,7 +1460,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l953"><code>src\model.js:953</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l955"><code>src\model.js:955</code></a>
         
         </p>
 
@@ -1524,7 +1528,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l694"><code>src\model.js:694</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l696"><code>src\model.js:696</code></a>
         
         </p>
 
@@ -1605,7 +1609,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1402"><code>src\model.js:1402</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1406"><code>src\model.js:1406</code></a>
         
         </p>
 
@@ -1696,7 +1700,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l933"><code>src\model.js:933</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l935"><code>src\model.js:935</code></a>
         
         </p>
 
@@ -1812,7 +1816,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1195"><code>src\model.js:1195</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1199"><code>src\model.js:1199</code></a>
         
         </p>
 
@@ -1826,7 +1830,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
         <p>Preforms the merge operation on this. The merge operation will add properties that exist in the merged object
 but not in this, remove those that are not found in the merged object (unless keepOldProperties is set to true)
 and will call setValue for those that exist in both. Note the operation will log an error to the console, return
-false, and not modify the object if any of the setValue operation are not valid. Not valid set operations inclded
+false, and not modify the object if any of the setValue operation are not valid. Not valid set operations included
 those that try to set a value from a property to a model and vise versa.</p>
     </div>
 
@@ -1950,7 +1954,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1553"><code>src\model.js:1553</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1557"><code>src\model.js:1557</code></a>
         
         </p>
 
@@ -2046,7 +2050,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l651"><code>src\model.js:651</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l653"><code>src\model.js:653</code></a>
         
         </p>
 
@@ -2168,7 +2172,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l621"><code>src\model.js:621</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l623"><code>src\model.js:623</code></a>
         
         </p>
 
@@ -2290,7 +2294,7 @@ event type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l539"><code>src\model.js:539</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l541"><code>src\model.js:541</code></a>
         
         </p>
 
@@ -2418,7 +2422,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l967"><code>src\model.js:967</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l969"><code>src\model.js:969</code></a>
         
         </p>
 
@@ -2528,7 +2532,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1345"><code>src\model.js:1345</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1349"><code>src\model.js:1349</code></a>
         
         </p>
 
@@ -2604,7 +2608,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1230"><code>src\model.js:1230</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1234"><code>src\model.js:1234</code></a>
         
         </p>
 
@@ -2722,7 +2726,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l606"><code>src\model.js:606</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l608"><code>src\model.js:608</code></a>
         
         </p>
 
@@ -2841,7 +2845,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1003"><code>src\model.js:1003</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1005"><code>src\model.js:1005</code></a>
         
         </p>
 
@@ -2940,7 +2944,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1452"><code>src\model.js:1452</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1456"><code>src\model.js:1456</code></a>
         
         </p>
 
@@ -2993,7 +2997,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1480"><code>src\model.js:1480</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1484"><code>src\model.js:1484</code></a>
         
         </p>
 
@@ -3046,7 +3050,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1494"><code>src\model.js:1494</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1498"><code>src\model.js:1498</code></a>
         
         </p>
 
@@ -3099,7 +3103,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1466"><code>src\model.js:1466</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1470"><code>src\model.js:1470</code></a>
         
         </p>
 
@@ -3152,7 +3156,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1438"><code>src\model.js:1438</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1442"><code>src\model.js:1442</code></a>
         
         </p>
 
@@ -3206,7 +3210,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1422"><code>src\model.js:1422</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1426"><code>src\model.js:1426</code></a>
         
         </p>
 
@@ -3261,7 +3265,7 @@ PROPERTY_CHANGE event callbacks will be called with the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1269"><code>src\model.js:1269</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1273"><code>src\model.js:1273</code></a>
         
         </p>
 
@@ -3324,7 +3328,7 @@ input type as a value.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1292"><code>src\model.js:1292</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1296"><code>src\model.js:1296</code></a>
         
         </p>
 
@@ -3373,7 +3377,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1512"><code>src\model.js:1512</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1516"><code>src\model.js:1516</code></a>
         
         </p>
 
@@ -3429,7 +3433,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1521"><code>src\model.js:1521</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1525"><code>src\model.js:1525</code></a>
         
         </p>
 
@@ -3485,7 +3489,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1530"><code>src\model.js:1530</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1534"><code>src\model.js:1534</code></a>
         
         </p>
 
@@ -3541,7 +3545,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1539"><code>src\model.js:1539</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1543"><code>src\model.js:1543</code></a>
         
         </p>
 

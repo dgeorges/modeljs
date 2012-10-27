@@ -454,7 +454,9 @@
     };
 
     /**
-     * Return the formatted value calculated by asking the Model.Formatter to format the value of this.
+     * Return the formatted value calculated by passing this.getValue() to the this.getMetadata().Formatter function
+     * if it exists. If the metadata Formatter does not exist it will fall back to the global Formatter located at
+     * Model.Formatter. If that does not exist it will return this.getValue();
      *
      * @method getFormattedValue
      *
@@ -678,8 +680,8 @@
      * Retrieves the metadata associated with this. The metadata is persisted with the json when you
      * pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
      * when creating a model from the very same json. Note: the modeljs framework uses the metadata to
-     * store attributes associated the properties that is uses. As a result the following keys have
-     * special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPersist ]</b>
+     * store attributes associated the properties that is uses. As a result the following keys have special
+     * meaning. <b>[validator, Fromatter, name, url, refreshRate, isJSONPurl, doNotPersist, doNotPersistValue, thin]</b>
      *
      * For example see: <b>testGetMetadataMethod</b>
      *
@@ -688,7 +690,7 @@
      * @return {Object} A map of metadata properties associated with this.
      */
     Property.prototype.getMetadata = function () {
-        return this._metadata; //TODO should I return a defensive copy?
+        return this._metadata;
     };
 
     /**
@@ -1091,6 +1093,8 @@
      *                         <ul><li>
      *                             <b>validator</b> {Function} - a function to validate if the new value is valid before it is assigned.
      *                         </li><li>
+     *                             <b>Formatter</b> {Function} - a function that takes this.getValue() as input and output the value you want returned by the getFormattedValue function. See the documentation of getFormattedValue for more details.
+     *                         </li><li>
      *                             <b>url</b> {String} - the resource this model should use to get it's value. Resource must return json. *Must be used with refreshRate*
      *                         </li><li>
      *                             <b>refreshRate</b> {Number} - the interval used to query the url for changes. must be > 100 or -1. -1 indicates to only fetch value once. *Must be used with url*
@@ -1196,7 +1200,7 @@
      * Preforms the merge operation on this. The merge operation will add properties that exist in the merged object
      * but not in this, remove those that are not found in the merged object (unless keepOldProperties is set to true)
      * and will call setValue for those that exist in both. Note the operation will log an error to the console, return
-     * false, and not modify the object if any of the setValue operation are not valid. Not valid set operations inclded
+     * false, and not modify the object if any of the setValue operation are not valid. Not valid set operations included
      * those that try to set a value from a property to a model and vise versa.
      *
      * @example

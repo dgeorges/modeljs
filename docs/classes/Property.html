@@ -443,7 +443,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l569"><code>src\model.js:569</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l571"><code>src\model.js:571</code></a>
         
         </p>
 
@@ -549,7 +549,9 @@ the 'childDestroyed' event on the parent.</p>
     </div>
 
     <div class="description">
-        <p>Return the formatted value calculated by asking the Model.Formatter to format the value of this.</p>
+        <p>Return the formatted value calculated by passing this.getValue() to the this.getMetadata().Formatter function
+if it exists. If the metadata Formatter does not exist it will fall back to the global Formatter located at
+Model.Formatter. If that does not exist it will return this.getValue();</p>
     </div>
 
     
@@ -609,7 +611,7 @@ the 'childDestroyed' event on the parent.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l677"><code>src\model.js:677</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l679"><code>src\model.js:679</code></a>
         
         </p>
 
@@ -623,8 +625,8 @@ the 'childDestroyed' event on the parent.</p>
         <p>Retrieves the metadata associated with this. The metadata is persisted with the json when you
 pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
 when creating a model from the very same json. Note: the modeljs framework uses the metadata to
-store attributes associated the properties that is uses. As a result the following keys have
-special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPersist ]</b></p>
+store attributes associated the properties that is uses. As a result the following keys have special
+meaning. <b>[validator, Fromatter, name, url, refreshRate, isJSONPurl, doNotPersist, doNotPersistValue, thin]</b></p>
 
 <p>For example see: <b>testGetMetadataMethod</b></p>
     </div>
@@ -686,7 +688,7 @@ special meaning. <b>[validator, name, url, refreshRate, isJSONPurl, doNotPersist
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l473"><code>src\model.js:473</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l475"><code>src\model.js:475</code></a>
         
         </p>
 
@@ -843,7 +845,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l694"><code>src\model.js:694</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l696"><code>src\model.js:696</code></a>
         
         </p>
 
@@ -938,7 +940,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l651"><code>src\model.js:651</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l653"><code>src\model.js:653</code></a>
         
         </p>
 
@@ -1063,7 +1065,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l621"><code>src\model.js:621</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l623"><code>src\model.js:623</code></a>
         
         </p>
 
@@ -1188,7 +1190,7 @@ event type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l539"><code>src\model.js:539</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l541"><code>src\model.js:541</code></a>
         
         </p>
 
@@ -1316,7 +1318,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l504"><code>src\model.js:504</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l506"><code>src\model.js:506</code></a>
         
         </p>
 
@@ -1452,7 +1454,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l606"><code>src\model.js:606</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l608"><code>src\model.js:608</code></a>
         
         </p>
 
@@ -1571,7 +1573,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l708"><code>src\model.js:708</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l710"><code>src\model.js:710</code></a>
         
         </p>
 
