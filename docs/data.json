@@ -42,7 +42,7 @@
             "namespaces": {},
             "tag": "module",
             "file": "src\\model.js",
-            "line": 867,
+            "line": 885,
             "description": "Model js - A simple javascript library for creating the Model part of a MVC application.\nhttps://github.com/dgeorges/modeljs.git\n\nCopyright 2012, Daniel Georges\nmodeljs is distributed freely under a MIT licence"
         }
     },
@@ -116,7 +116,7 @@
             "module": "Model",
             "namespace": "",
             "file": "src\\model.js",
-            "line": 867,
+            "line": 885,
             "description": "The model Object that wraps the JSON.",
             "example": [
                 "\nFor examples see: <b>testPrimitiveSaveLoad</b>,  <b>testObjectsSaveLoad</b>, <b>testComplexSaveLoad</b>\n<b>testGetNameMethod</b> and <b>testSaveLoadWithMetaData</b>"
@@ -417,7 +417,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 837,
+            "line": 855,
             "description": "Determines if the given value will pass the validation function of this.",
             "example": [
                 "\nFor examples see:  <b>testPropertyValidationFunction</b>"
@@ -440,7 +440,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 915,
+            "line": 933,
             "description": "Determines if the parameter passed in is an modeljs Array Property.",
             "static": 1,
             "itemtype": "method",
@@ -461,7 +461,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 935,
+            "line": 953,
             "description": "Gets the value associated with the Model. This will be a json Object.",
             "itemtype": "method",
             "name": "getValue",
@@ -474,7 +474,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 949,
+            "line": 967,
             "description": "Called to set the value of a model. If the setValue is the same as the current value,\nnothing will happen and no change events will be fired. If the value is different it must pass\nthe validator if there is one.  If it does pass the validator and the value is changed, all registered\nlisteners will be notified unless the suppressNotifications option indicates otherwise.",
             "itemtype": "method",
             "name": "setValue",
@@ -499,7 +499,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 985,
+            "line": 1003,
             "description": "Determines if the given value will pass the validation function of this.",
             "example": [
                 "\nFor examples see:  <b>testPropertyValidationFunction</b>"
@@ -522,10 +522,10 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1043,
+            "line": 1061,
             "description": "Creates the property with the given name on this. This will fire the childCreated event on the parent. The\nmetadata can contain custom keys or any of the special keys below.",
             "example": [
-                "\n    var model = new Model();\n    model.createProperty(\"number\", 1) // a simple property (model.number)\n    .createProperty(\"subModel\", { // a property that is a subModel (model.subModel and model.subModel.str)\n        str: \"stringProperty\"\n    })\n    .createProperty(\"positiveNumber\", 2, { // a property with a positiveNumber validator and a custom attribute\n        validator: function (value) {\n            return value > 0;\n        },\n        customMetadata: \"this Property is special\"\n    }),\n    .createProperty (\"remoteModel\", {prop1: \"defaultValue\"}, { // a remote model populated via the twitter rest api.\n        url: \"http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback\",\n        doNotPersist: true,\n        refreshRate: -1, // -1 means fetch once.\n        isJSONPurl: true\n    }); // Note the method chaining.\n\nFor examples see: <b>testModelCreationUsingCreatePropertyMethod</b>"
+                "\n    var model = new Model();\n    model.createProperty(\"number\", 1) // a simple property (model.number)\n    .createProperty(\"subModel\", { // a property that is a subModel (model.subModel and model.subModel.str)\n        str: \"stringProperty\"\n    })\n    .createProperty(\"positiveNumber\", 2, { // a property with a positiveNumber validator and a custom attribute\n        validator: function (value) {\n            return value > 0;\n        },\n        customMetadata: \"this Property is special\"\n    }),\n    .createProperty (\"remoteModel\", {prop1: \"defaultValue\"}, { // a remote model populated via the twitter rest api.\n        url: \"http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback\",\n        doNotPersist: true,\n        refreshRate: -1, // -1 means fetch once.\n        isJSONPurl: true\n    }); // Note the method chaining.\n\nFor examples see: <b>testModelCreationUsingCreatePropertyMethod, testThinModel</b>"
             ],
             "itemtype": "method",
             "name": "createProperty",
@@ -542,7 +542,7 @@
                 },
                 {
                     "name": "metadata?",
-                    "description": "A hash of metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.\n                        <ul><li>\n                            <b>validator</b> {Function} - a function to validate if the new value is valid before it is assigned.\n                        </li><li>\n                            <b>url</b> {String} - the resource this model should use to get it's value. Resource must return json. *Must be used with refreshRate*\n                        </li><li>\n                            <b>refreshRate</b> {Number} - the interval used to query the url for changes. must be > 100 or -1. -1 indicates to only fetch value once. *Must be used with url*\n                        </li><li>\n                            <b>isJSONPurl</b> {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string \"$jsonpCallback\" where the jsonp callback function should be inserted.\n                        </li><li>\n                            <b>doNotPersist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.\n                        </li></ul>",
+                    "description": "A hash of metadata associated with the property. You can put any metadata you want. However the following keys have special meaning and are reserved for use by the framework.\n                        <ul><li>\n                            <b>validator</b> {Function} - a function to validate if the new value is valid before it is assigned.\n                        </li><li>\n                            <b>url</b> {String} - the resource this model should use to get it's value. Resource must return json. *Must be used with refreshRate*\n                        </li><li>\n                            <b>refreshRate</b> {Number} - the interval used to query the url for changes. must be > 100 or -1. -1 indicates to only fetch value once. *Must be used with url*\n                        </li><li>\n                            <b>isJSONPurl</b> {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string \"$jsonpCallback\" where the jsonp callback function should be inserted.\n                        </li><li>\n                            <b>doNotPersist</b> {Boolean} - property will not exist in the json object returned by the toJSON method.\n                        </li><li>\n                            <b>doNotPersistValue</b> {Boolean} - will clear the value of the property when toJSON is called. For Object and Array types the value will be and empty object/array. Else it will be undefined. *Note metadata can still be persisted.\n                        </li><li>\n                            <b>thin</b> {Boolean} - will create a model property representing this but not model any of it's children properties\n                        </li></ul>",
                     "type": "[Object]"
                 },
                 {
@@ -560,7 +560,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1106,
+            "line": 1128,
             "description": "Clones the Model rooted at this keeping all metadata that exist, but not keeping any event listeners.\nThe name of all properties are adjusted to reflect it's new root.",
             "example": [
                 "\n    var newModel = model.clone(); // clone root model\n    var clonedSubModel = model.subModel.clone(); // clone subModel\nFor more examples: <b>testModelClone</b>"
@@ -576,7 +576,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1173,
+            "line": 1195,
             "description": "Preforms the merge operation on this. The merge operation will add properties that exist in the merged object\nbut not in this, remove those that are not found in the merged object (unless keepOldProperties is set to true)\nand will call setValue for those that exist in both. Note the operation will log an error to the console, return\nfalse, and not modify the object if any of the setValue operation are not valid. Not valid set operations inclded\nthose that try to set a value from a property to a model and vise versa.",
             "example": [
                 "\nFor an example see: <b>testModelMergeMethod</b>"
@@ -609,7 +609,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1208,
+            "line": 1230,
             "description": "Retrieves the json representation of this. This json representation can be used in the Model Constructor\nto recreate the same Model object. If you use includeMetaData validator metadata will be included.\nProperties that have the doNotPersist flag in it's metadata will have it's value nullified. This means\nproperties will have the value set to 'undefined' while models will be set to an empty object ({}).",
             "example": [
                 "\nFor an example see: <b>testSaveLoadWithMetaData</b> and <b>testDoNotPersist</b>"
@@ -632,7 +632,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1246,
+            "line": 1269,
             "description": "A global formatter used to calculate the formatted value of a Property. If defined the function\nwill be called when getFormattedValue gets called. The function should accept the value to be formatted\nas the first argument and expect 'this' to be the Property. The formatter must be able to handle any\ninput type as a value.",
             "example": [
                 "\n    Model.Formatter = function (value) { //makes all strings uppercase\n        if (typeof value === 'string') {\n            return value.toUpperCase();\n        }\n        return value;\n    }"
@@ -650,7 +650,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1269,
+            "line": 1292,
             "description": "If logging is enabled any warning or incorrect uses of the api will result in output to the console\nif it exists.",
             "itemtype": "property",
             "name": "isLoggingEnabled",
@@ -662,7 +662,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1280,
+            "line": 1303,
             "description": "Searchs the given model for the property of the given name and returns it.",
             "itemtype": "method",
             "name": "find",
@@ -688,7 +688,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1322,
+            "line": 1345,
             "description": "Begins a transaction. All events will be put into the queued. To be fired when endTransaction is called.",
             "example": [
                 "\nFor an examples see <b>testModelTransactions</b>"
@@ -701,7 +701,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1338,
+            "line": 1361,
             "description": "Ends the current transaction causing all queued up events to be fired according to the global eventOptization settings or the settings passed in if they exist.",
             "example": [
                 "\n    model.endTransaction(); //uses settings found in Model.TRANSACTION_OPTIONS\n    model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for this transaction\n        fireOnlyMostRecentPropertyEvent: false,\n        flattenCallbacks: true,\n        flattenCallbacksByHash: true\n    })\nFor more examples see: <b>testFlattenCallbacks</b>, <b>testFlattenCallbacksByHash</b>,\n     <b>testModelEndTransactionWithOptions</b>"
@@ -721,7 +721,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1379,
+            "line": 1402,
             "description": "Determines if you are currently in a start/end transaction block.",
             "example": [
                 "\nFor an examples see <b>testModelTransactions</b>"
@@ -738,7 +738,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1399,
+            "line": 1422,
             "description": "The PROPERTY_CHANGE event is triggered only when the value of the property has changed\nvia setValue. When triggered it will bubble up a MODEL_CHANGED event. Listen to this event\nif you only want to be notified of direct changes to the property and not changes to any of\nit's children. This is what the onChange(callback, false) does.\nPROPERTY_CHANGE event callbacks will be called with the following arguments:\n     <ul>\n     <li>this = the property listening to the event</li>\n     <li>arg[0] = the property in it's current state</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.PROPERTY_CHANGE",
@@ -749,7 +749,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1415,
+            "line": 1438,
             "description": "The MODEL_CHANGE event is triggered when the value of any of the property's\nchildren have changed. This includes child properties being created or destroyed.\nWhen triggered on a property it will bubble the event up it's model tree.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the property listening to the event. (or is registared with the callback)</li>\n     <li>arg[0] = the property that triggered the modelChange</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.MODEL_CHANGE",
@@ -759,7 +759,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1429,
+            "line": 1452,
             "description": "The CHANGE event is psudo event equalvlant to a PROPERTY_CHANGE and MODEL_CHANGE event.\nIt is the event used when registaring a listener using the onChange(callback, true) method.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the property listening to the event</li>\n     <li>arg[0] = the property in it's current state</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.CHANGE",
@@ -770,7 +770,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1443,
+            "line": 1466,
             "description": "The DESTROY event is triggered when destroy() method called on a property. It than triggers\na CHILD_DESTROYED event on it's parent.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the destroyed property</li>\n     <li>arg[0] = the destroyed property</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.DESTROY",
@@ -781,7 +781,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1457,
+            "line": 1480,
             "description": "The CHILD_CREATED event is triggered when a new property is created. It's triggered on the\nparent and propergates a MODEL_CHANGE event up the model tree.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the parent property</li>\n     <li>arg[0] = the created property</li>\n     <li>arg[1] = undefined</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.CHILD_CREATED",
@@ -792,7 +792,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1471,
+            "line": 1494,
             "description": "The CHILD_Destroyed event is triggered when a child property is destroyed. It triggered on the\nparent and propergates a MODEL_CHANGE event up the model tree.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the parent property</li>\n     <li>arg[0] = the destroyed property</li>\n     <li>arg[1] = undefined</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.CHILD_DESTROYED",
@@ -803,7 +803,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1489,
+            "line": 1512,
             "description": "Only fires the last event of a property during a transaction.",
             "example": [
                 " For an example see <b>testFireOnlyMostRecentPropertyEvent</b>"
@@ -818,7 +818,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1498,
+            "line": 1521,
             "description": "Will make sure a callback only gets called only once during a transaction. Even if registered with several properties.",
             "example": [
                 " For an example see <b>testFlattenCallbacks</b>"
@@ -833,7 +833,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1507,
+            "line": 1530,
             "description": "Will make sure callbacks identified by .hash only gets called only once during a transaction. Even if registered with several properties.",
             "example": [
                 " For an example see <b>testFlattenCallbacksByHash</b>"
@@ -848,7 +848,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1516,
+            "line": 1539,
             "description": "Will guarentee that no event are fired during a transaction",
             "example": [
                 " For an example see <b>testSuppressAllEvents</b>"
@@ -863,7 +863,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1530,
+            "line": 1553,
             "description": "Release control of the global window.Model variable restoring it to its previous value",
             "example": [
                 "\n    // window.Model is restore to previous value and localModel now holds the window.Model reference\n    var localModel = window.Model.noConflict();\nFor an example see <b>testModelNoConflict</b>"
@@ -880,7 +880,7 @@
         },
         {
             "file": "src\\model.js",
-            "line": 1560,
+            "line": 1583,
             "class": "Model",
             "module": "Model"
         }

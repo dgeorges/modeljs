@@ -100,7 +100,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l867"><code>src\model.js:867</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l885"><code>src\model.js:885</code></a>
         </div>
     
 
@@ -170,7 +170,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l867"><code>src\model.js:867</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l885"><code>src\model.js:885</code></a>
         
         </p>
 
@@ -602,7 +602,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1106"><code>src\model.js:1106</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1128"><code>src\model.js:1128</code></a>
         
         </p>
 
@@ -714,7 +714,7 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1043"><code>src\model.js:1043</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1061"><code>src\model.js:1061</code></a>
         
         </p>
 
@@ -784,7 +784,11 @@ metadata can contain custom keys or any of the special keys below.</p>
                         </li><li>
                             <b>isJSONPurl</b> {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string "$jsonpCallback" where the jsonp callback function should be inserted.
                         </li><li>
-                            <b>doNotPersist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+                            <b>doNotPersist</b> {Boolean} - property will not exist in the json object returned by the toJSON method.
+                        </li><li>
+                            <b>doNotPersistValue</b> {Boolean} - will clear the value of the property when toJSON is called. For Object and Array types the value will be and empty object/array. Else it will be undefined. *Note metadata can still be persisted.
+                        </li><li>
+                            <b>thin</b> {Boolean} - will create a model property representing this but not model any of it's children properties
                         </li></ul></p>
                     </div>
 
@@ -849,7 +853,7 @@ model.createProperty("number", 1) // a simple property (model.number)
 }); // Note the method chaining.
 </code></pre>
 
-<p>For examples see: <b>testModelCreationUsingCreatePropertyMethod</b></p>
+<p>For examples see: <b>testModelCreationUsingCreatePropertyMethod, testThinModel</b></p>
             </div>
         </div>
     
@@ -1002,7 +1006,7 @@ the 'childDestroyed' event on the parent.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1338"><code>src\model.js:1338</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1361"><code>src\model.js:1361</code></a>
         
         </p>
 
@@ -1118,7 +1122,7 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1280"><code>src\model.js:1280</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1303"><code>src\model.js:1303</code></a>
         
         </p>
 
@@ -1452,7 +1456,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l935"><code>src\model.js:935</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l953"><code>src\model.js:953</code></a>
         
         </p>
 
@@ -1601,7 +1605,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1379"><code>src\model.js:1379</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1402"><code>src\model.js:1402</code></a>
         
         </p>
 
@@ -1692,7 +1696,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l915"><code>src\model.js:915</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l933"><code>src\model.js:933</code></a>
         
         </p>
 
@@ -1808,7 +1812,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1173"><code>src\model.js:1173</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1195"><code>src\model.js:1195</code></a>
         
         </p>
 
@@ -1946,7 +1950,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1530"><code>src\model.js:1530</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1553"><code>src\model.js:1553</code></a>
         
         </p>
 
@@ -2414,7 +2418,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l949"><code>src\model.js:949</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l967"><code>src\model.js:967</code></a>
         
         </p>
 
@@ -2524,7 +2528,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1322"><code>src\model.js:1322</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1345"><code>src\model.js:1345</code></a>
         
         </p>
 
@@ -2600,7 +2604,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1208"><code>src\model.js:1208</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1230"><code>src\model.js:1230</code></a>
         
         </p>
 
@@ -2837,7 +2841,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l985"><code>src\model.js:985</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1003"><code>src\model.js:1003</code></a>
         
         </p>
 
@@ -2936,7 +2940,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1429"><code>src\model.js:1429</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1452"><code>src\model.js:1452</code></a>
         
         </p>
 
@@ -2989,7 +2993,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1457"><code>src\model.js:1457</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1480"><code>src\model.js:1480</code></a>
         
         </p>
 
@@ -3042,7 +3046,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1471"><code>src\model.js:1471</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1494"><code>src\model.js:1494</code></a>
         
         </p>
 
@@ -3095,7 +3099,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1443"><code>src\model.js:1443</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1466"><code>src\model.js:1466</code></a>
         
         </p>
 
@@ -3148,7 +3152,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1415"><code>src\model.js:1415</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1438"><code>src\model.js:1438</code></a>
         
         </p>
 
@@ -3202,7 +3206,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1399"><code>src\model.js:1399</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1422"><code>src\model.js:1422</code></a>
         
         </p>
 
@@ -3257,7 +3261,7 @@ PROPERTY_CHANGE event callbacks will be called with the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1246"><code>src\model.js:1246</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1269"><code>src\model.js:1269</code></a>
         
         </p>
 
@@ -3320,7 +3324,7 @@ input type as a value.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1269"><code>src\model.js:1269</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1292"><code>src\model.js:1292</code></a>
         
         </p>
 
@@ -3369,7 +3373,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1489"><code>src\model.js:1489</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1512"><code>src\model.js:1512</code></a>
         
         </p>
 
@@ -3425,7 +3429,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1498"><code>src\model.js:1498</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1521"><code>src\model.js:1521</code></a>
         
         </p>
 
@@ -3481,7 +3485,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1507"><code>src\model.js:1507</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1530"><code>src\model.js:1530</code></a>
         
         </p>
 
@@ -3537,7 +3541,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1516"><code>src\model.js:1516</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1539"><code>src\model.js:1539</code></a>
         
         </p>
 

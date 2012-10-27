@@ -447,7 +447,7 @@
     };
 
     Property.prototype.toJSON = function () {
-        if (this.getMetadata().doNotPersist) {
+        if (this.getMetadata().doNotPersistValue || this.getMetadata().doNotPersist) {
             return undefined;
         }
         return this.getValue();
@@ -816,22 +816,40 @@
     };
     ArrayProperty.prototype.toJSON = function (includeMetaData) {
         var json = [],
-            i = 0;
+            i = 0,
+            value;
 
         if (this.getMetadata().doNotPersist){
+            return undefined;
+        } else if (this.getMetadata().doNotPersistValue){
             return [];
+        } else {
+            for (i = 0; i < this.length; i++) {
+                value = this[i].toJSON(includeMetaData);
+                if (value !== undefined) {
+                    json.push(value);
+                }
+            }
+            return json;
         }
-
-        for (i = 0; i < this.length; i++) {
-            json[i] = this[i].toJSON(includeMetaData);
-        }
-        return json;
     };
 
-
+    // setValueAt(i, value); suppose to be alternative to a[i] = .. which bypasses events
     ArrayProperty.prototype.setValueAt = function (index, value, metadata) {
-        // This doesn't fire any notifications! not sure if function required?
-        this[index] = _createProperty(index, value, this, metadata || {});
+        // Not sure if function required. So not documented or tested yet.
+        var currentProperty = this[index];
+        if (currentProperty === undefined){
+            this[index] = _createProperty(index, value, this, metadata || {});
+            this.trigger(Model.Event.CHILD_CREATED, this[index]);
+        } else  {
+            if (currentProperty.validateValue(value)) {
+                currentProperty.setValue(value);
+            } else {
+                currentProperty.destroy();
+                this[index] = _createProperty(index, value, this, metadata || {});
+                this.trigger(Model.Event.CHILD_CREATED, this[index]);
+            }
+        }
     };
 
   /**
@@ -1079,7 +1097,9 @@
      *                         </li><li>
      *                             <b>isJSONPurl</b> {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string "$jsonpCallback" where the jsonp callback function should be inserted.
      *                         </li><li>
-     *                             <b>doNotPersist</b> {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+     *                             <b>doNotPersist</b> {Boolean} - property will not exist in the json object returned by the toJSON method.
+     *                         </li><li>
+     *                             <b>doNotPersistValue</b> {Boolean} - will clear the value of the property when toJSON is called. For Object and Array types the value will be and empty object/array. Else it will be undefined. *Note metadata can still be persisted.
      *                         </li><li>
      *                             <b>thin</b> {Boolean} - will create a model property representing this but not model any of it's children properties
      *                         </li></ul>
@@ -1223,22 +1243,23 @@
      */
     Model.prototype.toJSON = function (includeMetaData) {
         var json = {};
-        if (this._myValue === undefined) {
+        if (this._myValue === undefined || this.getMetadata().doNotPersist) {
             return undefined;
-        } else if (this.getMetadata().doNotPersist){
+        } else if (this.getMetadata().doNotPersistValue){
             return {};
-        } else if (this._metadata.thin) {
+        } else if (this.getMetadata().thin) {
             return this.getValue();
         } else {
             for (var name in this) {
                 if (this.hasOwnProperty(name) && name !== '_parent') {
                     // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable. and would cause infinite recursion
                     var property = this[name];
-                    json[name] = property.toJSON(includeMetaData);
-                    if (includeMetaData && !isEmptyObject(property.getMetadata())) {
-                        json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+                    if (!property.getMetadata().doNotPersist) {
+                        json[name] = property.toJSON(includeMetaData);
+                        if (includeMetaData && !isEmptyObject(property.getMetadata())) {
+                            json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+                        }
                     }
-
                 }
             }
             return json;

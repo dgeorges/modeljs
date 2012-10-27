@@ -985,7 +985,7 @@
             var doNotPersistNumberPropertyJSON = {
                     number: undefined,
                     number__modeljs__metadata: {
-                        doNotPersist: true
+                        doNotPersistValue: true
                     },
                     str: "aString",
                     bool: true,
@@ -1002,9 +1002,9 @@
                     }
                 };
 
-            model.number.getMetadata().doNotPersist = true;
+            model.number.getMetadata().doNotPersistValue = true;
             equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPersistNumberPropertyJSON), "metadata serialized correctly");
-            delete model.number.getMetadata().doNotPersist; // restore original
+            delete model.number.getMetadata().doNotPersistValue; // restore original
 
             var doNotPersistObjectPropertyJSON = {
                     number: 1,
@@ -1015,12 +1015,17 @@
                     fun: function () {return "I am a function";},
                     subModel: {},
                     subModel__modeljs__metadata: {
-                        doNotPersist: true
+                        doNotPersistValue: true
                     }
                 };
 
-            model.subModel.getMetadata().doNotPersist = true;
+            model.subModel.getMetadata().doNotPersistValue = true;
             equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPersistObjectPropertyJSON), "metadata serialized correctly");
+
+            model.subModel.getMetadata().doNotPersist = true;
+            delete doNotPersistObjectPropertyJSON.subModel;
+            delete doNotPersistObjectPropertyJSON.subModel__modeljs__metadata;
+            equal(JSON.stringify(model.toJSON(true)), JSON.stringify(doNotPersistObjectPropertyJSON), "metadata serialized do not persistcorrectly");
         },
 
         testThinModel : function () {

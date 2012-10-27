@@ -541,8 +541,8 @@
     };
 
     Property.prototype.toJSON = function () {
-        if (this.getMetadata().doNotPersist) {
-            return null; &#x2F;&#x2F; is this correct? maybe undefined?
+        if (this.getMetadata().doNotPersistValue || this.getMetadata().doNotPersist) {
+            return undefined;
         }
         return this.getValue();
     };
@@ -910,22 +910,40 @@
     };
     ArrayProperty.prototype.toJSON = function (includeMetaData) {
         var json = [],
-            i = 0;
+            i = 0,
+            value;
 
         if (this.getMetadata().doNotPersist){
+            return undefined;
+        } else if (this.getMetadata().doNotPersistValue){
             return [];
+        } else {
+            for (i = 0; i &lt; this.length; i++) {
+                value = this[i].toJSON(includeMetaData);
+                if (value !== undefined) {
+                    json.push(value);
+                }
+            }
+            return json;
         }
-
-        for (i = 0; i &lt; this.length; i++) {
-            json[i] = this[i].toJSON(includeMetaData);
-        }
-        return json;
     };
 
-
+    &#x2F;&#x2F; setValueAt(i, value); suppose to be alternative to a[i] = .. which bypasses events
     ArrayProperty.prototype.setValueAt = function (index, value, metadata) {
-        &#x2F;&#x2F; This doesn&#x27;t fire any notifications! not sure if function required?
-        this[index] = _createProperty(index, value, this, metadata || {});
+        &#x2F;&#x2F; Not sure if function required. So not documented or tested yet.
+        var currentProperty = this[index];
+        if (currentProperty === undefined){
+            this[index] = _createProperty(index, value, this, metadata || {});
+            this.trigger(Model.Event.CHILD_CREATED, this[index]);
+        } else  {
+            if (currentProperty.validateValue(value)) {
+                currentProperty.setValue(value);
+            } else {
+                currentProperty.destroy();
+                this[index] = _createProperty(index, value, this, metadata || {});
+                this.trigger(Model.Event.CHILD_CREATED, this[index]);
+            }
+        }
     };
 
   &#x2F;**
@@ -1157,7 +1175,7 @@
      *         isJSONPurl: true
      *     }); &#x2F;&#x2F; Note the method chaining.
      *
-     * For examples see: &lt;b&gt;testModelCreationUsingCreatePropertyMethod&lt;&#x2F;b&gt;
+     * For examples see: &lt;b&gt;testModelCreationUsingCreatePropertyMethod, testThinModel&lt;&#x2F;b&gt;
      *
      * @method  createProperty
      *
@@ -1173,7 +1191,11 @@
      *                         &lt;&#x2F;li&gt;&lt;li&gt;
      *                             &lt;b&gt;isJSONPurl&lt;&#x2F;b&gt; {Boolean} - if true will use JSONP to fetch the data. The url provided must have the string &quot;$jsonpCallback&quot; where the jsonp callback function should be inserted.
      *                         &lt;&#x2F;li&gt;&lt;li&gt;
-     *                             &lt;b&gt;doNotPersist&lt;&#x2F;b&gt; {Boolean} - will nullify the value of the property when toJSON is called. For Object type the value will be and empty object. For any other type the value will be null.
+     *                             &lt;b&gt;doNotPersist&lt;&#x2F;b&gt; {Boolean} - property will not exist in the json object returned by the toJSON method.
+     *                         &lt;&#x2F;li&gt;&lt;li&gt;
+     *                             &lt;b&gt;doNotPersistValue&lt;&#x2F;b&gt; {Boolean} - will clear the value of the property when toJSON is called. For Object and Array types the value will be and empty object&#x2F;array. Else it will be undefined. *Note metadata can still be persisted.
+     *                         &lt;&#x2F;li&gt;&lt;li&gt;
+     *                             &lt;b&gt;thin&lt;&#x2F;b&gt; {Boolean} - will create a model property representing this but not model any of it&#x27;s children properties
      *                         &lt;&#x2F;li&gt;&lt;&#x2F;ul&gt;
      *
      * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of change.
@@ -1315,22 +1337,23 @@
      *&#x2F;
     Model.prototype.toJSON = function (includeMetaData) {
         var json = {};
-        if (this._myValue === undefined) {
+        if (this._myValue === undefined || this.getMetadata().doNotPersist) {
             return undefined;
-        } else if (this.getMetadata().doNotPersist){
+        } else if (this.getMetadata().doNotPersistValue){
             return {};
-        } else if (this._metadata.thin) {
+        } else if (this.getMetadata().thin) {
             return this.getValue();
         } else {
             for (var name in this) {
                 if (this.hasOwnProperty(name) &amp;&amp; name !== &#x27;_parent&#x27;) {
                     &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable. and would cause infinite recursion
                     var property = this[name];
-                    json[name] = property.toJSON(includeMetaData);
-                    if (includeMetaData &amp;&amp; !isEmptyObject(property.getMetadata())) {
-                        json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+                    if (!property.getMetadata().doNotPersist) {
+                        json[name] = property.toJSON(includeMetaData);
+                        if (includeMetaData &amp;&amp; !isEmptyObject(property.getMetadata())) {
+                            json[name + Model.PROPERTY_METADATA_SERIALIZED_NAME_SUFFIX] = property.getMetadata();
+                        }
                     }
-
                 }
             }
             return json;
