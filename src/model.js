@@ -448,7 +448,7 @@
 
     Property.prototype.toJSON = function () {
         if (this.getMetadata().doNotPersist) {
-            return null; // is this correct? maybe undefined?
+            return undefined;
         }
         return this.getValue();
     };

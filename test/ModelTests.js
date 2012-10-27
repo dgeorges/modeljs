@@ -983,7 +983,7 @@
             equal(JSON.stringify(model.toJSON(true)), JSON.stringify(jsonModel), "metadata serialized correctly");
 
             var doNotPersistNumberPropertyJSON = {
-                    number: null,
+                    number: undefined,
                     number__modeljs__metadata: {
                         doNotPersist: true
                     },

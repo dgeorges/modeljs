@@ -21,6 +21,7 @@
             position: relative;
             bottom: 0px;
             overflow-y: scroll;
+            overflow-x: auto;
         }
     </style>
 
@@ -198,7 +199,7 @@ model.exampleObject.on("Foo", function () {
 });
 model.exampleObject.trigger("Foo");
 
-// Note, any method that triggers an event will usually take a SuppressNotifications flag. 
+// Note, any method that triggers an event will usually take a SuppressNotifications flag.
 /** Feature: suppress Notifications **/
 model.exampleObject.anotherProperty.setValue("Change Value but don't notify listeners", true);
 
@@ -213,6 +214,8 @@ model.exampleObject.trigger("Foo");
 Model.endTransaction();
 
 // Notice transaction are fired at the end. Read jsdoc for more information about transaction options.
+
+// That ends the modeljs tutorial. Hope that is enough to get you started. Check out the documentation and tests for other feature and examples like remote and thin models.
 
     </pre>
 
