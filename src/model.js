@@ -7,7 +7,7 @@
  *
  * @project modeljs
  * @author Daniel Georges
- * @version 1.0.0
+ * @version 2.0.0
  * @module Model
  */
 (function (globalNS, undefined) { //globalNS === window in the browser or GLOBAL in nodejs
