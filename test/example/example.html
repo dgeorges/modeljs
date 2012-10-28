@@ -57,10 +57,10 @@
     </div>
     <br/>
 
-    <b>Step 2</b>: press F12 to bring up firebug or your browsers equivlant debugger. If you are curious you can now look at the source code or wait till after the tutorial.<br/>
+    <b>Step 2</b>: press F12 to bring up firebug or your browsers equivlant debugger. Inspect the implementation of the buttons above. If you are curious about the widget implementation you can look at it now or wait till after the tutorial when you have a better understanding of the api.<br/>
 
     <br/>
-    <b>Step 3</b>: In the debugger console type the javaScript <code></code> below to learn more:<br/>
+    <b>Step 3</b>: In the debugger console type the javaScript code below to learn how to use the modeljs api:<br/>
 
     <br/>
     <pre class="prettyprint tutorial">
@@ -94,7 +94,7 @@ var tableModelFromJSON = new Model(model.table.toJSON(true));
 
 // This is esentially what clone does for you.
 /** Feature: clone() **/
-var clonedTableModel = model.table.clone(); 
+var clonedTableModel = model.table.clone();
 
 /** Feature: do not persist **/
 // if you don't want a property to be presisted, just indicate so in the metadata.
@@ -122,7 +122,7 @@ model.exampleProperty.getMetadata().validator = function (value) {
     };
 // Now only strings can be assigned to this property. Lets test this.
 model.exampleProperty.setValue(100);
-model.exampleProperty.getValue(); // setValue didn't do anything. it fails silently. 
+model.exampleProperty.getValue(); // setValue didn't do anything. it fails silently.
 
 // We can explicitly test validation before assignment by calling validateValue();
 model.exampleProperty.validateValue(100); // returns false;
