@@ -80,9 +80,8 @@
         }
     </script>
 
-    <!-- put at end of page  to connect the model automatically-->
+    <!-- this is how we would do templates -->
     <script type="text/html">
-
     </script>
 
 </head>
@@ -104,7 +103,7 @@
 
     <p>Full name: <strong data-bind="text: /root"></strong></p>
 
-    <button data-bind="click: capitalizeLastName">Go caps</button>
+    <button onclick="model.lastName.setValue(model.lastName.getValue().toUpperCase());">Capitalize Last Name</button>
 
 
     <script type="text/javascript">

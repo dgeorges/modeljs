@@ -3,7 +3,7 @@
  * https://github.com/dgeorges/modeljs.git
  *
  * Copyright 2012, Daniel Georges
- * modeljs is distributed freely under a MIT licence
+ * modeljs is distributed freely under a MIT license
  *
  * @project modeljs
  * @author Daniel Georges
@@ -217,12 +217,12 @@
                 eventListeners = eventListeners.concat(property._eventListeners.propertyChange);
             }
 
-            // update listeners registared for the event
+            // update listeners registered for the event
             eventListeners.forEach(
                 executeCallbacksFunction(property, property, eventArg)
             );
 
-            // propergate change up the stack for the following events by notifying all parent ModelChange listers registered.
+            // propagate change up the stack for the following events by notifying all parent ModelChange listers registered.
             var propertyParent = property._parent;
             //if (eventName === Model.Event.CHANGE || eventName === Model.Event.MODEL_CHANGE ||
             //        eventName === Model.Event.CHILD_CREATED || eventName === Model.Event.CHILD_DESTROYED) {
@@ -582,7 +582,7 @@
         delete this._parent[myName];
 
         if (!suppressNotifications) {
-            this.trigger(Model.Event.DESTROY); //equivlant since no event arg.
+            this.trigger(Model.Event.DESTROY); //equivalent since no event arg.
             this._parent.trigger(Model.Event.CHILD_DESTROYED, this);
         }
         return this;
@@ -629,7 +629,7 @@
      *
      * @method  on
      *
-     * @param  {String} events     One or more space seperated eventNames
+     * @param  {String} events     One or more space separated eventNames
      * @param  {Function} callback  The function to execute when the given event is triggered
      * @return {Property}          Returns this for Object chaining.
      */
@@ -655,7 +655,7 @@
      *
      * @method off
      *
-     * @param  {String} events  One or more space seperated eventNames
+     * @param  {String} events  One or more space separated eventNames
      * @param  {Function} callback The function to remove
      * @return {Property}         Returns this for Object chaining.
      */
@@ -681,7 +681,7 @@
      * pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
      * when creating a model from the very same json. Note: the modeljs framework uses the metadata to
      * store attributes associated the properties that is uses. As a result the following keys have special
-     * meaning. <b>[validator, Fromatter, name, url, refreshRate, isJSONPurl, doNotPersist, doNotPersistValue, thin]</b>
+     * meaning. <b>[validator, Formatter, name, url, refreshRate, isJSONPurl, doNotPersist, doNotPersistValue, thin]</b>
      *
      * For example see: <b>testGetMetadataMethod</b>
      *
@@ -726,7 +726,7 @@
             // so prevent it and provide alternate. Maybe we could clone, but the suggested is basically a clone and more transparent.
             log('error', "Incorrect Syntax: use setValue([property].getValue()) instead");
             return false;
-        } else if (isObject(value) || Array.isArray(value)) { // value is a primative (non-object && non-Array). this must be as well.
+        } else if (isObject(value) || Array.isArray(value)) { // value is a primitive (non-object && non-Array). this must be as well.
             log('error', "Not Supported: Can't set a Property value to a model or Array. Delete the property and use createProperty");
             return false;
         }
@@ -799,7 +799,7 @@
                         this.push(newValue[i]); // add extra
                     }
                 }
-                // fix suppressNotifications. Should be in transaction. what if tranaction already there?
+                // fix suppressNotifications. Should be in transaction. what if transaction already there?
                 if (!suppressNotifications) {
                     eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
                 }
@@ -1305,13 +1305,13 @@
     Model.enableLogging = false;
 
     /**
-     * Searchs the given model for the property of the given name and returns it.
+     * Searches the given model for the property of the given name and returns it.
      *
      * @method find
      * @static
      *
      * @param  {[Property, Model, ArrayProperty]} model        The model to search.
-     * @param  {[String]} propertyName The fully quialified name of the property. Equal to the getName() value.
+     * @param  {[String]} propertyName The fully qualified name of the property. Equal to the getName() value.
      * @return {[Property, Model, ArrayProperty]}   The model object of the given name, null otherwise.
      */
     Model.find = function (model, propertyName) {
@@ -1445,7 +1445,7 @@
          * When triggered on a property it will bubble the event up it's model tree.
          * The callback will have the following arguments:
          *      <ul>
-         *      <li>this = the property listening to the event. (or is registared with the callback)</li>
+         *      <li>this = the property listening to the event. (or is registered with the callback)</li>
          *      <li>arg[0] = the property that triggered the modelChange</li>
          *      <li>arg[1] = the old value.</li>
          *      </ul>
@@ -1454,8 +1454,8 @@
          */
         MODEL_CHANGE: "modelChange",
         /**
-         * The CHANGE event is psudo event equalvlant to a PROPERTY_CHANGE and MODEL_CHANGE event.
-         * It is the event used when registaring a listener using the onChange(callback, true) method.
+         * The CHANGE event is pseudo event equivalent to a PROPERTY_CHANGE and MODEL_CHANGE event.
+         * It is the event used when registering a listener using the onChange(callback, true) method.
          * The callback will have the following arguments:
          *      <ul>
          *      <li>this = the property listening to the event</li>
@@ -1541,7 +1541,7 @@
         */
         flattenCallbacksByHash: false,
         /**
-            Will guarentee that no event are fired during a transaction
+            Will guarantee that no event are fired during a transaction
             @Example For an example see <b>testSuppressAllEvents</b>
             @property TRANSACTION_OPTIONS.suppressAllEvents
             @default false
