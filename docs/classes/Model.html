@@ -19,7 +19,7 @@
             
         </div>
         <div class="yui3-u-1-4 version">
-            <em>API Docs for: 1.0.0</em>
+            <em>API Docs for: 2.0.0</em>
         </div>
     </div>
     <div id="bd" class="yui3-g">
@@ -1135,7 +1135,7 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
     </div>
 
     <div class="description">
-        <p>Searchs the given model for the property of the given name and returns it.</p>
+        <p>Searches the given model for the property of the given name and returns it.</p>
     </div>
 
     
@@ -1168,7 +1168,7 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
                     
 
                     <div class="param-description">
-                        <p>The fully quialified name of the property. Equal to the getName() value.</p>
+                        <p>The fully qualified name of the property. Equal to the getName() value.</p>
                     </div>
 
                     
@@ -1315,7 +1315,7 @@ Model.Formatter. If that does not exist it will return this.getValue();</p>
 pass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored
 when creating a model from the very same json. Note: the modeljs framework uses the metadata to
 store attributes associated the properties that is uses. As a result the following keys have special
-meaning. <b>[validator, Fromatter, name, url, refreshRate, isJSONPurl, doNotPersist, doNotPersistValue, thin]</b></p>
+meaning. <b>[validator, Formatter, name, url, refreshRate, isJSONPurl, doNotPersist, doNotPersistValue, thin]</b></p>
 
 <p>For example see: <b>testGetMetadataMethod</b></p>
     </div>
@@ -2079,7 +2079,7 @@ var localModel = window.Model.noConflict();
                     
 
                     <div class="param-description">
-                        <p>One or more space seperated eventNames</p>
+                        <p>One or more space separated eventNames</p>
                     </div>
 
                     
@@ -2205,7 +2205,7 @@ event type.</p>
                     
 
                     <div class="param-description">
-                        <p>One or more space seperated eventNames</p>
+                        <p>One or more space separated eventNames</p>
                     </div>
 
                     
@@ -2954,8 +2954,8 @@ properties will have the value set to 'undefined' while models will be set to an
     </div>
 
     <div class="description">
-        <p>The CHANGE event is psudo event equalvlant to a PROPERTY<em>CHANGE and MODEL</em>CHANGE event.
-It is the event used when registaring a listener using the onChange(callback, true) method.
+        <p>The CHANGE event is pseudo event equivalent to a PROPERTY<em>CHANGE and MODEL</em>CHANGE event.
+It is the event used when registering a listener using the onChange(callback, true) method.
 The callback will have the following arguments:
      <ul>
      <li>this = the property listening to the event</li>
@@ -3171,7 +3171,7 @@ children have changed. This includes child properties being created or destroyed
 When triggered on a property it will bubble the event up it's model tree.
 The callback will have the following arguments:
      <ul>
-     <li>this = the property listening to the event. (or is registared with the callback)</li>
+     <li>this = the property listening to the event. (or is registered with the callback)</li>
      <li>arg[0] = the property that triggered the modelChange</li>
      <li>arg[1] = the old value.</li>
      </ul></p>
@@ -3555,7 +3555,7 @@ if it exists.</p>
     </div>
 
     <div class="description">
-        <p>Will guarentee that no event are fired during a transaction</p>
+        <p>Will guarantee that no event are fired during a transaction</p>
     </div>
 
     

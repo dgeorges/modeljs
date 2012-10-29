@@ -2,9 +2,9 @@
     "project": {
         "file": "src\\model.js",
         "line": 1,
-        "description": "Model js - A simple javascript library for creating the Model part of a MVC application.\nhttps://github.com/dgeorges/modeljs.git\n\nCopyright 2012, Daniel Georges\nmodeljs is distributed freely under a MIT licence",
+        "description": "Model js - A simple javascript library for creating the Model part of a MVC application.\nhttps://github.com/dgeorges/modeljs.git\n\nCopyright 2012, Daniel Georges\nmodeljs is distributed freely under a MIT license",
         "author": "Daniel Georges",
-        "version": "1.0.0"
+        "version": "2.0.0"
     },
     "files": {
         "src\\model.js": {
@@ -43,7 +43,7 @@
             "tag": "module",
             "file": "src\\model.js",
             "line": 887,
-            "description": "Model js - A simple javascript library for creating the Model part of a MVC application.\nhttps://github.com/dgeorges/modeljs.git\n\nCopyright 2012, Daniel Georges\nmodeljs is distributed freely under a MIT licence"
+            "description": "Model js - A simple javascript library for creating the Model part of a MVC application.\nhttps://github.com/dgeorges/modeljs.git\n\nCopyright 2012, Daniel Georges\nmodeljs is distributed freely under a MIT license"
         }
     },
     "classes": {
@@ -297,7 +297,7 @@
             "params": [
                 {
                     "name": "events",
-                    "description": "One or more space seperated eventNames",
+                    "description": "One or more space separated eventNames",
                     "type": "String"
                 },
                 {
@@ -322,7 +322,7 @@
             "params": [
                 {
                     "name": "events",
-                    "description": "One or more space seperated eventNames",
+                    "description": "One or more space separated eventNames",
                     "type": "String"
                 },
                 {
@@ -341,7 +341,7 @@
         {
             "file": "src\\model.js",
             "line": 679,
-            "description": "Retrieves the metadata associated with this. The metadata is persisted with the json when you\npass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored\nwhen creating a model from the very same json. Note: the modeljs framework uses the metadata to\nstore attributes associated the properties that is uses. As a result the following keys have special\nmeaning. <b>[validator, Fromatter, name, url, refreshRate, isJSONPurl, doNotPersist, doNotPersistValue, thin]</b>\n\nFor example see: <b>testGetMetadataMethod</b>",
+            "description": "Retrieves the metadata associated with this. The metadata is persisted with the json when you\npass true to the toJSON method (eg. this.toJSON(true)). Likewise the metadata will be restored\nwhen creating a model from the very same json. Note: the modeljs framework uses the metadata to\nstore attributes associated the properties that is uses. As a result the following keys have special\nmeaning. <b>[validator, Formatter, name, url, refreshRate, isJSONPurl, doNotPersist, doNotPersistValue, thin]</b>\n\nFor example see: <b>testGetMetadataMethod</b>",
             "itemtype": "method",
             "name": "getMetadata",
             "return": {
@@ -663,7 +663,7 @@
         {
             "file": "src\\model.js",
             "line": 1307,
-            "description": "Searchs the given model for the property of the given name and returns it.",
+            "description": "Searches the given model for the property of the given name and returns it.",
             "itemtype": "method",
             "name": "find",
             "static": 1,
@@ -675,7 +675,7 @@
                 },
                 {
                     "name": "propertyName",
-                    "description": "The fully quialified name of the property. Equal to the getName() value.",
+                    "description": "The fully qualified name of the property. Equal to the getName() value.",
                     "type": "[String]"
                 }
             ],
@@ -750,7 +750,7 @@
         {
             "file": "src\\model.js",
             "line": 1442,
-            "description": "The MODEL_CHANGE event is triggered when the value of any of the property's\nchildren have changed. This includes child properties being created or destroyed.\nWhen triggered on a property it will bubble the event up it's model tree.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the property listening to the event. (or is registared with the callback)</li>\n     <li>arg[0] = the property that triggered the modelChange</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
+            "description": "The MODEL_CHANGE event is triggered when the value of any of the property's\nchildren have changed. This includes child properties being created or destroyed.\nWhen triggered on a property it will bubble the event up it's model tree.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the property listening to the event. (or is registered with the callback)</li>\n     <li>arg[0] = the property that triggered the modelChange</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.MODEL_CHANGE",
             "static": 1,
@@ -760,7 +760,7 @@
         {
             "file": "src\\model.js",
             "line": 1456,
-            "description": "The CHANGE event is psudo event equalvlant to a PROPERTY_CHANGE and MODEL_CHANGE event.\nIt is the event used when registaring a listener using the onChange(callback, true) method.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the property listening to the event</li>\n     <li>arg[0] = the property in it's current state</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
+            "description": "The CHANGE event is pseudo event equivalent to a PROPERTY_CHANGE and MODEL_CHANGE event.\nIt is the event used when registering a listener using the onChange(callback, true) method.\nThe callback will have the following arguments:\n     <ul>\n     <li>this = the property listening to the event</li>\n     <li>arg[0] = the property in it's current state</li>\n     <li>arg[1] = the old value.</li>\n     </ul>",
             "itemtype": "property",
             "name": "Event.CHANGE",
             "static": 1,
@@ -849,7 +849,7 @@
         {
             "file": "src\\model.js",
             "line": 1543,
-            "description": "Will guarentee that no event are fired during a transaction",
+            "description": "Will guarantee that no event are fired during a transaction",
             "example": [
                 " For an example see <b>testSuppressAllEvents</b>"
             ],
