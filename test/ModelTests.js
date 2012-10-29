@@ -901,6 +901,7 @@
 
             var callbackCalled = 0;
             function callback (property, arg) {
+                var a = arguments;
                 callbackCalled++;
                 equal(arg, "bar", "correct argument passed to callback");
                 equal(property, model.str, "callback property argument is the property event was triggered on");
@@ -913,6 +914,12 @@
             ok(callbackCalled === 0);
             model.str.trigger("foo", "bar");
             ok(callbackCalled === 1);
+            function fourArgsCallback() {
+                ok (arguments.length === 4);
+            }
+            model.str.on("fourArgsCallback", fourArgsCallback);
+            //first arg is always the property.
+            model.str.trigger("fourArgsCallback", "a", "b", "c");
 
             callbackCalled = 0;
             function numberCallback (property, arg) {
@@ -958,6 +965,32 @@
             model.createProperty("newProp", "string Prop");
 
             ok(callbackCalled, "childCreate callback called");
+
+        },
+
+        testAllEvent : function () {
+            var jsonModel = {
+                number: 1,
+                str: "a string",
+                obj: {
+                    first: "prop on obj"
+                }
+            };
+
+            var model = new Model(jsonModel);
+            var count = 0;
+            function callback(property, originalArg, eventName) {
+                var a = arguments;
+                count++;
+            }
+            model.on(Model.Event.ALL, callback);
+            model.number.onChange(callback);
+            // Do stuff to model. And make sure it works.
+            model.number.setValue(2); //PROPERTY_CHANGE
+            model.obj.createProperty("second", "secondProp");//CHILD_CREATED
+            model.obj.second.destroy(); // DESTROY/ CHILD_DESTROYED
+            model.obj.first.trigger("knockKnock", "whose", "there", "son");//CUSTOM
+            ok(count, 5, "all lister hears all events");
 
         },
 

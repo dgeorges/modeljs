@@ -175,18 +175,18 @@
         var executedCallbacks = [];
         var callbackHashs = [];
 
-        function _fireEvent(eventName, property, eventArg) {
+        function _fireEvent(eventName, property, eventArgs) {
 
             // This weird executeCallback function is a bit more complicated than it needs to be but is
             // used to get around the JSLint warning of creating a function within the while loop below
-            var executeCallbacksFunction = function (listenerProperty, changedProperty, arg) {
+            var executeCallbacksFunction = function (thisProperty, callbackArgs) {
                 return function (callback) {
                     if (Model.TRANSACTION_OPTIONS.flattenCallbacks || Model.TRANSACTION_OPTIONS.flattenCallbacksByHash) {
                         var callbackExecuted = false;
                         if (Model.TRANSACTION_OPTIONS.flattenCallbacks) {
                             if (executedCallbacks.indexOf(callback) === -1) { // Only call callback once
                                 executedCallbacks.push(callback);
-                                callback.call(listenerProperty, changedProperty, arg);
+                                callback.apply(thisProperty, callbackArgs);
                                 callbackExecuted = true;
                             }
                         }
@@ -196,18 +196,18 @@
                                     callbackHashs.push(callback.hash);
                                 }
                                 if (!callbackExecuted) {
-                                    callback.call(listenerProperty, changedProperty, arg);
+                                    callback.apply(thisProperty, callbackArgs);
                                     callbackExecuted = true;
                                 }
                             }
                         }
                     } else {
-                        callback.call(listenerProperty, changedProperty, arg);
+                        callback.apply(thisProperty, callbackArgs);
                     }
                 };
             };
 
-            //new
+            var callbackArgs = [property].concat(eventArgs);
             var eventListeners = property._eventListeners[eventName] || [];
             if (eventName === Model.Event.PROPERTY_CHANGE) {
                 eventListeners = eventListeners.concat(property._eventListeners.change);
@@ -219,31 +219,38 @@
 
             // update listeners registered for the event
             eventListeners.forEach(
-                executeCallbacksFunction(property, property, eventArg)
+                executeCallbacksFunction(property, callbackArgs)
+            );
+            property._eventListeners.all.forEach(
+                executeCallbacksFunction(property, callbackArgs.concat(eventName))
             );
 
             // propagate change up the stack for the following events by notifying all parent ModelChange listers registered.
             var propertyParent = property._parent;
-            //if (eventName === Model.Event.CHANGE || eventName === Model.Event.MODEL_CHANGE ||
-            //        eventName === Model.Event.CHILD_CREATED || eventName === Model.Event.CHILD_DESTROYED) {
-                while (propertyParent) {
+            while (propertyParent) {
+                //MODEL_CHANGE only propergates from the following events
+                if (eventName === Model.Event.CHANGE || eventName === Model.Event.MODEL_CHANGE || eventName === Model.Event.PROPERTY_CHANGE ||
+                    eventName === Model.Event.CHILD_CREATED || eventName === Model.Event.CHILD_DESTROYED) {
                     var parentListeners = propertyParent._eventListeners.modelChange.concat(propertyParent._eventListeners.change);
                     parentListeners.forEach( // when we bubble the event we only notify modelListeners
-                        executeCallbacksFunction(propertyParent, property, eventArg)
+                        executeCallbacksFunction(propertyParent, callbackArgs)
                     );
-                    propertyParent = propertyParent._parent;
                 }
-            //}
+                propertyParent._eventListeners.all.forEach(
+                    executeCallbacksFunction(propertyParent, callbackArgs.concat(eventName))
+                );
+                propertyParent = propertyParent._parent;
+            }
         }
 
-        function fireEvent(eventName, property, customArg) {
+        function fireEvent(eventName, property, customArgs) {
             if (currentState === state.ACTIVE) { // fire event now.
-                _fireEvent(eventName, property, customArg);
+                _fireEvent(eventName, property, customArgs);
             } else { //place event on queue to be called at a later time.
                 eventQueue.push({
                     eventName: eventName,
                     property: property,
-                    customArg: customArg
+                    customArg: customArgs
                 });
             }
         }
@@ -417,7 +424,8 @@
                 change: [],
                 childCreated: [],
                 childDestroyed: [],
-                destroy: []
+                destroy: [],
+                all: []
             },
             enumerable: false
         });
@@ -611,12 +619,13 @@
      * @method  trigger
      *
      * @param  {String} eventName The name of the event.
-     * @param  {[string, boolean, number, null, Date, function, object]} eventArg? An optional parameter to pass to the event handler
+     * @param  {Any} ...eventArgs? Any number of additional parameters to pass to the registered event callback
      * @return {Property}           Returns this for Object chaining.
      */
-    Property.prototype.trigger = function (eventName, eventArg) {
+    Property.prototype.trigger = function (eventName /*, ...eventArgs */) {
         //Should this restrict custom types
-        eventProxy.fireEvent(eventName, this, eventArg);
+        var eventArgs = Array.prototype.slice.call(arguments, 1);
+        eventProxy.fireEvent(eventName, this, eventArgs);
         return this;
     };
 
@@ -1508,7 +1517,21 @@
          * @static
          * @type {String}
          */
-        CHILD_DESTROYED: "childDestroyed"
+        CHILD_DESTROYED: "childDestroyed",
+        /**
+         * A special pseudo event named "all" that equivalent to listening to all events including customEvents.
+         * Triggering the ALL event does not fire all event, but fires an event named all.
+         * The callback will have the following arguments:
+         *      <ul>
+         *      <li>this = the property listening to the event</li>
+         *      <li>arg[0-..n-1] = the same arguments passed to the original event</li>
+         *      <li>arg[n-1] = the original event name</li>
+         *      </ul>
+         * @property Event.ALL
+         * @static
+         * @type {String}
+         */
+        ALL: "all"
     };
 
 
