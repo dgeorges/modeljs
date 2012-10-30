@@ -990,7 +990,7 @@
             model.obj.createProperty("second", "secondProp");//CHILD_CREATED
             model.obj.second.destroy(); // DESTROY/ CHILD_DESTROYED
             model.obj.first.trigger("knockKnock", "whose", "there", "son");//CUSTOM
-            ok(count, 5, "all lister hears all events");
+            equal(count, 5, "all listeners hears all events");
 
         },
 

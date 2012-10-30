@@ -1,0 +1,12 @@
+/*
+---
+name: modeljs example
+description: Simple example of how to use modeljs
+authors:
+  - Daniel Georges
+resources:
+  - http://cloud.github.com/downloads/dgeorges/modeljs/model-2.0.0.js
+...
+*/
+
+<p>This demo will show how to create a simple MVC web application using modeljs.</p>
