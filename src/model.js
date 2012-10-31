@@ -225,21 +225,18 @@
                 executeCallbacksFunction(property, callbackArgs.concat(eventName))
             );
 
-            // propagate change up the stack for the following events by notifying all parent ModelChange listers registered.
-            var propertyParent = property._parent;
-            while (propertyParent) {
-                //MODEL_CHANGE only propergates from the following events
-                if (eventName === Model.Event.CHANGE || eventName === Model.Event.MODEL_CHANGE || eventName === Model.Event.PROPERTY_CHANGE ||
-                    eventName === Model.Event.CHILD_CREATED || eventName === Model.Event.CHILD_DESTROYED) {
+            //MODEL_CHANGE only propergates from the following events
+            if (eventName === Model.Event.CHANGE || eventName === Model.Event.MODEL_CHANGE || eventName === Model.Event.PROPERTY_CHANGE ||
+                eventName === Model.Event.CHILD_CREATED || eventName === Model.Event.CHILD_DESTROYED) {
+                // propagate change up the stack for the following events by notifying all parent ModelChange listers registered.
+                var propertyParent = property._parent;
+                while (propertyParent) {
                     var parentListeners = propertyParent._eventListeners.modelChange.concat(propertyParent._eventListeners.change);
                     parentListeners.forEach( // when we bubble the event we only notify modelListeners
                         executeCallbacksFunction(propertyParent, callbackArgs)
                     );
+                    propertyParent = propertyParent._parent;
                 }
-                propertyParent._eventListeners.all.forEach(
-                    executeCallbacksFunction(propertyParent, callbackArgs.concat(eventName))
-                );
-                propertyParent = propertyParent._parent;
             }
         }
 
@@ -647,7 +644,7 @@
             log('warn', "Incorrect Syntax: callback must be a function");
             return;
         }
-        //test Callback is a function
+
         var eventNames = events.split(' ');
         eventNames.forEach(function (eventName) {
             if (!this._eventListeners[eventName]) {
@@ -1519,9 +1516,11 @@
          */
         CHILD_DESTROYED: "childDestroyed",
         /**
-         * A special pseudo event named "all" that equivalent to listening to all events including customEvents.
-         * Triggering the ALL event does not fire all event, but fires an event named all.
-         * The callback will have the following arguments:
+         * A special pseudo event named "all" that equivalent to listening to all 'real' events.
+         * All events are considered 'real' except for the MODEL_CHANGE event which is a special
+         * propergation event and the CHANGE event which is a psuedo event.
+         * Triggering the ALL event does not fire all event, but fires an event named all which will
+         * call all callback registared to the ALL event. The callback will have the following arguments:
          *      <ul>
          *      <li>this = the property listening to the event</li>
          *      <li>arg[0-..n-1] = the same arguments passed to the original event</li>

@@ -980,18 +980,30 @@
             var model = new Model(jsonModel);
             var count = 0;
             function callback(property, originalArg, eventName) {
-                var a = arguments;
+                var a = arguments;// put breakpoint here to see arguments to callback which depend on event.
                 count++;
             }
             model.on(Model.Event.ALL, callback);
-            model.number.onChange(callback);
+            model.number.setValue(10);
+            equal(count, 0, "all event does not listen to propegated MODEL_CHANGED events. Only listens to real events.");
             // Do stuff to model. And make sure it works.
-            model.number.setValue(2); //PROPERTY_CHANGE
-            model.obj.createProperty("second", "secondProp");//CHILD_CREATED
-            model.obj.second.destroy(); // DESTROY/ CHILD_DESTROYED
-            model.obj.first.trigger("knockKnock", "whose", "there", "son");//CUSTOM
-            equal(count, 5, "all listeners hears all events");
 
+            model.createProperty("second", "secondProp");//CHILD_CREATED
+            equal(count, 1, "all event Notified of CHILD_CREATED event");
+
+            count = 0;
+            model.trigger("knockKnock", "whose", "there", "son");//CUSTOM
+            equal(count, 1, "all event Notified of CUSTOM event");
+
+            model.number.on(Model.Event.ALL, callback);
+
+            count = 0;
+            model.number.setValue(2); //PROPERTY_CHANGE
+            equal(count, 1, "all event Notified of PROPERTY_CHANGE event");
+
+            count = 0;
+            model.number.destroy(); // DESTROY/ CHILD_DESTROYED
+            equal(count, 2, "all event Notified of DESTROY and CHILD_DESTROYED event");
         },
 
         testDoNotPersist : function (){

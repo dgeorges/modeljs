@@ -47,6 +47,7 @@ If your doing server side development in Node, you can import it like so:
 Examples
 ------------------
 A couple of example pages have been created to show how to use modeljs. They can be found in the /test/example folder
+- **New** sandbox enviornment on jsFiddle [here](http://jsfiddle.net/gh/get/jQuery/1.8.2/dgeorges/modeljs/tree/master/test/example/jsFiddleDemo/).
  - tableWidget.js Shows how a table widget can be created with model js.
  - example.html Shows how to integrate the table widget on your page and is followed by a tutorial of the modeljs api.
  - knockoutExample.html Shows how easy it is to build a binding library on top of modeljs that behaves like the popular knockoutjs library. The example is almost identical to the knockoutjs introduction example.
