@@ -1138,44 +1138,120 @@
             }
 
             var model = new Model();
-            var arrayInitialValue = [1,2,3];
-            model.createProperty("oArray", arrayInitialValue);
+            var arrayPrimitiveValue = [1,2,3];
+            model.createProperty("oArray", arrayPrimitiveValue);
             ok( Model.isArray(model.oArray), "Array Property created");
             equal(model.oArray.length, 3, "Array initial size correct");
-            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayInitialValue), "test Array initial getValue");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "test Array initial getValue");
             ok (testPropertyArrayOnlyContainsProperties(model.oArray), "Property Array contains only Properties");
 
-            var callbackCount = 0;
+            var callbackCount = 0,
+                childDestroyedCallbackCount = 0,
+                childCreatedCallbackCount = 0;
             function changeCallback (property, oldValue) {
+                var a = arguments.length; // put breakpoint here to see arguments
                 callbackCount++;
             }
 
             function childCreatedCallback(property, arg){
-                callbackCount++;
+                var a = arguments.length; // put breakpoint here to see arguments
+                childCreatedCallbackCount++;
             }
             function childDestroyedCallback (property, arg){
-                callbackCount++;
+                var a = arguments.length; // put breakpoint here to see arguments
+                childDestroyedCallbackCount++;
             }
 
             model.oArray.onChange(changeCallback);
-            model.oArray.on('childCreated', childCreatedCallback);
-            model.oArray.on('childDestroyed', childDestroyedCallback);
-            model.oArray.push(3,2,8,4,10);
-            ok (testPropertyArrayOnlyContainsProperties(model.oArray), "Property Array contains only Properties");
-            equal(model.oArray.length, 8, "test Array post push length");
-            model.oArray.pop();
-            equal(model.oArray.length, 7, "test Array post pop length");
-            model.oArray.sort();
-            equal(callbackCount, 3);
+            model.oArray.on(Model.Event.CHILD_CREATED, childCreatedCallback);
+            model.oArray.on(Model.Event.CHILD_DESTROYED, childDestroyedCallback);
 
+            childCreatedCallbackCount = 0;
+            model.oArray.push(3,2,8,4,10);
+            arrayPrimitiveValue.push(3,2,8,4,10);
+            ok (testPropertyArrayOnlyContainsProperties(model.oArray), "Property Array contains only Properties");
+            equal(childCreatedCallbackCount, 5, "pusing multiple item cause a CHILD_CREATED event for each item");
+            equal(model.oArray.length, 8, "test Array post push length");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "push() works as expected");
+
+
+            childDestroyedCallbackCount = 0;
+            model.oArray.pop();
+            arrayPrimitiveValue.pop();
+            equal(model.oArray.length, 7, "test Array post pop length");
+            equal(childDestroyedCallbackCount, 1, "pop results in one CHILD_DESTROYED event.");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "pop() works as expected");
+
+            childDestroyedCallbackCount = 0;
+            model.oArray.shift();
+            arrayPrimitiveValue.shift();
+            equal(childDestroyedCallbackCount, 1, "shift results in one CHILD_DESTROYED event.");
+            equal(model.oArray.length, 6, "Shift remove element from array");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "shift() works as expected");
+
+            childCreatedCallbackCount = 0;
+            model.oArray.unshift(1,2); // needs to creat proper properties to insert.
+            arrayPrimitiveValue.unshift(1,2);
+            equal(childCreatedCallbackCount, 2, "unshift results in one CHILD_CREATED event per element.");
+            equal(model.oArray.length, 8, "Unshift adds elements to array");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "unshift() works as expected");
+
+            callbackCount = 0;
+            model.oArray.sort();
+            arrayPrimitiveValue.sort();
+            equal(callbackCount, 1, "Sort fires a change event.");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "sort() works as expected");
+
+            callbackCount = 0;
+            model.oArray.reverse();
+            arrayPrimitiveValue.reverse();
+            equal(callbackCount, 1, "Sort fires a change event.");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "reverse() works as expected");
+
+            childDestroyedCallbackCount = 0;
+            model.oArray.splice(1,1); // removes the second element.
+            arrayPrimitiveValue.splice(1,1);
+            equal(childDestroyedCallbackCount, 1, "splice(1,1) results in one CHILD_DESTROYED event.");
+            equal(model.oArray.length, 7, "Unshift adds elements to array");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "unshift() works as expected");
+
+            childCreatedCallbackCount = 0;
+            model.oArray.splice(1, 0, 99); // adds 99 to index 2.
+            arrayPrimitiveValue.splice(1, 0, 99);
+            equal(childCreatedCallbackCount, 1, "splice(1,0,99) results in one CHILD_DESTROYED event.");
+            equal(model.oArray.length, 8, "Unshift adds elements to array");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "unshift() works as expected");
+
+            childCreatedCallbackCount = 0;
+            childDestroyedCallbackCount = 0;
+            model.oArray.splice(1, 1, 99); // removes the second element, to add 99, this function changes the value rather than do a destroy and create
+            arrayPrimitiveValue.splice(1, 1, 99);
+            equal(childCreatedCallbackCount, 0, "splice(1,0,99) results in one CHILD_DESTROYED event.");
+            equal(childDestroyedCallbackCount, 0, "splice(1,0,99) results in one CHILD_DESTROYED event.");
+            equal(model.oArray.length, 8, "Unshift adds elements to array");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "unshift() works as expected");
+
+            callbackCount = 0;
+            childDestroyedCallbackCount = 0;
             var newValue = [9, 8, 7];
             model.oArray.setValue(newValue);
             equal(model.oArray.length, 3, "test Array setValue updates length");
             equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(newValue), "test Array setValue works as expected");
+            equal(callbackCount, 1, "setValue fires a PROPERTY_CHANGE event.");
+            equal(childDestroyedCallbackCount, 5, "setValue will call destroy on excess.");
+
+            var modelChangeCallbackCount = 0;
+            model.oArray.on(Model.Event.MODEL_CHANGE, function modelChanged (property, oldValue) {
+                var a = arguments.length; // put breakpoint here to see arguments
+                modelChangeCallbackCount++;
+            });
+
+            modelChangeCallbackCount = 0;
             var prop = Model.find(model, "/root/oArray/0");
             equal(prop.getValue(), 9, "test Model.find with array's");
             model.oArray.setValueAt(0, 12);
-            equal(model.oArray[0].getValue(), 12, "test Arrat setValueAt");
+            equal(model.oArray[0].getValue(), 12, "test Array setValueAt");
+            equal(modelChangeCallbackCount, 1, "setValue fires a MODEL_CHANGE event on array.");
             // The following is a limitation we currently have. String doesn't get converted into a property
             //model.oArray[0] = "Inserted value by index";
         },

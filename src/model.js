@@ -7,7 +7,7 @@
  *
  * @project modeljs
  * @author Daniel Georges
- * @version 2.0.0
+ * @version 2.1.0
  * @module Model
  */
 (function (globalNS, undefined) { //globalNS === window in the browser or GLOBAL in nodejs
@@ -316,65 +316,64 @@
     ObservableArray.prototype.pop = function () {
         var args = Array.prototype.slice.call(arguments),
             element = Array.prototype.pop.apply(this, args);
-        this._prop.trigger(Model.Event.CHILD_DESTROYED, element);
+        element.destroy();
         return element;
     };
     ObservableArray.prototype.push = function () {
         var args = Array.prototype.slice.call(arguments),
-            currentLength = this.length,
+            length = this.length,
             pushedArgs = [],
             property,
             i = 0;
-        for (i = 0; i < args.length; i++){
-            property = args[i];
-            if (!(property instanceof Property)) {
-                property = _createProperty(currentLength + i, args[i], this, {});
+        for (i = 0; i < args.length; i++) {
+            if ((args[i] instanceof Property) || Model.isArray(args[i])) {
+                log('error', "Incorrect Syntax: use push([property].getValue()) instead");
+                return;
             }
+            property = _createProperty(length + i, args[i], this, {});
             pushedArgs.push(property);
         }
         var newLength = Array.prototype.push.apply(this, pushedArgs);
-
-        this._prop.trigger(Model.Event.CHILD_CREATED, pushedArgs);
+        for (i = 0; i < pushedArgs.length; i++) {
+            this._prop.trigger(Model.Event.CHILD_CREATED, pushedArgs[i]);
+        }
         return newLength;
     };
     ObservableArray.prototype.reverse = function () {
         var args = Array.prototype.slice.call(arguments),
-            oldValue = Array.prototype.slice.call(this);
-        Array.prototype.reverse.apply(this, args);
-        this._prop.trigger(Model.Event.CHANGE, oldValue);
+            newValue = Array.prototype.reverse.apply(this.getValue(), args);
+        this.setValue(newValue);
         return this;
     };
-    ObservableArray.prototype.shift = function () {
-        var args = Array.prototype.slice.call(arguments),
-            element = Array.prototype.shift.apply(this, args);
-        this._prop.trigger(Model.Event.CHILD_DESTROYED, element);
-        return element;
+    ObservableArray.prototype.shift = function () { // removes first element
+        var arrayValue = this.getValue(),
+            removed = arrayValue.shift(),
+            removedProperty = this[this.length - 1];
+
+        this.setValue(arrayValue); // set value will set all the values correctly and delete the last property
+        return removedProperty;
     };
     ObservableArray.prototype.sort = function () {
         var args = Array.prototype.slice.call(arguments),
-            oldValue = Array.prototype.slice.call(this);
-        Array.prototype.sort.apply(this, args);
-        this._prop.trigger(Model.Event.CHANGE, oldValue);
+            result = Array.prototype.sort.apply(this.getValue(), args);
+        this.setValue(result);
         return this;
     };
     ObservableArray.prototype.splice = function () {
         var args = Array.prototype.slice.call(arguments),
-            removed = Array.prototype.splice.apply(this, args);
-        if (removed.length > 0) {
-            this._prop.trigger(Model.Event.CHILD_DESTROYED, removed);
-        }
-        if (args.length > 2) { // we are adding new elements
-            var added = args.slice(2);
-            this._prop.trigger(Model.Event.CHILD_CREATED, added); // TODO use count to determin if should be called
-        }
-        return removed; //splice returns array of removed elements
+            arrayValue = this.getValue(),
+            returnValue = Array.prototype.splice.apply(arrayValue, args);
+
+        this.setValue(arrayValue);
+        return returnValue; //TODO this is an array of primitives not Property Objects
     };
     ObservableArray.prototype.unshift = function () {
         var args = Array.prototype.slice.call(arguments),
-            newElements = Array.prototype.slice(arguments),
-            newLength = Array.prototype.unshift.apply(this, args);
-        this._prop.trigger(Model.Event.CHILD_CREATED, newElements);
-        return newLength;
+            currentValue = this.getValue(),
+            returnValue = Array.prototype.unshift.apply(currentValue, args);
+
+        this.setValue(currentValue);
+        return returnValue;
     };
 
     /**
@@ -536,7 +535,7 @@
                 this._myValue = newValue;
 
                 if (!suppressNotifications) {
-                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
+                    this.trigger(Model.Event.PROPERTY_CHANGE, oldValue);
                 }
             }
         }
@@ -583,8 +582,9 @@
      * @return {Property}   The deleted Property.
      */
     Property.prototype.destroy = function (suppressNotifications) {
-        var myName = this.getName().substring(this.getName().lastIndexOf('/') + 1);
-        delete this._parent[myName];
+        if (this._parent instanceof Model) {
+            delete this._parent[this.getShortName()];
+        }
 
         if (!suppressNotifications) {
             this.trigger(Model.Event.DESTROY); //equivalent since no event arg.
@@ -666,8 +666,8 @@
      * @return {Property}         Returns this for Object chaining.
      */
     Property.prototype.off = function (events, callback) {
-        if (!isFunction(callback)) {
-            log('warn', "Incorrect Syntax: callback must be a function");
+        if (typeof events === 'string' && !isFunction(callback)) {
+            log('warn', "Incorrect Syntax: events must be a string and callback must be a function");
             return;
         }
         var eventNames = events.split(' ');
@@ -756,12 +756,13 @@
     }
 
    /**
-     * The modeljs Object that extends a javaScript Array with Property methods.
-     * Array function like push, pop etc... can be used.
+     * The modeljs Property Object that extends a javaScript Array so that Array function like push,
+     * pop, reverse, etc... can be used while at the same time inherites Property methods. Be
+     * aware instances will return false to native Array.isArray() function. THe alternative is
+     * to use Model.isArray() or Array.isArray(instance.getValue()). The former is recommended.
      *
      * @example
-     * For examples see: <b>testPrimitiveSaveLoad</b>,  <b>testObjectsSaveLoad</b>, <b>testComplexSaveLoad</b>
-     * <b>testGetNameMethod</b> and <b>testSaveLoadWithMetaData</b>
+     * For examples see: <b>testPropertyArray</b>,  and <b>testPropertyArrayLoading</b>
      *
      * @class ArrayProperty
      * @constructor
@@ -789,25 +790,28 @@
      * @return {[this]} this for method chaining.
      */
     ArrayProperty.prototype.setValue = function (value, suppressNotifications) {
-        var newValue = value;
+        var newValue = value,
+            i = 0;
         // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
         if (newValue !== undefined && newValue !== this._myValue) { //!== needs to be done another way.
 
             if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
-                if (this.length > newValue.length) { //remove excess
-                    this.splice(newValue.length, this.length - newValue.length);
+                if (this.length > newValue.length) { //remove excess iterating backwards because modifying the end.
+                    for (i = this.length - 1; i >= newValue.length; i-=1) {
+                        this.pop(); // will fire CHILD_CREATED event
+                    }
                 }
-                for (var i = 0; i < newValue.length; i++) {
+                for (i = 0; i < newValue.length; i++) {
                     if (this[i]) {
                         this[i].setValue(newValue[i], suppressNotifications);
                     } else {
-                        this.push(newValue[i]); // add extra
+                        this.push(newValue[i]); // will fire CHILD_CREATED event
                     }
                 }
                 // fix suppressNotifications. Should be in transaction. what if transaction already there?
                 if (!suppressNotifications) {
-                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
+                    this.trigger(Model.Event.PROPERTY_CHANGE, oldValue);
                 }
             }
         }
@@ -1001,7 +1005,7 @@
                 }
                 // fix suppressNotification should go around Merge!
                 if (mergeSuccessful && !suppressNotifications) {
-                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
+                    this.trigger(Model.Event.PROPERTY_CHANGE, oldValue);
                 }
             }
         }
