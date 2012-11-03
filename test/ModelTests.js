@@ -1276,6 +1276,7 @@
             ok(Model.find(baby, rootModel.subProp1.getName()), "search for direct parent");
             ok(Model.find(baby, rootModel.prop1.getName()), "search for sibling/cousin");
             ok(Model.find(baby, baby.getName()), "search for self");
+            equal(Model.find(rootModel, "/root/subProp1/doesNotExist/a"), null, "Searching for non-existant property returns null");
         },
 
         modlejsTutorial : function () {

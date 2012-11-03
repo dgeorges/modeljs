@@ -1325,9 +1325,13 @@
      * @return {[Property, Model, ArrayProperty]}   The model object of the given name, null otherwise.
      */
     Model.find = function (model, propertyName) {
+        if(!((model instanceof Property) || Model.isArray(model)) || typeof propertyName !== 'string') {
+            return null;
+        }
+
         var modelName = model.getName();
-        var modelParts = modelName.split('/');
-        var propertyParts = propertyName.split('/');
+        var modelParts = modelName.substring(1).split('/');
+        var propertyParts = propertyName.substring(1).split('/');
         var diff = "";
 
         if (modelParts[0] !== propertyParts[0]) {
@@ -1341,13 +1345,16 @@
 
         var j = i;
         var commonDenominator = model;
-        for ( j = i; j < modelParts.length; j++) {
+        for ( j = i; j < modelParts.length; j++) { //traverses up to the common denominator
             commonDenominator = commonDenominator._parent;
         }
 
         var prop = commonDenominator;
         for (var k = i; k < propertyParts.length; k++) {
             prop = prop[propertyParts[k]];
+            if (!prop) {
+                return null;
+            }
         }
         if (prop.getName() === propertyName){
             return prop;
