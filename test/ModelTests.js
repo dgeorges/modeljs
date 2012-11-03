@@ -1256,6 +1256,142 @@
             //model.oArray[0] = "Inserted value by index";
         },
 
+        testLinkingModels : function () {
+
+            var model = new Model({a:1, b:"str", c:100, d:300}, {name: "a"});
+            var model2 = model.clone();
+
+            var disconnectModel = Model.connect(model,model2);
+            var disconnectA = Model.connect(model.a,model2.a);
+
+            model.createProperty("anotherProp", "anotherValue", {random:1});
+            ok(model2.anotherProp, " linked model received CHILD_CREATED event");
+
+            model.anotherProp.destroy();
+            ok(!model2.anotherProp, " linked model received CHILD_DESTROYED event");
+
+            model.a.setValue(10);
+            equal(model2.a.getValue(), 10, " linked model received PROPERTY_CHANGE event");
+
+            model2.a.setValue(15);
+            equal(model.a.getValue(), 15, " linked model received PROPERTY_CHANGE event in other direction");
+
+            var customEventOnModel2fired = false;
+            model2.a.on("customEvent", function () {
+                customEventOnModel2fired = true;
+            });
+            model.a.trigger("customEvent");
+            ok(customEventOnModel2fired, " linked model received custom event");
+
+            disconnectA();
+            model.a.setValue(5);
+            equal(model2.a.getValue(), 15, " models were disconnected successfully");
+
+            //test "oneWay" direction
+            Model.connect(model.b, model2.b, {direction:"oneWay"});
+            model.b.setValue(123);
+            equal(model2.b.getValue(), 123, "Forward event propagates");
+            model2.b.setValue(987);
+            equal(model.b.getValue(), 123, "OneWay does not propagate in reverse direction");
+
+
+            var testCallbackSourceCalled = false;
+            function testCallbackSource() {
+                testCallbackSourceCalled = true;
+            }
+            var testCallbackDestCalled = false;
+            function testCallbackDest() {
+                testCallbackDestCalled = true;
+            }
+
+            /** test black listed events **/
+            var blackListedEventCallbackCalledOnSource = false;
+            function blackListedEventCallback () {
+                blackListedEventCallbackCalledOnSource = true;
+            }
+            var blackListedEventCallbackCalledOnDest = false;
+            function blackListedEventCallback2 () {
+                blackListedEventCallbackCalledOnDest = true;
+            }
+
+            Model.connect(model.c, model2.c, {eventBlackList:"blackListedEvent"});
+            model.c.on("blackListedEvent", blackListedEventCallback);
+            model.c.on("test", testCallbackSource);
+            model2.c.on("blackListedEvent", blackListedEventCallback2);
+            model2.c.on("test", testCallbackDest);
+
+            //blacklisted event should not propagate
+            model.c.trigger("blackListedEvent");
+            ok(blackListedEventCallbackCalledOnSource, "blackListedEvent fired on Source Property");
+            ok(!blackListedEventCallbackCalledOnDest, "blackListedEvent does not propagated to connected Property");
+
+            blackListedEventCallbackCalledOnSource = false;
+            model2.c.trigger("blackListedEvent");
+            ok(blackListedEventCallbackCalledOnDest, "blackListedEvent fired on Destination Property");
+            ok(!blackListedEventCallbackCalledOnSource, "blackListedEvent does not propagated to connected Property");
+
+            // test is not blacklisted so should propagate
+            model.c.trigger("test");
+            ok(testCallbackSourceCalled, "non black listed event still fired");
+            ok(testCallbackDestCalled, "non black listed event still fired");
+            testCallbackSourceCalled = testCallbackDestCalled = false;
+
+            model2.c.trigger("test");
+            ok(testCallbackSourceCalled, "non black listed event still fired");
+            ok(testCallbackDestCalled, "non black listed event still fired");
+
+            /** Test white listed Events **/
+            var whiteListedEventCallbackCalledOnSource = false;
+            function whiteListedEventCallback () {
+                whiteListedEventCallbackCalledOnSource = true;
+            }
+            var whiteListedEventCallbackCalledOnDest = false;
+            function whiteListedEventCallback2 () {
+                whiteListedEventCallbackCalledOnDest = true;
+            }
+
+            Model.connect(model.d, model2.d, {eventWhiteList:"whiteListedEvent"});
+            model.d.on("whiteListedEvent", whiteListedEventCallback);
+            model.d.on("test", testCallbackSource);
+            model2.d.on("whiteListedEvent", whiteListedEventCallback2);
+            model2.d.on("test", testCallbackDest);
+
+            testCallbackSourceCalled = testCallbackDestCalled = false;
+            model.d.trigger("test");
+            ok(testCallbackSourceCalled, "test is triggered on Source");
+            ok(!testCallbackDestCalled, "test is not on the white listed so not propagated");
+            testCallbackSourceCalled = false;
+
+            model2.d.trigger("test");
+            ok(testCallbackDestCalled, "test is triggered on Destination");
+            ok(!testCallbackSourceCalled, "test is not on the white listed so not propagated");
+            testCallbackDestCalled = false;
+
+
+            model.d.trigger("whiteListedEvent");
+            ok(whiteListedEventCallbackCalledOnDest, "blackListedEvent fired on Destination Property");
+            ok(whiteListedEventCallbackCalledOnSource, "blackListedEvent does not propagated to connected Property");
+            whiteListedEventCallbackCalledOnDest = whiteListedEventCallbackCalledOnDest = false;
+
+            model2.d.trigger("whiteListedEvent"); // other direction
+            ok(whiteListedEventCallbackCalledOnDest, "blackListedEvent fired on Destination Property");
+            ok(whiteListedEventCallbackCalledOnSource, "blackListedEvent does not propagated to connected Property");
+            whiteListedEventCallbackCalledOnDest = whiteListedEventCallbackCalledOnDest = false;
+
+            //TODO test recursive w/wo (mapFunction) , whitelist,
+
+            //TODO test arrays.
+            /*
+            var arrayModel = new Model({arr: [1,2,3]});
+            var arrayModel2 = new Model({arr: [4,5,6]});
+            arrayModel.arr[0].getValue();
+            connect(arrayModel.arr, arrayModel2.arr);
+            arrayModel.arr.push(2);
+            equal(arrayModel2.arr.length, 4);
+            */
+
+        },
+
         testModelFind : function () {
             var json = {
                 prop1:"prop1",

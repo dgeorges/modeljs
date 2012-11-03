@@ -1362,6 +1362,137 @@
         return null;
     };
 
+    /**
+     * Connects two properties together. So that events fired on one are also fired on the other. The options
+     * specifies the type of connection to create.
+     *
+     * @param  {[Property]} a       The source Property
+     * @param  {[Property]} b       The destination Property
+     * @param  {[Object]} options? A hash of options describing how to connect the two properties.
+     *                             The following option are accepted:
+     *                     <ul><li>
+     *                         <b>eventBlackList</b> {Array} - A array of eventNames that <b>should not</b> be connected between the two Properties, all other event are connected.
+     *                     </li><li>
+     *                         <b>eventWhiteList</b> {Array} - A array of eventNames that <b>should</b> be connected between the two Properties, all other events not connected.
+     *                     </li><li>
+     *                         <b>includeChildred</b> {boolean} - Indicates if we should connect all the children of source Property as well. The default is false.
+     *                     </li><li>
+     *                         <b>mapFunction</b> {function} - A function that will map PropertyNames in 'a' to propertyNames in 'b' that should be connected.
+     *                         If the function returns null, the property won't be connected to anything. *This option must be used in conjunction with includeChildren=true.
+     *                         If not specified the default behavior is to map all properties via the getName function. Thus only properties with the same name are connected
+     *                     </li>
+     *                     </li><li>
+     *                         <b>direction</b> {"oneWay"|"dual"} - Specifies how you would like to connect the two Properties. If not specified default is "dual" if not specified.
+     *                     </li>
+     *
+     * @return {[Function]}         The disconnect function. When executed will remove the connection between the properties.
+     */
+    Model.connect = function connect (a, b, options) { //AKA join connect, disconnect.
+
+        var propergateAtoB,
+            propergateBtoA;
+            options = options || {};
+
+        /**
+         * This function is registared on the ALL event to propergate its events to the
+         * connected property. FYI 'this' is bound to the source linked property.
+         *
+         * @param  {Boolean} isAtoB   [description]
+         * @param  {[type]}  property On any event the first argument is the property the event was triggered on.
+         * @return {[type]}           [description]
+         */
+        function propergateEvent (isAtoB, property /*, ... other event callback arguments */) {
+            var eventName = arguments[arguments.length-1]; //Since this is registared on the all event the last argument is the orginal Event name.
+            if (eventName === Model.Event.CHILD_DESTROYED) { //we listen to he destroy action so no need to listen to CHILD_DESTROYED too
+                return;
+            }
+            if(options && (options.eventBlackList || options.eventWhiteList)) {
+                if (options.eventBlackList && options.eventBlackList.indexOf(eventName) !== -1) {
+                    return;
+                }
+                if (options.eventWhiteList && options.eventWhiteList.indexOf(eventName) === -1) {
+                    return;
+                }
+            }
+
+            var linkedPropertyName = options.mapFunction ? options.mapFunction(property.getName()) : property.getName();
+            var linkedProperty = Model.find(this, linkedPropertyName);
+            var newPropDisconnect;
+
+            if (!linkedProperty) { // We can not link
+                log('warn', "Event " + eventName + "can not be propergated to connect model because property '" + linkedPropertyName + "' can not be found");
+                return null;
+            }
+            // deregistar our reverse connect function and put it back later, so we dont have infinte loop.
+            linkedProperty.off(Model.Event.ALL, isAtoB? propergateBtoA: propergateAtoB);
+            if (eventName === Model.Event.PROPERTY_CHANGE) {
+                linkedProperty.setValue(property.getValue());
+            } else if (eventName === Model.Event.CHILD_CREATED) {
+                var newProperty = arguments[2];
+                if (Model.isArray(linkedProperty)) {
+                    // do something special here? maybe make createProperty work for arrays.
+                } else {
+                    linkedProperty.createProperty(newProperty.getShortName(), newProperty.getValue(), newProperty.getMetadata());
+                    newPropDisconnect = connect(newProperty, linkedProperty[newProperty.getShortName()]);
+
+                }
+            } else if (eventName === Model.Event.DESTROY) {
+                linkedProperty.destroy();
+            } else { //custom event
+                linkedProperty.trigger(eventName, Array.prototype.slice.call(arguments, 1));
+            }
+            linkedProperty.on(Model.Event.ALL, isAtoB? propergateBtoA : propergateAtoB);
+
+            return newPropDisconnect; //how do we dissconnect these?
+        }
+
+
+        // one direction
+        propergateAtoB = propergateEvent.bind(b, true);
+        a.on(Model.Event.ALL, propergateAtoB);
+
+        // other direction
+        if (!options.direction || options.direction !== "oneWay") {
+            propergateBtoA = propergateEvent.bind(a, false);
+            b.on(Model.Event.ALL, propergateBtoA);
+        }
+
+
+        function disconnect(a, b, propergateAtoB, propergateBtoA) {
+            if (propergateAtoB) {
+                a.off(Model.Event.ALL, propergateAtoB);
+            }
+            if (propergateBtoA) {
+                b.off(Model.Event.ALL, propergateBtoA);
+            }
+        }
+/*
+        if (options.includeChildren) { // go through children
+            var disconnectFunctions  =[];
+            for (var propName in this) {
+                if (this.hasOwnProperty(propName) &&
+                        (this[propName] instanceof Property || Model.isArray(a[propName])) &&
+                        prop !== "_parent") {
+
+                        var childLinkedPropertyName = options.mapFunction ? options.mapFunction(property.getName()) : property.getName();
+                        var ChildLinkedProperty = Model.find(this, linkedPropertyName);
+
+                        disconnectFunctions.push(Model.connect(this[propName], ChildLinkedProperty, options));
+                    }
+            }
+            return function disconnect() {
+                for (var i = 0; i < disconnectFunctions.length; i++) {
+                    dis[i]();
+                }
+            }
+
+        }
+
+*/
+
+        return disconnect.bind(null, a,b, propergateAtoB, propergateBtoA);
+    };
+
 
    /**
      * Begins a transaction. All events will be put into the queued. To be fired when endTransaction is called.
