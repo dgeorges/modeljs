@@ -63,23 +63,14 @@ var TableWidget = function TableWidget(model) {
         createHeader(this.getValue());
     });
 
-    tableModel.data.on("childCreated", function (data, newProperties) {
-        newProperties.forEach( function (property) {
-            createRow(property);
-        });
+    tableModel.data.on("childCreated", function (data, newProperty) {
+        createRow(newProperty);
     });
-
 
     tableModel.data.on("childDestroyed", function (data, deleted) {
         //delete in reverse order, so as not to mess up indexes
         // handle if single or multiple elements are deleted at once
-        if (Array.isArray(deleted)) {
-            for (var i = deleted.length - 1; i >= 0; i--) {
-                deleteRow([deleted[i].getName(true)]);
-            }
-        } else {
-            deleteRow([deleted.getName(true)]);
-        }
+        deleteRow(deleted.getShortName());
     });
 
     /* widet getters */
