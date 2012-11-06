@@ -1224,8 +1224,8 @@
 
             childCreatedCallbackCount = 0;
             childDestroyedCallbackCount = 0;
-            model.oArray.splice(1, 1, 99); // removes the second element, to add 99, this function changes the value rather than do a destroy and create
-            arrayPrimitiveValue.splice(1, 1, 99);
+            model.oArray.splice(1, 1, 25); // removes the second element, to add 99, this function changes the value rather than do a destroy and create
+            arrayPrimitiveValue.splice(1, 1, 25);
             equal(childCreatedCallbackCount, 0, "splice(1,0,99) results in one CHILD_DESTROYED event.");
             equal(childDestroyedCallbackCount, 0, "splice(1,0,99) results in one CHILD_DESTROYED event.");
             equal(model.oArray.length, 8, "Unshift adds elements to array");
@@ -1258,17 +1258,18 @@
 
         testLinkingModels : function () {
 
-            var model = new Model({a:1, b:"str", c:100, d:300}, {name: "a"});
+            var model = new Model({a:1, b:"str", c:100, d:300, e:"prop"}, {name: "a"});
             var model2 = model.clone();
 
-            var disconnectModel = Model.connect(model,model2);
-            var disconnectA = Model.connect(model.a,model2.a);
+            var disconnectModel = Model.connect(model, model2);
+            var disconnectA = Model.connect(model.a, model2.a);
+            var disconnectE = Model.connect(model.e, model2.e);
 
             model.createProperty("anotherProp", "anotherValue", {random:1});
             ok(model2.anotherProp, " linked model received CHILD_CREATED event");
 
-            model.anotherProp.destroy();
-            ok(!model2.anotherProp, " linked model received CHILD_DESTROYED event");
+            model.e.destroy();
+            ok(!model2.e, " linked model received CHILD_DESTROYED event");
 
             model.a.setValue(10);
             equal(model2.a.getValue(), 10, " linked model received PROPERTY_CHANGE event");
@@ -1378,17 +1379,65 @@
             ok(whiteListedEventCallbackCalledOnSource, "blackListedEvent does not propagated to connected Property");
             whiteListedEventCallbackCalledOnDest = whiteListedEventCallbackCalledOnDest = false;
 
-            //TODO test recursive w/wo (mapFunction) , whitelist,
-
-            //TODO test arrays.
-            /*
+            // test arrays.
             var arrayModel = new Model({arr: [1,2,3]});
             var arrayModel2 = new Model({arr: [4,5,6]});
             arrayModel.arr[0].getValue();
-            connect(arrayModel.arr, arrayModel2.arr);
+            Model.connect(arrayModel.arr, arrayModel2.arr);
             arrayModel.arr.push(2);
-            equal(arrayModel2.arr.length, 4);
-            */
+            equal(arrayModel2.arr.length, 4, "push propagated to linked Array");
+
+            arrayModel.arr.pop();
+            equal(arrayModel2.arr.length, 3, "pop propagated to linked Array");
+
+            arrayModel.arr.shift();
+            equal(arrayModel2.arr.length, 2, "shift propagated to linked Array");
+        },
+
+        testLinkingEntireModels : function () {
+
+            var model = new Model({
+                a:1,
+                b:"str",
+                c:300,
+                d: {
+                    g:123,
+                    arr: [1,2,3]
+                }
+            }, {name: "a"});
+            var model2 = model.clone();
+
+            var disconnectModel = Model.connect(model, model2, {includeChildren: true});
+
+            model.a.setValue(1234);
+            equal(model2.a.getValue(), 1234, "Direct children linked");
+
+            model.d.g.setValue(567);
+            equal(model2.d.g.getValue(), 567, "indirect children linked");
+
+            model.d.arr.pop();
+            equal(model.d.arr.length, model2.d.arr.length, "arrays linked");
+
+            disconnectModel();
+
+            model.a.setValue(999);
+            model.d.g.setValue(999);
+            equal(model2.a.getValue(), 1234, "linked properties disconnected correctly");
+            equal(model2.d.g.getValue(), 567, "linked properties disconnected correctly");
+
+            var model3 = new Model({ linktoA: "not Linked", linktoG:1});
+
+            var mapFunction = function (input) {
+                var map = {
+                    "/a/a":"/root/linktoA",
+                    "/a/d/g": "/root/linktoG"
+                };
+                return map[input];
+            };
+            var disconnectModel2 = Model.connect(model, model3, {
+                includeChildren: true,
+                mapFunction: mapFunction
+            });
 
         },
 

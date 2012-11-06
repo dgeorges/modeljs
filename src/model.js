@@ -225,7 +225,7 @@
                 executeCallbacksFunction(property, callbackArgs.concat(eventName))
             );
 
-            //MODEL_CHANGE only propergates from the following events
+            //MODEL_CHANGE only propagates from the following events
             if (eventName === Model.Event.CHANGE || eventName === Model.Event.MODEL_CHANGE || eventName === Model.Event.PROPERTY_CHANGE ||
                 eventName === Model.Event.CHILD_CREATED || eventName === Model.Event.CHILD_DESTROYED) {
                 // propagate change up the stack for the following events by notifying all parent ModelChange listers registered.
@@ -306,7 +306,6 @@
      * exposed outside of this file.
      */
     function ObservableArray(myProperty, values) {
-        this._prop = myProperty;
         for (var i =0; i < values.length; i++){
             this.push(values[i]);
         }
@@ -335,7 +334,7 @@
         }
         var newLength = Array.prototype.push.apply(this, pushedArgs);
         for (i = 0; i < pushedArgs.length; i++) {
-            this._prop.trigger(Model.Event.CHILD_CREATED, pushedArgs[i]);
+            this.trigger(Model.Event.CHILD_CREATED, pushedArgs[i]);
         }
         return newLength;
     };
@@ -549,9 +548,9 @@
      * was changed.
      *
      * @example
-     *     model.onchange(callback, {listenToChildren: true}); //listens to change events on entire model
-     *     model.property1.onchange(callback) //listen to change on property1 only
-     *     model.subModel.onchange(callback) //listen to change on subModel only. (ie. via model.subModel.setValue(..))
+     *     model.onChange(callback, {listenToChildren: true}); //listens to change events on entire model
+     *     model.property1.onChange(callback) //listen to change on property1 only
+     *     model.subModel.onChange(callback) //listen to change on subModel only. (ie. via model.subModel.setValue(..))
      * For more examples see:  <b>testOnChangeCallbackWhenSettingToSameValue</b> and <b>testBubbleUpEvents</b>
      *
      * @method  onChange
@@ -582,9 +581,7 @@
      * @return {Property}   The deleted Property.
      */
     Property.prototype.destroy = function (suppressNotifications) {
-        if (this._parent instanceof Model) {
-            delete this._parent[this.getShortName()];
-        }
+        delete this._parent[this.getShortName()];
 
         if (!suppressNotifications) {
             this.trigger(Model.Event.DESTROY); //equivalent since no event arg.
@@ -757,7 +754,7 @@
 
    /**
      * The modeljs Property Object that extends a javaScript Array so that Array function like push,
-     * pop, reverse, etc... can be used while at the same time inherites Property methods. Be
+     * pop, reverse, etc... can be used while at the same time inherited Property methods. Be
      * aware instances will return false to native Array.isArray() function. THe alternative is
      * to use Model.isArray() or Array.isArray(instance.getValue()). The former is recommended.
      *
@@ -1265,7 +1262,9 @@
             return this.getValue();
         } else {
             for (var name in this) {
-                if (this.hasOwnProperty(name) && name !== '_parent') {
+                if (this.hasOwnProperty(name) &&
+                    (this[name] instanceof Property || Model.isArray(this[name])) &&
+                    name !== '_parent') {
                     // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable. and would cause infinite recursion
                     var property = this[name];
                     if (!property.getMetadata().doNotPersist) {
@@ -1394,7 +1393,7 @@
             options = options || {};
 
         /**
-         * This function is registared on the ALL event to propergate its events to the
+         * This function is registered on the ALL event to propagate its events to the
          * connected property. FYI 'this' is bound to the source linked property.
          *
          * @param  {Boolean} isAtoB   [description]
@@ -1402,7 +1401,7 @@
          * @return {[type]}           [description]
          */
         function propergateEvent (isAtoB, property /*, ... other event callback arguments */) {
-            var eventName = arguments[arguments.length-1]; //Since this is registared on the all event the last argument is the orginal Event name.
+            var eventName = arguments[arguments.length-1]; //Since this is registered on the all event the last argument is the orginal Event name.
             if (eventName === Model.Event.CHILD_DESTROYED) { //we listen to he destroy action so no need to listen to CHILD_DESTROYED too
                 return;
             }
@@ -1415,37 +1414,46 @@
                 }
             }
 
-            var linkedPropertyName = options.mapFunction ? options.mapFunction(property.getName()) : property.getName();
-            var linkedProperty = Model.find(this, linkedPropertyName);
+            var linkedProperty = this;
             var newPropDisconnect;
 
-            if (!linkedProperty) { // We can not link
-                log('warn', "Event " + eventName + "can not be propergated to connect model because property '" + linkedPropertyName + "' can not be found");
-                return null;
-            }
-            // deregistar our reverse connect function and put it back later, so we dont have infinte loop.
+            // deregister our reverse connect function and put it back later, so we don't have infinite loop.
             linkedProperty.off(Model.Event.ALL, isAtoB? propergateBtoA: propergateAtoB);
             if (eventName === Model.Event.PROPERTY_CHANGE) {
                 linkedProperty.setValue(property.getValue());
             } else if (eventName === Model.Event.CHILD_CREATED) {
                 var newProperty = arguments[2];
                 if (Model.isArray(linkedProperty)) {
-                    // do something special here? maybe make createProperty work for arrays.
+                    // newProperty.getShortName() == linkedProperty.length; <- do push when this is true
+                    linkedProperty.push(newProperty.getValue());
+                    newPropDisconnect = connect(newProperty, linkedProperty[newProperty.getShortName()]);
                 } else {
                     linkedProperty.createProperty(newProperty.getShortName(), newProperty.getValue(), newProperty.getMetadata());
                     newPropDisconnect = connect(newProperty, linkedProperty[newProperty.getShortName()]);
-
                 }
             } else if (eventName === Model.Event.DESTROY) {
-                linkedProperty.destroy();
+                if (Model.isArray(linkedProperty._parent) &&
+                    parseInt(linkedProperty.getShortName(), 10) === linkedProperty._parent.length - 1) {
+                    linkedProperty._parent.pop();
+                } else {
+                    linkedProperty.destroy();
+                }
             } else { //custom event
                 linkedProperty.trigger(eventName, Array.prototype.slice.call(arguments, 1));
             }
             linkedProperty.on(Model.Event.ALL, isAtoB? propergateBtoA : propergateAtoB);
 
-            return newPropDisconnect; //how do we dissconnect these?
+            return newPropDisconnect; // how do we disconnect this.
         }
 
+        function disconnect(a, b, propergateAtoB, propergateBtoA) {
+            if (propergateAtoB) {
+                a.off(Model.Event.ALL, propergateAtoB);
+            }
+            if (propergateBtoA) {
+                b.off(Model.Event.ALL, propergateBtoA);
+            }
+        }
 
         // one direction
         propergateAtoB = propergateEvent.bind(b, true);
@@ -1457,38 +1465,26 @@
             b.on(Model.Event.ALL, propergateBtoA);
         }
 
+        if (options.includeChildren && (a instanceof Model || Model.isArray(a))) { // go through children
+            var disconnectFunctions  = [];
+            for (var propName in a) {
+                if (a.hasOwnProperty(propName) &&
+                        (a[propName] instanceof Property || Model.isArray(a[propName])) &&
+                        propName !== "_parent") {
 
-        function disconnect(a, b, propergateAtoB, propergateBtoA) {
-            if (propergateAtoB) {
-                a.off(Model.Event.ALL, propergateAtoB);
-            }
-            if (propergateBtoA) {
-                b.off(Model.Event.ALL, propergateBtoA);
-            }
-        }
-/*
-        if (options.includeChildren) { // go through children
-            var disconnectFunctions  =[];
-            for (var propName in this) {
-                if (this.hasOwnProperty(propName) &&
-                        (this[propName] instanceof Property || Model.isArray(a[propName])) &&
-                        prop !== "_parent") {
-
-                        var childLinkedPropertyName = options.mapFunction ? options.mapFunction(property.getName()) : property.getName();
-                        var ChildLinkedProperty = Model.find(this, linkedPropertyName);
-
-                        disconnectFunctions.push(Model.connect(this[propName], ChildLinkedProperty, options));
+                        var childLinkedPropertyName = options.mapFunction ? options.mapFunction(a[propName].getName()) : a[propName].getName();
+                        var childLinkedProperty = Model.find(b, childLinkedPropertyName );
+                        if (childLinkedProperty) {
+                            disconnectFunctions.push(Model.connect(a[propName], childLinkedProperty, options));
+                        }
                     }
             }
-            return function disconnect() {
-                for (var i = 0; i < disconnectFunctions.length; i++) {
-                    dis[i]();
+            return function disconnect(functionsToDisconnect) {
+                for (var i = 0; i < functionsToDisconnect.length; i++) {
+                    functionsToDisconnect[i]();
                 }
-            }
-
+            }.bind(null, disconnectFunctions);
         }
-
-*/
 
         return disconnect.bind(null, a,b, propergateAtoB, propergateBtoA);
     };
@@ -1631,7 +1627,7 @@
         DESTROY: "destroy",
         /**
          * The CHILD_CREATED event is triggered when a new property is created. It's triggered on the
-         * parent and propergates a MODEL_CHANGE event up the model tree.
+         * parent and propagates a MODEL_CHANGE event up the model tree.
          * The callback will have the following arguments:
          *      <ul>
          *      <li>this = the parent property</li>
@@ -1660,9 +1656,9 @@
         /**
          * A special pseudo event named "all" that equivalent to listening to all 'real' events.
          * All events are considered 'real' except for the MODEL_CHANGE event which is a special
-         * propergation event and the CHANGE event which is a psuedo event.
+         * propagation event and the CHANGE event which is a pseudo event.
          * Triggering the ALL event does not fire all event, but fires an event named all which will
-         * call all callback registared to the ALL event. The callback will have the following arguments:
+         * call all callback registered to the ALL event. The callback will have the following arguments:
          *      <ul>
          *      <li>this = the property listening to the event</li>
          *      <li>arg[0-..n-1] = the same arguments passed to the original event</li>
@@ -1739,7 +1735,7 @@
 
 
    if (typeof define === "function" && define.amd) {
-        define([], function () { 
+        define([], function () {
             return Model;
         });
     } else if (typeof exports !== 'undefined') {
