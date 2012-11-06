@@ -654,25 +654,29 @@
     };
 
     /**
-     * Removes all instances of the given callback with the given events on this.
+     * Removes all instances of the given callback on the given events on this.
      *
      * @method off
      *
      * @param  {String} events  One or more space separated eventNames
-     * @param  {Function} callback The function to remove
+     * @param  {Function} callback? The function to remove. if not specified all callbacks are removed
      * @return {Property}         Returns this for Object chaining.
      */
     Property.prototype.off = function (events, callback) {
-        if (typeof events === 'string' && !isFunction(callback)) {
-            log('warn', "Incorrect Syntax: events must be a string and callback must be a function");
+        if (typeof events !== 'string') {
+            log('warn', "Incorrect Syntax: events must be a string of space separated eventNames");
             return;
         }
         var eventNames = events.split(' ');
         eventNames.forEach(function (eventName) {
             if (this._eventListeners[eventName]) {
-                this._eventListeners[eventName] = this._eventListeners[eventName].filter(function (element, index, array) {
-                    return element !== callback;
-                });
+                if (isFunction(callback)) {
+                    this._eventListeners[eventName] = this._eventListeners[eventName].filter(function (element, index, array) {
+                        return element !== callback;
+                    });
+                } else {
+                   this._eventListeners[eventName] = [];
+                }
             }
         }, this);
 
