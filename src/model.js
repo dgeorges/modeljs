@@ -336,7 +336,6 @@
                 log('error', "Incorrect Syntax: use push([property].getValue()) instead");
                 return;
             }
-            this._myValue.push(args[i]);
             property = _createProperty(length + i, args[i], this, {});
             pushedArgs.push(property);
         }
