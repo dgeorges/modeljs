@@ -1378,8 +1378,11 @@
      * Connects two properties together. So that events fired on one are also fired on the other. The options
      * specifies the type of connection to create.
      *
-     * @param  {[Property]} a       The source Property
-     * @param  {[Property]} b       The destination Property
+     * @method connect
+     * @static
+     *
+     * @param  {[Property]} src       The source Property
+     * @param  {[Property]} dest       The destination Property
      * @param  {[Object]} options? A hash of options describing how to connect the two properties.
      *                             The following option are accepted:
      *                     <ul><li>
@@ -1394,15 +1397,15 @@
      *                         If not specified the default behavior is to map all properties via the getName function. Thus only properties with the same name are connected
      *                     </li>
      *                     </li><li>
-     *                         <b>direction</b> {"oneWay"|"dual"} - Specifies how you would like to connect the two Properties. If not specified default is "dual" if not specified.
+     *                         <b>direction</b> {"oneWay"|"dual"} - Specifies how you would like to connect the two Properties. If not specified default is "dual".
      *                     </li>
      *
      * @return {[Function]}         The disconnect function. When executed will remove the connection between the properties.
      */
-    Model.connect = function connect (a, b, options) { //AKA join connect, disconnect.
+    Model.connect = function connect (src, dest, options) { //AKA join connect, disconnect.
 
-        var propergateAtoB,
-            propergateBtoA;
+        var propergateSrcToDest,
+            propergateDestToSrc;
             options = options || {};
 
         /**
@@ -1431,7 +1434,7 @@
             var newPropDisconnect;
 
             // deregister our reverse connect function and put it back later, so we don't have infinite loop.
-            linkedProperty.off(Model.Event.ALL, isAtoB? propergateBtoA: propergateAtoB);
+            linkedProperty.off(Model.Event.ALL, isAtoB? propergateDestToSrc: propergateSrcToDest);
             if (eventName === Model.Event.PROPERTY_CHANGE) {
                 linkedProperty.setValue(property.getValue());
             } else if (eventName === Model.Event.CHILD_CREATED) {
@@ -1454,41 +1457,41 @@
             } else { //custom event
                 linkedProperty.trigger(eventName, Array.prototype.slice.call(arguments, 1));
             }
-            linkedProperty.on(Model.Event.ALL, isAtoB? propergateBtoA : propergateAtoB);
+            linkedProperty.on(Model.Event.ALL, isAtoB? propergateDestToSrc : propergateSrcToDest);
 
             return newPropDisconnect; // how do we disconnect this.
         }
 
-        function disconnect(a, b, propergateAtoB, propergateBtoA) {
-            if (propergateAtoB) {
-                a.off(Model.Event.ALL, propergateAtoB);
+        function disconnect(src, dest, propergateSrcToDest, propergateDestToSrc) {
+            if (propergateSrcToDest) {
+                src.off(Model.Event.ALL, propergateSrcToDest);
             }
-            if (propergateBtoA) {
-                b.off(Model.Event.ALL, propergateBtoA);
+            if (propergateDestToSrc) {
+                dest.off(Model.Event.ALL, propergateDestToSrc);
             }
         }
 
         // one direction
-        propergateAtoB = propergateEvent.bind(b, true);
-        a.on(Model.Event.ALL, propergateAtoB);
+        propergateSrcToDest = propergateEvent.bind(dest, true);
+        src.on(Model.Event.ALL, propergateSrcToDest);
 
         // other direction
         if (!options.direction || options.direction !== "oneWay") {
-            propergateBtoA = propergateEvent.bind(a, false);
-            b.on(Model.Event.ALL, propergateBtoA);
+            propergateDestToSrc = propergateEvent.bind(src, false);
+            dest.on(Model.Event.ALL, propergateDestToSrc);
         }
 
-        if (options.includeChildren && (a instanceof Model || Model.isArray(a))) { // go through children
+        if (options.includeChildren && (src instanceof Model || Model.isArray(src))) { // go through children
             var disconnectFunctions  = [];
-            for (var propName in a) {
-                if (a.hasOwnProperty(propName) &&
-                        (a[propName] instanceof Property || Model.isArray(a[propName])) &&
+            for (var propName in src) {
+                if (src.hasOwnProperty(propName) &&
+                        (src[propName] instanceof Property || Model.isArray(src[propName])) &&
                         propName !== "_parent") {
 
-                        var childLinkedPropertyName = options.mapFunction ? options.mapFunction(a[propName].getName()) : a[propName].getName();
-                        var childLinkedProperty = Model.find(b, childLinkedPropertyName );
+                        var childLinkedPropertyName = options.mapFunction ? options.mapFunction(src[propName].getName()) : src[propName].getName();
+                        var childLinkedProperty = Model.find(dest, childLinkedPropertyName );
                         if (childLinkedProperty) {
-                            disconnectFunctions.push(Model.connect(a[propName], childLinkedProperty, options));
+                            disconnectFunctions.push(Model.connect(src[propName], childLinkedProperty, options));
                         }
                     }
             }
@@ -1499,7 +1502,7 @@
             }.bind(null, disconnectFunctions);
         }
 
-        return disconnect.bind(null, a,b, propergateAtoB, propergateBtoA);
+        return disconnect.bind(null, src, dest, propergateSrcToDest, propergateDestToSrc);
     };
 
 
