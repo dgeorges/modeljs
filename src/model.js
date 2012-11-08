@@ -1,5 +1,5 @@
 /**
- * Model js - A simple javascript library for creating the Model part of a MVC application.
+ * Model js - A simple javaScript library for creating the Model part of a MVC application.
  * https://github.com/dgeorges/modeljs.git
  *
  * Copyright 2012, Daniel Georges
@@ -20,6 +20,13 @@
 
     function isObject(obj) {
         return obj === new Object(obj) && !isFunction(obj) && !Array.isArray(obj) && !(obj instanceof Date);
+    }
+
+    function extend(destination, source) {
+        for (var property in source) {
+            destination[property] = source[property];
+        }
+        return destination;
     }
 
     function isEmptyObject(obj) {
@@ -313,8 +320,9 @@
     ObservableArray.prototype = Object.create(Array.prototype);
 
     ObservableArray.prototype.pop = function () {
-        var args = Array.prototype.slice.call(arguments),
-            element = Array.prototype.pop.apply(this, args);
+        var args = Array.prototype.slice.call(arguments);
+        this._myValue.pop();
+        var element = Array.prototype.pop.apply(this, args);
         element.destroy();
         return element;
     };
@@ -329,6 +337,7 @@
                 log('error', "Incorrect Syntax: use push([property].getValue()) instead");
                 return;
             }
+            this._myValue.push(args[i]);
             property = _createProperty(length + i, args[i], this, {});
             pushedArgs.push(property);
         }
@@ -364,7 +373,7 @@
             returnValue = Array.prototype.splice.apply(arrayValue, args);
 
         this.setValue(arrayValue);
-        return returnValue; //TODO this is an array of primitives not Property Objects
+        return returnValue; // this is an array of primitives not Property Objects
     };
     ObservableArray.prototype.unshift = function () {
         var args = Array.prototype.slice.call(arguments),
@@ -798,6 +807,7 @@
 
             if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
+                this._myValue = value;
                 if (this.length > newValue.length) { //remove excess iterating backwards because modifying the end.
                     for (i = this.length - 1; i >= newValue.length; i-=1) {
                         this.pop(); // will fire CHILD_CREATED event
@@ -857,6 +867,7 @@
         } else  {
             if (currentProperty.validateValue(value)) {
                 currentProperty.setValue(value);
+                extend(currentProperty.getMetadata(), metadata);
             } else {
                 currentProperty.destroy();
                 this[index] = _createProperty(index, value, this, metadata || {});
@@ -998,11 +1009,11 @@
 
             if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
-
+                this._myValue = newValue; //set Value
                 //This model need to be set to the newValue
                 var mergeSuccessful = this.merge(newValue, false, suppressNotifications);
-                if (mergeSuccessful) {
-                    this._myValue = newValue; //set Value if successful
+                if (!mergeSuccessful) {
+                    this._myValue = oldValue; //set Value if successful
                 }
                 // fix suppressNotification should go around Merge!
                 if (mergeSuccessful && !suppressNotifications) {
