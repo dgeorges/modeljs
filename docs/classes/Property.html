@@ -19,7 +19,7 @@
             
         </div>
         <div class="yui3-u-1-4 version">
-            <em>API Docs for: 2.0.0</em>
+            <em>API Docs for: 2.1.0</em>
         </div>
     </div>
     <div id="bd" class="yui3-g">
@@ -96,7 +96,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l376"><code>src\model.js:376</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l387"><code>src\model.js:387</code></a>
         </div>
     
 
@@ -180,7 +180,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l376"><code>src\model.js:376</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l387"><code>src\model.js:387</code></a>
         
         </p>
 
@@ -443,7 +443,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l571"><code>src\model.js:571</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l583"><code>src\model.js:583</code></a>
         
         </p>
 
@@ -538,7 +538,7 @@ the 'childDestroyed' event on the parent.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l456"><code>src\model.js:456</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l468"><code>src\model.js:468</code></a>
         
         </p>
 
@@ -611,7 +611,7 @@ Model.Formatter. If that does not exist it will return this.getValue();</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l679"><code>src\model.js:679</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l695"><code>src\model.js:695</code></a>
         
         </p>
 
@@ -688,7 +688,7 @@ meaning. <b>[validator, Formatter, name, url, refreshRate, isJSONPurl, doNotPers
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l475"><code>src\model.js:475</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l487"><code>src\model.js:487</code></a>
         
         </p>
 
@@ -774,7 +774,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l438"><code>src\model.js:438</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l450"><code>src\model.js:450</code></a>
         
         </p>
 
@@ -845,7 +845,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l696"><code>src\model.js:696</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l712"><code>src\model.js:712</code></a>
         
         </p>
 
@@ -903,7 +903,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
                 <li class="arg">
                     
-                        <code>callback</code>
+                        <code>callback?</code>
                     
                 </li>
             
@@ -940,7 +940,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l653"><code>src\model.js:653</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l665"><code>src\model.js:665</code></a>
         
         </p>
 
@@ -951,7 +951,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
     </div>
 
     <div class="description">
-        <p>Removes all instances of the given callback with the given events on this.</p>
+        <p>Removes all instances of the given callback on the given events on this.</p>
     </div>
 
     
@@ -977,14 +977,14 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
                 <li class="param">
                     
-                        <code class="param-name">callback</code>
+                        <code class="param-name">callback?</code>
                         <span class="type">Function</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>The function to remove</p>
+                        <p>The function to remove. if not specified all callbacks are removed</p>
                     </div>
 
                     
@@ -1065,7 +1065,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l623"><code>src\model.js:623</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l635"><code>src\model.js:635</code></a>
         
         </p>
 
@@ -1190,7 +1190,7 @@ event type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l541"><code>src\model.js:541</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l553"><code>src\model.js:553</code></a>
         
         </p>
 
@@ -1254,9 +1254,9 @@ was changed.</p>
             <h4>Example:</h4>
 
             <div class="example-content">
-                <pre class="code"><code class="prettyprint">model.onchange(callback, {listenToChildren: true}); //listens to change events on entire model
-model.property1.onchange(callback) //listen to change on property1 only
-model.subModel.onchange(callback) //listen to change on subModel only. (ie. via model.subModel.setValue(..))
+                <pre class="code"><code class="prettyprint">model.onChange(callback, {listenToChildren: true}); //listens to change events on entire model
+model.property1.onChange(callback) //listen to change on property1 only
+model.subModel.onChange(callback) //listen to change on subModel only. (ie. via model.subModel.setValue(..))
 </code></pre>
 
 <p>For more examples see:  <b>testOnChangeCallbackWhenSettingToSameValue</b> and <b>testBubbleUpEvents</b></p>
@@ -1318,7 +1318,7 @@ model.subModel.onchange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l506"><code>src\model.js:506</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l518"><code>src\model.js:518</code></a>
         
         </p>
 
@@ -1417,7 +1417,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
                 <li class="arg">
                     
-                        <code>eventArg?</code>
+                        <code>...eventArgs?</code>
                     
                 </li>
             
@@ -1454,7 +1454,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l608"><code>src\model.js:608</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l619"><code>src\model.js:619</code></a>
         
         </p>
 
@@ -1491,14 +1491,14 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
                 <li class="param">
                     
-                        <code class="param-name">eventArg?</code>
-                        <span class="type">string, boolean, number, null, Date, function, object</span>
+                        <code class="param-name">...eventArgs?</code>
+                        <span class="type">Any</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>An optional parameter to pass to the event handler</p>
+                        <p>Any number of additional parameters to pass to the registered event callback</p>
                     </div>
 
                     
@@ -1573,7 +1573,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l710"><code>src\model.js:710</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l726"><code>src\model.js:726</code></a>
         
         </p>
 

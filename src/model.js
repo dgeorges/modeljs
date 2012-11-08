@@ -320,9 +320,8 @@
     ObservableArray.prototype = Object.create(Array.prototype);
 
     ObservableArray.prototype.pop = function () {
-        var args = Array.prototype.slice.call(arguments);
-        this._myValue.pop();
-        var element = Array.prototype.pop.apply(this, args);
+        var args = Array.prototype.slice.call(arguments),
+            element = Array.prototype.pop.apply(this, args);
         element.destroy();
         return element;
     };

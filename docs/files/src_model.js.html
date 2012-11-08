@@ -19,7 +19,7 @@
             
         </div>
         <div class="yui3-u-1-4 version">
-            <em>API Docs for: 2.0.0</em>
+            <em>API Docs for: 2.1.0</em>
         </div>
     </div>
     <div id="bd" class="yui3-g">
@@ -93,7 +93,7 @@
 <div class="file">
     <pre class="code prettyprint linenums">
 &#x2F;**
- * Model js - A simple javascript library for creating the Model part of a MVC application.
+ * Model js - A simple javaScript library for creating the Model part of a MVC application.
  * https:&#x2F;&#x2F;github.com&#x2F;dgeorges&#x2F;modeljs.git
  *
  * Copyright 2012, Daniel Georges
@@ -101,7 +101,7 @@
  *
  * @project modeljs
  * @author Daniel Georges
- * @version 2.0.0
+ * @version 2.1.0
  * @module Model
  *&#x2F;
 (function (globalNS, undefined) { &#x2F;&#x2F;globalNS === window in the browser or GLOBAL in nodejs
@@ -114,6 +114,13 @@
 
     function isObject(obj) {
         return obj === new Object(obj) &amp;&amp; !isFunction(obj) &amp;&amp; !Array.isArray(obj) &amp;&amp; !(obj instanceof Date);
+    }
+
+    function extend(destination, source) {
+        for (var property in source) {
+            destination[property] = source[property];
+        }
+        return destination;
     }
 
     function isEmptyObject(obj) {
@@ -269,18 +276,18 @@
         var executedCallbacks = [];
         var callbackHashs = [];
 
-        function _fireEvent(eventName, property, eventArg) {
+        function _fireEvent(eventName, property, eventArgs) {
 
             &#x2F;&#x2F; This weird executeCallback function is a bit more complicated than it needs to be but is
             &#x2F;&#x2F; used to get around the JSLint warning of creating a function within the while loop below
-            var executeCallbacksFunction = function (listenerProperty, changedProperty, arg) {
+            var executeCallbacksFunction = function (thisProperty, callbackArgs) {
                 return function (callback) {
                     if (Model.TRANSACTION_OPTIONS.flattenCallbacks || Model.TRANSACTION_OPTIONS.flattenCallbacksByHash) {
                         var callbackExecuted = false;
                         if (Model.TRANSACTION_OPTIONS.flattenCallbacks) {
                             if (executedCallbacks.indexOf(callback) === -1) { &#x2F;&#x2F; Only call callback once
                                 executedCallbacks.push(callback);
-                                callback.call(listenerProperty, changedProperty, arg);
+                                callback.apply(thisProperty, callbackArgs);
                                 callbackExecuted = true;
                             }
                         }
@@ -290,18 +297,18 @@
                                     callbackHashs.push(callback.hash);
                                 }
                                 if (!callbackExecuted) {
-                                    callback.call(listenerProperty, changedProperty, arg);
+                                    callback.apply(thisProperty, callbackArgs);
                                     callbackExecuted = true;
                                 }
                             }
                         }
                     } else {
-                        callback.call(listenerProperty, changedProperty, arg);
+                        callback.apply(thisProperty, callbackArgs);
                     }
                 };
             };
 
-            &#x2F;&#x2F;new
+            var callbackArgs = [property].concat(eventArgs);
             var eventListeners = property._eventListeners[eventName] || [];
             if (eventName === Model.Event.PROPERTY_CHANGE) {
                 eventListeners = eventListeners.concat(property._eventListeners.change);
@@ -313,31 +320,35 @@
 
             &#x2F;&#x2F; update listeners registered for the event
             eventListeners.forEach(
-                executeCallbacksFunction(property, property, eventArg)
+                executeCallbacksFunction(property, callbackArgs)
+            );
+            property._eventListeners.all.forEach(
+                executeCallbacksFunction(property, callbackArgs.concat(eventName))
             );
 
-            &#x2F;&#x2F; propagate change up the stack for the following events by notifying all parent ModelChange listers registered.
-            var propertyParent = property._parent;
-            &#x2F;&#x2F;if (eventName === Model.Event.CHANGE || eventName === Model.Event.MODEL_CHANGE ||
-            &#x2F;&#x2F;        eventName === Model.Event.CHILD_CREATED || eventName === Model.Event.CHILD_DESTROYED) {
+            &#x2F;&#x2F;MODEL_CHANGE only propagates from the following events
+            if (eventName === Model.Event.CHANGE || eventName === Model.Event.MODEL_CHANGE || eventName === Model.Event.PROPERTY_CHANGE ||
+                eventName === Model.Event.CHILD_CREATED || eventName === Model.Event.CHILD_DESTROYED) {
+                &#x2F;&#x2F; propagate change up the stack for the following events by notifying all parent ModelChange listers registered.
+                var propertyParent = property._parent;
                 while (propertyParent) {
                     var parentListeners = propertyParent._eventListeners.modelChange.concat(propertyParent._eventListeners.change);
                     parentListeners.forEach( &#x2F;&#x2F; when we bubble the event we only notify modelListeners
-                        executeCallbacksFunction(propertyParent, property, eventArg)
+                        executeCallbacksFunction(propertyParent, callbackArgs)
                     );
                     propertyParent = propertyParent._parent;
                 }
-            &#x2F;&#x2F;}
+            }
         }
 
-        function fireEvent(eventName, property, customArg) {
+        function fireEvent(eventName, property, customArgs) {
             if (currentState === state.ACTIVE) { &#x2F;&#x2F; fire event now.
-                _fireEvent(eventName, property, customArg);
+                _fireEvent(eventName, property, customArgs);
             } else { &#x2F;&#x2F;place event on queue to be called at a later time.
                 eventQueue.push({
                     eventName: eventName,
                     property: property,
-                    customArg: customArg
+                    customArg: customArgs
                 });
             }
         }
@@ -396,7 +407,6 @@
      * exposed outside of this file.
      *&#x2F;
     function ObservableArray(myProperty, values) {
-        this._prop = myProperty;
         for (var i =0; i &lt; values.length; i++){
             this.push(values[i]);
         }
@@ -404,67 +414,68 @@
     ObservableArray.prototype = Object.create(Array.prototype);
 
     ObservableArray.prototype.pop = function () {
-        var args = Array.prototype.slice.call(arguments),
-            element = Array.prototype.pop.apply(this, args);
-        this._prop.trigger(Model.Event.CHILD_DESTROYED, element);
+        var args = Array.prototype.slice.call(arguments);
+        this._myValue.pop();
+        var element = Array.prototype.pop.apply(this, args);
+        element.destroy();
         return element;
     };
     ObservableArray.prototype.push = function () {
         var args = Array.prototype.slice.call(arguments),
-            currentLength = this.length,
+            length = this.length,
             pushedArgs = [],
             property,
             i = 0;
-        for (i = 0; i &lt; args.length; i++){
-            property = args[i];
-            if (!(property instanceof Property)) {
-                property = _createProperty(currentLength + i, args[i], this, {});
+        for (i = 0; i &lt; args.length; i++) {
+            if ((args[i] instanceof Property) || Model.isArray(args[i])) {
+                log(&#x27;error&#x27;, &quot;Incorrect Syntax: use push([property].getValue()) instead&quot;);
+                return;
             }
+            this._myValue.push(args[i]);
+            property = _createProperty(length + i, args[i], this, {});
             pushedArgs.push(property);
         }
         var newLength = Array.prototype.push.apply(this, pushedArgs);
-
-        this._prop.trigger(Model.Event.CHILD_CREATED, pushedArgs);
+        for (i = 0; i &lt; pushedArgs.length; i++) {
+            this.trigger(Model.Event.CHILD_CREATED, pushedArgs[i]);
+        }
         return newLength;
     };
     ObservableArray.prototype.reverse = function () {
         var args = Array.prototype.slice.call(arguments),
-            oldValue = Array.prototype.slice.call(this);
-        Array.prototype.reverse.apply(this, args);
-        this._prop.trigger(Model.Event.CHANGE, oldValue);
+            newValue = Array.prototype.reverse.apply(this.getValue(), args);
+        this.setValue(newValue);
         return this;
     };
-    ObservableArray.prototype.shift = function () {
-        var args = Array.prototype.slice.call(arguments),
-            element = Array.prototype.shift.apply(this, args);
-        this._prop.trigger(Model.Event.CHILD_DESTROYED, element);
-        return element;
+    ObservableArray.prototype.shift = function () { &#x2F;&#x2F; removes first element
+        var arrayValue = this.getValue(),
+            removed = arrayValue.shift(),
+            removedProperty = this[this.length - 1];
+
+        this.setValue(arrayValue); &#x2F;&#x2F; set value will set all the values correctly and delete the last property
+        return removedProperty;
     };
     ObservableArray.prototype.sort = function () {
         var args = Array.prototype.slice.call(arguments),
-            oldValue = Array.prototype.slice.call(this);
-        Array.prototype.sort.apply(this, args);
-        this._prop.trigger(Model.Event.CHANGE, oldValue);
+            result = Array.prototype.sort.apply(this.getValue(), args);
+        this.setValue(result);
         return this;
     };
     ObservableArray.prototype.splice = function () {
         var args = Array.prototype.slice.call(arguments),
-            removed = Array.prototype.splice.apply(this, args);
-        if (removed.length &gt; 0) {
-            this._prop.trigger(Model.Event.CHILD_DESTROYED, removed);
-        }
-        if (args.length &gt; 2) { &#x2F;&#x2F; we are adding new elements
-            var added = args.slice(2);
-            this._prop.trigger(Model.Event.CHILD_CREATED, added); &#x2F;&#x2F; TODO use count to determin if should be called
-        }
-        return removed; &#x2F;&#x2F;splice returns array of removed elements
+            arrayValue = this.getValue(),
+            returnValue = Array.prototype.splice.apply(arrayValue, args);
+
+        this.setValue(arrayValue);
+        return returnValue; &#x2F;&#x2F; this is an array of primitives not Property Objects
     };
     ObservableArray.prototype.unshift = function () {
         var args = Array.prototype.slice.call(arguments),
-            newElements = Array.prototype.slice(arguments),
-            newLength = Array.prototype.unshift.apply(this, args);
-        this._prop.trigger(Model.Event.CHILD_CREATED, newElements);
-        return newLength;
+            currentValue = this.getValue(),
+            returnValue = Array.prototype.unshift.apply(currentValue, args);
+
+        this.setValue(currentValue);
+        return returnValue;
     };
 
     &#x2F;**
@@ -511,7 +522,8 @@
                 change: [],
                 childCreated: [],
                 childDestroyed: [],
-                destroy: []
+                destroy: [],
+                all: []
             },
             enumerable: false
         });
@@ -625,7 +637,7 @@
                 this._myValue = newValue;
 
                 if (!suppressNotifications) {
-                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
+                    this.trigger(Model.Event.PROPERTY_CHANGE, oldValue);
                 }
             }
         }
@@ -639,9 +651,9 @@
      * was changed.
      *
      * @example
-     *     model.onchange(callback, {listenToChildren: true}); &#x2F;&#x2F;listens to change events on entire model
-     *     model.property1.onchange(callback) &#x2F;&#x2F;listen to change on property1 only
-     *     model.subModel.onchange(callback) &#x2F;&#x2F;listen to change on subModel only. (ie. via model.subModel.setValue(..))
+     *     model.onChange(callback, {listenToChildren: true}); &#x2F;&#x2F;listens to change events on entire model
+     *     model.property1.onChange(callback) &#x2F;&#x2F;listen to change on property1 only
+     *     model.subModel.onChange(callback) &#x2F;&#x2F;listen to change on subModel only. (ie. via model.subModel.setValue(..))
      * For more examples see:  &lt;b&gt;testOnChangeCallbackWhenSettingToSameValue&lt;&#x2F;b&gt; and &lt;b&gt;testBubbleUpEvents&lt;&#x2F;b&gt;
      *
      * @method  onChange
@@ -672,8 +684,7 @@
      * @return {Property}   The deleted Property.
      *&#x2F;
     Property.prototype.destroy = function (suppressNotifications) {
-        var myName = this.getName().substring(this.getName().lastIndexOf(&#x27;&#x2F;&#x27;) + 1);
-        delete this._parent[myName];
+        delete this._parent[this.getShortName()];
 
         if (!suppressNotifications) {
             this.trigger(Model.Event.DESTROY); &#x2F;&#x2F;equivalent since no event arg.
@@ -705,12 +716,13 @@
      * @method  trigger
      *
      * @param  {String} eventName The name of the event.
-     * @param  {[string, boolean, number, null, Date, function, object]} eventArg? An optional parameter to pass to the event handler
+     * @param  {Any} ...eventArgs? Any number of additional parameters to pass to the registered event callback
      * @return {Property}           Returns this for Object chaining.
      *&#x2F;
-    Property.prototype.trigger = function (eventName, eventArg) {
+    Property.prototype.trigger = function (eventName &#x2F;*, ...eventArgs *&#x2F;) {
         &#x2F;&#x2F;Should this restrict custom types
-        eventProxy.fireEvent(eventName, this, eventArg);
+        var eventArgs = Array.prototype.slice.call(arguments, 1);
+        eventProxy.fireEvent(eventName, this, eventArgs);
         return this;
     };
 
@@ -732,7 +744,7 @@
             log(&#x27;warn&#x27;, &quot;Incorrect Syntax: callback must be a function&quot;);
             return;
         }
-        &#x2F;&#x2F;test Callback is a function
+
         var eventNames = events.split(&#x27; &#x27;);
         eventNames.forEach(function (eventName) {
             if (!this._eventListeners[eventName]) {
@@ -745,25 +757,29 @@
     };
 
     &#x2F;**
-     * Removes all instances of the given callback with the given events on this.
+     * Removes all instances of the given callback on the given events on this.
      *
      * @method off
      *
      * @param  {String} events  One or more space separated eventNames
-     * @param  {Function} callback The function to remove
+     * @param  {Function} callback? The function to remove. if not specified all callbacks are removed
      * @return {Property}         Returns this for Object chaining.
      *&#x2F;
     Property.prototype.off = function (events, callback) {
-        if (!isFunction(callback)) {
-            log(&#x27;warn&#x27;, &quot;Incorrect Syntax: callback must be a function&quot;);
+        if (typeof events !== &#x27;string&#x27;) {
+            log(&#x27;warn&#x27;, &quot;Incorrect Syntax: events must be a string of space separated eventNames&quot;);
             return;
         }
         var eventNames = events.split(&#x27; &#x27;);
         eventNames.forEach(function (eventName) {
             if (this._eventListeners[eventName]) {
-                this._eventListeners[eventName] = this._eventListeners[eventName].filter(function (element, index, array) {
-                    return element !== callback;
-                });
+                if (isFunction(callback)) {
+                    this._eventListeners[eventName] = this._eventListeners[eventName].filter(function (element, index, array) {
+                        return element !== callback;
+                    });
+                } else {
+                   this._eventListeners[eventName] = [];
+                }
             }
         }, this);
 
@@ -844,12 +860,13 @@
     }
 
    &#x2F;**
-     * The modeljs Object that extends a javaScript Array with Property methods.
-     * Array function like push, pop etc... can be used.
+     * The modeljs Property Object that extends a javaScript Array so that Array function like push,
+     * pop, reverse, etc... can be used while at the same time inherited Property methods. Be
+     * aware instances will return false to native Array.isArray() function. THe alternative is
+     * to use Model.isArray() or Array.isArray(instance.getValue()). The former is recommended.
      *
      * @example
-     * For examples see: &lt;b&gt;testPrimitiveSaveLoad&lt;&#x2F;b&gt;,  &lt;b&gt;testObjectsSaveLoad&lt;&#x2F;b&gt;, &lt;b&gt;testComplexSaveLoad&lt;&#x2F;b&gt;
-     * &lt;b&gt;testGetNameMethod&lt;&#x2F;b&gt; and &lt;b&gt;testSaveLoadWithMetaData&lt;&#x2F;b&gt;
+     * For examples see: &lt;b&gt;testPropertyArray&lt;&#x2F;b&gt;,  and &lt;b&gt;testPropertyArrayLoading&lt;&#x2F;b&gt;
      *
      * @class ArrayProperty
      * @constructor
@@ -877,25 +894,29 @@
      * @return {[this]} this for method chaining.
      *&#x2F;
     ArrayProperty.prototype.setValue = function (value, suppressNotifications) {
-        var newValue = value;
+        var newValue = value,
+            i = 0;
         &#x2F;&#x2F; Note: this disallows setting a property to undefined. Only when it&#x27;s first created can it be undefined.
         if (newValue !== undefined &amp;&amp; newValue !== this._myValue) { &#x2F;&#x2F;!== needs to be done another way.
 
             if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
-                if (this.length &gt; newValue.length) { &#x2F;&#x2F;remove excess
-                    this.splice(newValue.length, this.length - newValue.length);
+                this._myValue = value;
+                if (this.length &gt; newValue.length) { &#x2F;&#x2F;remove excess iterating backwards because modifying the end.
+                    for (i = this.length - 1; i &gt;= newValue.length; i-=1) {
+                        this.pop(); &#x2F;&#x2F; will fire CHILD_CREATED event
+                    }
                 }
-                for (var i = 0; i &lt; newValue.length; i++) {
+                for (i = 0; i &lt; newValue.length; i++) {
                     if (this[i]) {
                         this[i].setValue(newValue[i], suppressNotifications);
                     } else {
-                        this.push(newValue[i]); &#x2F;&#x2F; add extra
+                        this.push(newValue[i]); &#x2F;&#x2F; will fire CHILD_CREATED event
                     }
                 }
                 &#x2F;&#x2F; fix suppressNotifications. Should be in transaction. what if transaction already there?
                 if (!suppressNotifications) {
-                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
+                    this.trigger(Model.Event.PROPERTY_CHANGE, oldValue);
                 }
             }
         }
@@ -940,6 +961,7 @@
         } else  {
             if (currentProperty.validateValue(value)) {
                 currentProperty.setValue(value);
+                extend(currentProperty.getMetadata(), metadata);
             } else {
                 currentProperty.destroy();
                 this[index] = _createProperty(index, value, this, metadata || {});
@@ -1081,15 +1103,15 @@
 
             if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
-
+                this._myValue = newValue; &#x2F;&#x2F;set Value
                 &#x2F;&#x2F;This model need to be set to the newValue
                 var mergeSuccessful = this.merge(newValue, false, suppressNotifications);
-                if (mergeSuccessful) {
-                    this._myValue = newValue; &#x2F;&#x2F;set Value if successful
+                if (!mergeSuccessful) {
+                    this._myValue = oldValue; &#x2F;&#x2F;set Value if successful
                 }
                 &#x2F;&#x2F; fix suppressNotification should go around Merge!
                 if (mergeSuccessful &amp;&amp; !suppressNotifications) {
-                    eventProxy.fireEvent(Model.Event.PROPERTY_CHANGE, this, oldValue);
+                    this.trigger(Model.Event.PROPERTY_CHANGE, oldValue);
                 }
             }
         }
@@ -1349,7 +1371,9 @@
             return this.getValue();
         } else {
             for (var name in this) {
-                if (this.hasOwnProperty(name) &amp;&amp; name !== &#x27;_parent&#x27;) {
+                if (this.hasOwnProperty(name) &amp;&amp;
+                    (this[name] instanceof Property || Model.isArray(this[name])) &amp;&amp;
+                    name !== &#x27;_parent&#x27;) {
                     &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable. and would cause infinite recursion
                     var property = this[name];
                     if (!property.getMetadata().doNotPersist) {
@@ -1409,9 +1433,13 @@
      * @return {[Property, Model, ArrayProperty]}   The model object of the given name, null otherwise.
      *&#x2F;
     Model.find = function (model, propertyName) {
+        if(!((model instanceof Property) || Model.isArray(model)) || typeof propertyName !== &#x27;string&#x27;) {
+            return null;
+        }
+
         var modelName = model.getName();
-        var modelParts = modelName.split(&#x27;&#x2F;&#x27;);
-        var propertyParts = propertyName.split(&#x27;&#x2F;&#x27;);
+        var modelParts = modelName.substring(1).split(&#x27;&#x2F;&#x27;);
+        var propertyParts = propertyName.substring(1).split(&#x27;&#x2F;&#x27;);
         var diff = &quot;&quot;;
 
         if (modelParts[0] !== propertyParts[0]) {
@@ -1425,18 +1453,149 @@
 
         var j = i;
         var commonDenominator = model;
-        for ( j = i; j &lt; modelParts.length; j++) {
+        for ( j = i; j &lt; modelParts.length; j++) { &#x2F;&#x2F;traverses up to the common denominator
             commonDenominator = commonDenominator._parent;
         }
 
         var prop = commonDenominator;
         for (var k = i; k &lt; propertyParts.length; k++) {
             prop = prop[propertyParts[k]];
+            if (!prop) {
+                return null;
+            }
         }
         if (prop.getName() === propertyName){
             return prop;
         }
         return null;
+    };
+
+    &#x2F;**
+     * Connects two properties together. So that events fired on one are also fired on the other. The options
+     * specifies the type of connection to create.
+     *
+     * @param  {[Property]} a       The source Property
+     * @param  {[Property]} b       The destination Property
+     * @param  {[Object]} options? A hash of options describing how to connect the two properties.
+     *                             The following option are accepted:
+     *                     &lt;ul&gt;&lt;li&gt;
+     *                         &lt;b&gt;eventBlackList&lt;&#x2F;b&gt; {Array} - A array of eventNames that &lt;b&gt;should not&lt;&#x2F;b&gt; be connected between the two Properties, all other event are connected.
+     *                     &lt;&#x2F;li&gt;&lt;li&gt;
+     *                         &lt;b&gt;eventWhiteList&lt;&#x2F;b&gt; {Array} - A array of eventNames that &lt;b&gt;should&lt;&#x2F;b&gt; be connected between the two Properties, all other events not connected.
+     *                     &lt;&#x2F;li&gt;&lt;li&gt;
+     *                         &lt;b&gt;includeChildred&lt;&#x2F;b&gt; {boolean} - Indicates if we should connect all the children of source Property as well. The default is false.
+     *                     &lt;&#x2F;li&gt;&lt;li&gt;
+     *                         &lt;b&gt;mapFunction&lt;&#x2F;b&gt; {function} - A function that will map PropertyNames in &#x27;a&#x27; to propertyNames in &#x27;b&#x27; that should be connected.
+     *                         If the function returns null, the property won&#x27;t be connected to anything. *This option must be used in conjunction with includeChildren=true.
+     *                         If not specified the default behavior is to map all properties via the getName function. Thus only properties with the same name are connected
+     *                     &lt;&#x2F;li&gt;
+     *                     &lt;&#x2F;li&gt;&lt;li&gt;
+     *                         &lt;b&gt;direction&lt;&#x2F;b&gt; {&quot;oneWay&quot;|&quot;dual&quot;} - Specifies how you would like to connect the two Properties. If not specified default is &quot;dual&quot; if not specified.
+     *                     &lt;&#x2F;li&gt;
+     *
+     * @return {[Function]}         The disconnect function. When executed will remove the connection between the properties.
+     *&#x2F;
+    Model.connect = function connect (a, b, options) { &#x2F;&#x2F;AKA join connect, disconnect.
+
+        var propergateAtoB,
+            propergateBtoA;
+            options = options || {};
+
+        &#x2F;**
+         * This function is registered on the ALL event to propagate its events to the
+         * connected property. FYI &#x27;this&#x27; is bound to the source linked property.
+         *
+         * @param  {Boolean} isAtoB   [description]
+         * @param  {[type]}  property On any event the first argument is the property the event was triggered on.
+         * @return {[type]}           [description]
+         *&#x2F;
+        function propergateEvent (isAtoB, property &#x2F;*, ... other event callback arguments *&#x2F;) {
+            var eventName = arguments[arguments.length-1]; &#x2F;&#x2F;Since this is registered on the all event the last argument is the orginal Event name.
+            if (eventName === Model.Event.CHILD_DESTROYED) { &#x2F;&#x2F;we listen to he destroy action so no need to listen to CHILD_DESTROYED too
+                return;
+            }
+            if(options &amp;&amp; (options.eventBlackList || options.eventWhiteList)) {
+                if (options.eventBlackList &amp;&amp; options.eventBlackList.indexOf(eventName) !== -1) {
+                    return;
+                }
+                if (options.eventWhiteList &amp;&amp; options.eventWhiteList.indexOf(eventName) === -1) {
+                    return;
+                }
+            }
+
+            var linkedProperty = this;
+            var newPropDisconnect;
+
+            &#x2F;&#x2F; deregister our reverse connect function and put it back later, so we don&#x27;t have infinite loop.
+            linkedProperty.off(Model.Event.ALL, isAtoB? propergateBtoA: propergateAtoB);
+            if (eventName === Model.Event.PROPERTY_CHANGE) {
+                linkedProperty.setValue(property.getValue());
+            } else if (eventName === Model.Event.CHILD_CREATED) {
+                var newProperty = arguments[2];
+                if (Model.isArray(linkedProperty)) {
+                    &#x2F;&#x2F; newProperty.getShortName() == linkedProperty.length; &lt;- do push when this is true
+                    linkedProperty.push(newProperty.getValue());
+                    newPropDisconnect = connect(newProperty, linkedProperty[newProperty.getShortName()]);
+                } else {
+                    linkedProperty.createProperty(newProperty.getShortName(), newProperty.getValue(), newProperty.getMetadata());
+                    newPropDisconnect = connect(newProperty, linkedProperty[newProperty.getShortName()]);
+                }
+            } else if (eventName === Model.Event.DESTROY) {
+                if (Model.isArray(linkedProperty._parent) &amp;&amp;
+                    parseInt(linkedProperty.getShortName(), 10) === linkedProperty._parent.length - 1) {
+                    linkedProperty._parent.pop();
+                } else {
+                    linkedProperty.destroy();
+                }
+            } else { &#x2F;&#x2F;custom event
+                linkedProperty.trigger(eventName, Array.prototype.slice.call(arguments, 1));
+            }
+            linkedProperty.on(Model.Event.ALL, isAtoB? propergateBtoA : propergateAtoB);
+
+            return newPropDisconnect; &#x2F;&#x2F; how do we disconnect this.
+        }
+
+        function disconnect(a, b, propergateAtoB, propergateBtoA) {
+            if (propergateAtoB) {
+                a.off(Model.Event.ALL, propergateAtoB);
+            }
+            if (propergateBtoA) {
+                b.off(Model.Event.ALL, propergateBtoA);
+            }
+        }
+
+        &#x2F;&#x2F; one direction
+        propergateAtoB = propergateEvent.bind(b, true);
+        a.on(Model.Event.ALL, propergateAtoB);
+
+        &#x2F;&#x2F; other direction
+        if (!options.direction || options.direction !== &quot;oneWay&quot;) {
+            propergateBtoA = propergateEvent.bind(a, false);
+            b.on(Model.Event.ALL, propergateBtoA);
+        }
+
+        if (options.includeChildren &amp;&amp; (a instanceof Model || Model.isArray(a))) { &#x2F;&#x2F; go through children
+            var disconnectFunctions  = [];
+            for (var propName in a) {
+                if (a.hasOwnProperty(propName) &amp;&amp;
+                        (a[propName] instanceof Property || Model.isArray(a[propName])) &amp;&amp;
+                        propName !== &quot;_parent&quot;) {
+
+                        var childLinkedPropertyName = options.mapFunction ? options.mapFunction(a[propName].getName()) : a[propName].getName();
+                        var childLinkedProperty = Model.find(b, childLinkedPropertyName );
+                        if (childLinkedProperty) {
+                            disconnectFunctions.push(Model.connect(a[propName], childLinkedProperty, options));
+                        }
+                    }
+            }
+            return function disconnect(functionsToDisconnect) {
+                for (var i = 0; i &lt; functionsToDisconnect.length; i++) {
+                    functionsToDisconnect[i]();
+                }
+            }.bind(null, disconnectFunctions);
+        }
+
+        return disconnect.bind(null, a,b, propergateAtoB, propergateBtoA);
     };
 
 
@@ -1577,7 +1736,7 @@
         DESTROY: &quot;destroy&quot;,
         &#x2F;**
          * The CHILD_CREATED event is triggered when a new property is created. It&#x27;s triggered on the
-         * parent and propergates a MODEL_CHANGE event up the model tree.
+         * parent and propagates a MODEL_CHANGE event up the model tree.
          * The callback will have the following arguments:
          *      &lt;ul&gt;
          *      &lt;li&gt;this = the parent property&lt;&#x2F;li&gt;
@@ -1602,7 +1761,23 @@
          * @static
          * @type {String}
          *&#x2F;
-        CHILD_DESTROYED: &quot;childDestroyed&quot;
+        CHILD_DESTROYED: &quot;childDestroyed&quot;,
+        &#x2F;**
+         * A special pseudo event named &quot;all&quot; that equivalent to listening to all &#x27;real&#x27; events.
+         * All events are considered &#x27;real&#x27; except for the MODEL_CHANGE event which is a special
+         * propagation event and the CHANGE event which is a pseudo event.
+         * Triggering the ALL event does not fire all event, but fires an event named all which will
+         * call all callback registered to the ALL event. The callback will have the following arguments:
+         *      &lt;ul&gt;
+         *      &lt;li&gt;this = the property listening to the event&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[0-..n-1] = the same arguments passed to the original event&lt;&#x2F;li&gt;
+         *      &lt;li&gt;arg[n-1] = the original event name&lt;&#x2F;li&gt;
+         *      &lt;&#x2F;ul&gt;
+         * @property Event.ALL
+         * @static
+         * @type {String}
+         *&#x2F;
+        ALL: &quot;all&quot;
     };
 
 
@@ -1669,7 +1844,7 @@
 
 
    if (typeof define === &quot;function&quot; &amp;&amp; define.amd) {
-        define([], function () { 
+        define([], function () {
             return Model;
         });
     } else if (typeof exports !== &#x27;undefined&#x27;) {
