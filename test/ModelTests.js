@@ -205,7 +205,8 @@
                 subModel: {
                     str2: "string2",
                     f: function () {return "I am a function";}
-                }
+                },
+                arr: [1,2,3]
             };
 
             var deleteCallbackCalled = false;
@@ -220,8 +221,17 @@
             ok(!model.number, "number Property no longer exists it was destroyed");
             ok(deleteCallbackCalled, "destroy callback called");
 
+            deleteCallbackCalled = false;
+            model.subModel.str2.onDestroy(deleteCallback);
             model.subModel.destroy();
             ok(!model.subModel, "SubModel Property no longer exists it was destroyed");
+            ok(deleteCallbackCalled, "destroy callback of child called");
+
+            deleteCallbackCalled = false;
+            model.arr[1].onDestroy(deleteCallback);
+            model.arr.destroy();
+            ok(!model.arr, "Array Property no longer exists it was destroyed");
+            ok(deleteCallbackCalled, "destroy callback called on array children");
 
         },
 
@@ -777,6 +787,7 @@
             Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = true; // to start change defaults
             Model.TRANSACTION_OPTIONS.flattenCallbacks = true;
             Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = true;
+            Model.TRANSACTION_OPTIONS.suppressAllEvents = true;
 
             Model.startTransaction();
             model.number.setValue(3);
@@ -785,12 +796,14 @@
             Model.endTransaction({
                 flattenCallbacksByHash: true,
                 flattenCallbacks: false,
-                fireOnlyMostRecentPropertyEvent: false
+                fireOnlyMostRecentPropertyEvent: false,
+                suppressAllEvents: false
             });
 
             ok(Model.TRANSACTION_OPTIONS.flattenCallbacksByHash, "global event setting restore after endTransaction with options");
             ok(Model.TRANSACTION_OPTIONS.flattenCallbacks, "global event setting restore after endTransaction with options");
             ok(Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent, "global event setting restore after endTransaction with options");
+            ok(Model.TRANSACTION_OPTIONS.suppressAllEvents, "global event setting restore after endTransaction with options");
 
 
             equal(count, 1, "Hashed function called once when flattenCallbacksByHash set");

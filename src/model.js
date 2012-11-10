@@ -115,10 +115,9 @@
             url = url.replace("$jsonpCallback", uniqueCallbackId);
             makeJSONPRequest(url, uniqueCallbackId);
         } else {
+            // TODO need to test and have it work on node.
             var httpRequest = getXHRObject();
             httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
-            //httpRequest.orgin = "localhost:8080";
-            //httpRequest.setRequestHeader
             httpRequest.open('GET', url);
             httpRequest.send();
         }
@@ -411,7 +410,9 @@
 
         Object.defineProperty(this, "_parent", {
             value: parent,
-            enumerable: false
+            enumerable: false,
+            writable: false,
+            configurable: true //set to configurable so we can delete it in destroy
         });
 
         Object.defineProperty(this, "_metadata", {
@@ -429,7 +430,9 @@
                 destroy: [],
                 all: []
             },
-            enumerable: false
+            enumerable: false,
+            writable: false,
+            configurable: false
         });
 
         var myValue = value;
@@ -588,11 +591,21 @@
      * @return {Property}   The deleted Property.
      */
     Property.prototype.destroy = function (suppressNotifications) {
-        delete this._parent[this.getShortName()];
+        delete this._parent[this.getShortName()]; // remove forward reference
 
         if (!suppressNotifications) {
             this.trigger(Model.Event.DESTROY); //equivalent since no event arg.
             this._parent.trigger(Model.Event.CHILD_DESTROYED, this);
+        }
+        // destroy _parent and eventListeners which makes the Property useless if someone is holding a reference.
+        // By deleting _parent it also helps the gc because properties are no longer connected, just in case someone is holding to one.
+        // We can only do this when were are not in a transaction since transaction will relay on the properties when it is ended
+        if (!Model.inTransaction()) {
+            //remove all listeners
+            for (var eventListeners in this._eventListeners) {
+                eventListeners = [];
+            }
+            delete this._parent;
         }
         return this;
     };
@@ -874,7 +887,7 @@
         }
     };
 
-  /**
+    /**
      * Determines if the given value will pass the validation function of this.
      *
      * @example
@@ -904,7 +917,27 @@
         return true;
     };
 
-   /**
+    /**
+     * Removes the property and its children if any from the Model. This will fire the 'destroy' event on this and
+     * the 'childDestroyed' event on the parent for every Property in the Array.
+     *
+     * @method  destroy
+     *
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of destroy.
+     * @return {Property}   The deleted Property.
+     */
+    ArrayProperty.prototype.destroy = function (suppressNotifications) {
+        var i = 0;
+        Model.startTransaction();
+        for (i = 0; i < this.length; i++) {
+            this.pop(); // pop will call destroy on all elements.
+        }
+        Model.endTransaction({suppressAllEvents:suppressNotifications});
+
+        Property.prototype.destroy.call(this, suppressNotifications);
+    };
+
+    /**
      * The model Object that wraps the JSON.
      *
      * @example
@@ -1022,7 +1055,7 @@
         return this;
     };
 
-       /**
+    /**
      * Determines if the given value will pass the validation function of this.
      *
      * @example
@@ -1141,12 +1174,30 @@
             log('error', "Unsupported Operation: Can not create a property on a Thin model.");
             return this;
         }
-
         this[name] = _createProperty(name, value, this, metadata);
         if (!suppressNotifications) {
             this.trigger(Model.Event.CHILD_CREATED, this[name]);
         }
         return this;
+    };
+
+    /**
+     * Removes the property and its children if any from the Model. This will fire the 'destroy' event on this and
+     * the 'childDestroyed' event on the parent for every Property in the Model.
+     *
+     * @method  destroy
+     *
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of destroy.
+     * @return {Property}   The deleted Property.
+     */
+    Model.prototype.destroy = function (suppressNotifications) {
+        for (var propName in this) {
+            if (this.hasOwnProperty(propName)) {
+                this[propName].destroy(suppressNotifications);
+            }
+        }
+
+        Property.prototype.destroy.call(this, suppressNotifications);
     };
 
     /**
@@ -1435,6 +1486,7 @@
 
             // deregister our reverse connect function and put it back later, so we don't have infinite loop.
             linkedProperty.off(Model.Event.ALL, isAtoB? propergateDestToSrc: propergateSrcToDest);
+
             if (eventName === Model.Event.PROPERTY_CHANGE) {
                 linkedProperty.setValue(property.getValue());
             } else if (eventName === Model.Event.CHILD_CREATED) {
@@ -1457,7 +1509,11 @@
             } else { //custom event
                 linkedProperty.trigger(eventName, Array.prototype.slice.call(arguments, 1));
             }
-            linkedProperty.on(Model.Event.ALL, isAtoB? propergateDestToSrc : propergateSrcToDest);
+
+            // only restore the connection if property is not destroyed
+            if (eventName !== Model.Event.DESTROY) {
+                linkedProperty.on(Model.Event.ALL, isAtoB? propergateDestToSrc : propergateSrcToDest);
+            }
 
             return newPropDisconnect; // how do we disconnect this.
         }
@@ -1546,19 +1602,13 @@
 
         if (options) { // if option override global setting keeping them so they can be restored later
             originalTransactionOptions = JSON.parse(JSON.stringify(Model.TRANSACTION_OPTIONS));
-            Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = !!options.fireOnlyMostRecentPropertyEvent;
-            Model.TRANSACTION_OPTIONS.flattenCallbacks = !!options.flattenCallbacks;
-            Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = !!options.flattenCallbacksByHash;
-            Model.TRANSACTION_OPTIONS.suppressAllEvents = !!options.suppressAllEvents;
+            extend(Model.TRANSACTION_OPTIONS, options);
         }
 
         eventProxy.endTransaction();
 
         if (options) { //restore global settings
-            Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = originalTransactionOptions.fireOnlyMostRecentPropertyEvent;
-            Model.TRANSACTION_OPTIONS.flattenCallbacks = originalTransactionOptions.flattenCallbacks;
-            Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = originalTransactionOptions.flattenCallbacksByHash;
-            Model.TRANSACTION_OPTIONS.suppressAllEvents = !!options.suppressAllEvents;
+            extend(Model.TRANSACTION_OPTIONS, originalTransactionOptions);
         }
 
     };
