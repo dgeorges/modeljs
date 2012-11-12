@@ -3,7 +3,7 @@
     "description": "A simple javaScript library for creating a Model part of a MVC application from JSON.",
     "homepage": "https://github.com/dgeorges/modeljs",
     "main": "./src/model.js",
-    "version": "1.0.0",
+    "version": "2.1.0",
     "license": "MIT",
     "author": {
         "name": "Daniel Georges",
