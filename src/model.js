@@ -23,7 +23,7 @@
     }
 
     function arrays_equal(a,b) {
-        return !(a<b || b<a); 
+        return !(a<b || b<a);
     }
 
     function extend(destination, source) {
@@ -129,13 +129,12 @@
 
     function makeRemoteRequest(property) {
         var url = property.getMetadata().url;
-        if (property.getMetadata().isJSONPurl) {
+        if (property.getMetadata().isJSONPurl) { // JSONP request
             var uniqueCallbackId = generateJSONPCallback(property);
             url = url.replace("$jsonpCallback", uniqueCallbackId);
             makeJSONPRequest(url, uniqueCallbackId);
         } else {
-            if (typeof window !== 'undefined') {
-                // TODO need to test.
+            if (typeof window !== 'undefined') { // browser ajax request
                 var httpRequest = getXHRObject();
                 httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
                 httpRequest.open('GET', url);
@@ -158,7 +157,7 @@
         if (xhr.readyState === 4) {
 
             if (xhr.status !== 200) {
-                log('warn', "Remote request for " + property.getName() + " failded due to return status of " + xhr.status);
+                log('warn', "Remote request for " + property.getName() + " failed due to return status of " + xhr.status);
                 if (property.getMetadata().refreshRate === -1) {
                     log('warn', "Retrying remote request for " + property.getName() + " in 2 seconds");
                     setTimeout(makeRemoteRequest.bind(null, property), 2000);// try again in 2 sec
@@ -1119,28 +1118,31 @@
 
     var MIN_MODEL_REFRESH_RATE = 100;
     function _createProperty (name, value, parent, metadata) {
+        var newProperty,
+            propertyMetadata = metadata || {};
         if (value instanceof Property || Model.isArray(value)) {
             log('error', "Unsupported Operation: Try passing the Model/Properties value instead");
             return;
         } else if (Array.isArray(value)) {
-            return new ArrayProperty(name, value, parent, metadata);
+            newProperty = new ArrayProperty(name, value, parent, metadata);
         } else if (isObject(value)) {
-            var modelMetadata = metadata || {};
-            modelMetadata.name = name;
-            var model = new Model(value, modelMetadata, parent);
-            if (modelMetadata.url && modelMetadata.refreshRate) {
-                if (modelMetadata.refreshRate === -1){
-                    makeRemoteRequest(model);
-                } else {
-                    var interval = Math.max(MIN_MODEL_REFRESH_RATE, modelMetadata.refreshRate);
-                    var intervalId = setInterval(makeRemoteRequest.bind(null, model), interval);
-                    model.getMetadata().intervalId = intervalId;
-                }
-            }
-            return model;
+            propertyMetadata.name = name;
+            newProperty = new Model(value, propertyMetadata, parent);
         } else {
-            return new Property(name, value, parent, metadata);
+            newProperty = new Property(name, value, parent, metadata);
         }
+
+        if (propertyMetadata.url && propertyMetadata.refreshRate && newProperty) {
+            if (propertyMetadata.refreshRate === -1){
+                makeRemoteRequest(newProperty);
+            } else {
+                var interval = Math.max(MIN_MODEL_REFRESH_RATE, propertyMetadata.refreshRate);
+                var intervalId = setInterval(makeRemoteRequest.bind(null, newProperty), interval);
+                propertyMetadata.getMetadata().intervalId = intervalId;
+            }
+        }
+
+        return newProperty;
     }
 
     /**
