@@ -1042,10 +1042,23 @@
      * @return {Object} The json Object represented by the model
      */
     Model.prototype.getValue = function () {
+        var property,
+            value = {};
+
         if (this._metadata.thin) {
             return this._myValue;
         }
-        return this.toJSON();
+
+        for (var name in this) {
+            if (this.hasOwnProperty(name) &&
+                (this[name] instanceof Property || Model.isArray(this[name])) &&
+                name !== '_parent') {
+                // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable. and would cause infinite recursion
+                property = this[name];
+                value[name] = property.getValue();
+            }
+        }
+        return value;
     };
 
     /**

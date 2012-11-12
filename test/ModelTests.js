@@ -854,7 +854,7 @@
             };
 
             ok(m.negativeNumber.getValue() === undefined, "invalid Property value not set on initialization");
-            ok(m.invalidCountable.getValue() === undefined, "invalid Model value not set on initialization");
+            ok(JSON.stringify(m.invalidCountable.getValue()) === "{}", "invalid Model value not set on initialization");
             equal(JSON.stringify(m.toJSON()), JSON.stringify(expectedJSON), "Creation validation toJSON works");
 
             m.invalidCountable.setValue({str:1, count:1});
