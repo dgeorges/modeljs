@@ -846,7 +846,7 @@
                 blankProp: undefined,
                 negativeNumber: undefined,
                 positiveNumber:1,
-                invalidCountable: undefined,
+                invalidCountable: {},
                 validCountable: {
                     str:"123",
                     count:1

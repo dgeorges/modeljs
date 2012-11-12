@@ -1364,7 +1364,7 @@
      */
     Model.prototype.toJSON = function (includeMetaData) {
         var json = {};
-        if (this._myValue === undefined || this.getMetadata().doNotPersist) {
+        if (this.getMetadata().doNotPersist) {
             return undefined;
         } else if (this.getMetadata().doNotPersistValue){
             return {};
