@@ -22,6 +22,10 @@
         return obj === new Object(obj) && !isFunction(obj) && !Array.isArray(obj) && !(obj instanceof Date);
     }
 
+    function arrays_equal(a,b) {
+        return !(a<b || b<a); 
+    }
+
     function extend(destination, source) {
         for (var property in source) {
             destination[property] = source[property];
@@ -761,7 +765,7 @@
         return isFunction(this._metadata.validator);
     };
 
-   /**
+    /**
      * Determines if the given value will pass the validation function of this.
      *
      * @example
@@ -803,7 +807,7 @@
         return proto;
     }
 
-   /**
+    /**
      * The modeljs Property Object that extends a javaScript Array so that Array function like push,
      * pop, reverse, etc... can be used while at the same time inherited Property methods. Be
      * aware instances will return false to native Array.isArray() function. THe alternative is
@@ -841,8 +845,7 @@
         var newValue = value,
             i = 0;
         // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
-        if (newValue !== undefined && newValue !== this._myValue) { //!== needs to be done another way.
-
+        if (newValue !== undefined && !arrays_equal(newValue, this._myValue)) {
             if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
                 this._myValue = value;
@@ -1202,6 +1205,7 @@
             return this;
         }
         this[name] = _createProperty(name, value, this, metadata);
+
         if (!suppressNotifications) {
             this.trigger(Model.Event.CHILD_CREATED, this[name]);
         }
@@ -1510,9 +1514,12 @@
 
             var linkedProperty = this;
             var newPropDisconnect;
+            var reversePropergationFunction = isAtoB? propergateDestToSrc: propergateSrcToDest;
 
-            // deregister our reverse connect function and put it back later, so we don't have infinite loop.
-            linkedProperty.off(Model.Event.ALL, isAtoB? propergateDestToSrc: propergateSrcToDest);
+            // deregister our reverse propergation function and put it back later, so we don't have infinite loop.
+            if (reversePropergationFunction) { // this will not exist if the connection direction was "one-way"
+                linkedProperty.off(Model.Event.ALL, reversePropergationFunction);
+            }
 
             if (eventName === Model.Event.PROPERTY_CHANGE) {
                 linkedProperty.setValue(property.getValue());
@@ -1538,8 +1545,8 @@
             }
 
             // only restore the connection if property is not destroyed
-            if (eventName !== Model.Event.DESTROY) {
-                linkedProperty.on(Model.Event.ALL, isAtoB? propergateDestToSrc : propergateSrcToDest);
+            if (eventName !== Model.Event.DESTROY && reversePropergationFunction) {
+                linkedProperty.on(Model.Event.ALL, reversePropergationFunction);
             }
 
             return newPropDisconnect; // how do we disconnect this.
@@ -1751,7 +1758,7 @@
          * All events are considered 'real' except for the MODEL_CHANGE event which is a special
          * propagation event and the CHANGE event which is a pseudo event.
          * Triggering the ALL event does not fire all event, but fires an event named all which will
-         * call all callback registered to the ALL event. The callback will have the following arguments:
+         * call all callbacks registered to the ALL event. The callback will have the following arguments:
          *      <ul>
          *      <li>this = the property listening to the event</li>
          *      <li>arg[0-..n-1] = the same arguments passed to the original event</li>
