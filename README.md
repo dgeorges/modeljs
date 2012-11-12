@@ -42,6 +42,10 @@ To use modeljs in your application copy src/model.js to an appropriate location 
 If your doing server side development in Node, you can import it like so:
 
     var Model = require("/path/to/model.js");
+Or using npm install
+
+    npm install modeljs
+    var Model = require("modeljs");
 
 
 Examples
