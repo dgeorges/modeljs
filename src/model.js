@@ -108,6 +108,21 @@
         return fnName;
     }
 
+    function nodeHttpCallback(response) {
+        var data = "",
+            property = this; //This is the property making the request
+
+        //another chunk of data has been received, so append it to `data`
+        response.on('data', function (chunk) {
+            data += chunk;
+        });
+
+        //the whole response has been received. Lets set it into the property.
+        response.on('end', function () {
+            property.setValue(JSON.parse(data));
+        });
+    }
+
     function makeRemoteRequest(property) {
         var url = property.getMetadata().url;
         if (property.getMetadata().isJSONPurl) {
@@ -115,11 +130,23 @@
             url = url.replace("$jsonpCallback", uniqueCallbackId);
             makeJSONPRequest(url, uniqueCallbackId);
         } else {
-            // TODO need to test and have it work on node.
-            var httpRequest = getXHRObject();
-            httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
-            httpRequest.open('GET', url);
-            httpRequest.send();
+            if (typeof window !== 'undefined') {
+                // TODO need to test.
+                var httpRequest = getXHRObject();
+                httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
+                httpRequest.open('GET', url);
+                httpRequest.send();
+            } else { // We are not in the browser so this must be node.
+                try {
+                    var parsedURL = require('url').parse(url);
+                    var http = require('http');
+
+                    http.request({host: parsedURL.host, path: parsedURL.path},
+                        nodeHttpCallback.bind(property)).end();
+                } catch (e) {
+                    log('error', "attempt to make remote request using require('http') object failed");
+                }
+            }
         }
     }
 
