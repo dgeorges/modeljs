@@ -844,7 +844,7 @@
         var newValue = value,
             i = 0;
         // Note: this disallows setting a property to undefined. Only when it's first created can it be undefined.
-        if (newValue !== undefined && !arrays_equal(newValue, this._myValue)) {
+        if (newValue !== undefined && !arrays_equal(newValue, this.getValue())) {
             if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
                 this._myValue = value;
@@ -1297,16 +1297,16 @@
                     }
                 }
             }
+        }
 
-            // delete properties that are not found in json
-            if (!keepOldProperties && doModification) {
-                for (var modelProp in model) {
-                    if (!json[modelProp] && //property does exist in merge
-                            model.hasOwnProperty(modelProp) &&
-                            (model[modelProp] instanceof Property || Model.isArray(model[modelProp])) &&
-                            modelProp !== '_parent') { // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
-                        model[modelProp].destroy(suppressNotifications);
-                    }
+        // delete properties that are not found in json
+        if (!keepOldProperties && doModification) {
+            for (var modelProp in model) {
+                if (!json[modelProp] && //property does exist in merge
+                        model.hasOwnProperty(modelProp) &&
+                        (model[modelProp] instanceof Property || Model.isArray(model[modelProp])) &&
+                        modelProp !== '_parent') { // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
+                    model[modelProp].destroy(suppressNotifications);
                 }
             }
         }
