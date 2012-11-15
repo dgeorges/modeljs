@@ -1238,7 +1238,9 @@
      */
     Model.prototype.destroy = function (suppressNotifications) {
         for (var propName in this) {
-            if (this.hasOwnProperty(propName)) {
+            if (this.hasOwnProperty(propName) &&
+                (this[propName] instanceof Property || Model.isArray(this[propName])) &&
+                propName !== '_parent') { // for ECMA backwards compatibility '_parent' must be filter since its non-enumerable
                 this[propName].destroy(suppressNotifications);
             }
         }
@@ -1600,7 +1602,7 @@
                         }
                     }
             }
-            return function disconnect(functionsToDisconnect) {
+            return function disconnectModel(functionsToDisconnect) {
                 for (var i = 0; i < functionsToDisconnect.length; i++) {
                     functionsToDisconnect[i]();
                 }
