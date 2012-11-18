@@ -19,7 +19,7 @@
     }
 
     function isObject(obj) {
-        return obj === new Object(obj) && !isFunction(obj) && !Array.isArray(obj) && !(obj instanceof Date);
+        return !!obj && Object.prototype.toString.call(obj) === '[object Object]';
     }
 
     function arrays_equal(a,b) {
@@ -75,7 +75,7 @@
                 try {
                     new ActiveXObject("Microsoft.XMLHTTP");
                     return function () {
-                        return new ActiveXObject("Msxml2.XMLHTTP");
+                        return new ActiveXObject("Microsoft.XMLHTTP");
                     };
                 } catch (e2) {
                     //do nothing
@@ -246,11 +246,11 @@
             var callbackArgs = [property].concat(eventArgs);
             var eventListeners = property._eventListeners[eventName] || [];
             if (eventName === Model.Event.PROPERTY_CHANGE) {
-                eventListeners = eventListeners.concat(property._eventListeners.change);
+                Array.prototype.push.apply(eventListeners, property._eventListeners.change);
             } else if (eventName === Model.Event.MODEL_CHANGE) {
-                eventListeners = eventListeners.concat(property._eventListeners.change);
+                Array.prototype.push.apply(eventListeners, property._eventListeners.change);
             } else if (eventName === Model.Event.CHANGE) {
-                eventListeners = eventListeners.concat(property._eventListeners.propertyChange);
+                Array.prototype.push.apply(eventListeners, property._eventListeners.propertyChange);
             }
 
             // update listeners registered for the event
@@ -532,17 +532,20 @@
      */
     Property.prototype.getName = function (shortName) {
         if (shortName) {
-            return this._name.substring(this._name.lastIndexOf("/") + 1);
+            return this.getShortName();
         }
         return this._name;
     };
 
     /**
      * The given name of the property.
+     *
+     * @method  getShortName
+     *
      * @return {[String]} The given name of the property.
      */
     Property.prototype.getShortName = function () {
-            return this._name.substring(this._name.lastIndexOf("/") + 1);
+        return this._name.substring(this._name.lastIndexOf("/") + 1);
     };
 
 
