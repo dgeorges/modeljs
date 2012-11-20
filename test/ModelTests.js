@@ -1679,14 +1679,14 @@
     };
 
    if (typeof define === "function" && define.amd) {
-        define([], function () { 
+        define([], function () {
             return ModelTests;
         });
     } else if (typeof exports !== 'undefined') {
         if (typeof module !== 'undefined' && module.exports) {
             exports = module.exports = ModelTests;
         }
-        exports.Model = ModelTests;
+        exports.ModelTests = ModelTests;
     } else {
         /** @global */
         window["ModelTests"] = ModelTests;

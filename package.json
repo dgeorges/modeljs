@@ -15,12 +15,15 @@
     ],
     "dependencies": {
     },
+    "devDependencies": {
+        "assert": ">= 0.4.x"
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/dgeorges/modeljs.git"
     },
     "scripts": {
-        "test": "echo all tests are preformed on the browser currently with qUnit"
+        "test": "node ./test/modeljsNodeTests.js"
     },
     "engines": {
         "node": ">=0.4.0"

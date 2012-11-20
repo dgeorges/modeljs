@@ -13,15 +13,15 @@ var ModelTests = require("./ModelTests.js");
 
     console.log("Begin Tests");
 
-        Object.keys(ModelTests.tests).forEach(function (key) {
+    Object.keys(ModelTests.tests).forEach(function (key) {
 
-            // noConflict test not applicable to node. filter it out.
-            if (key === "testModelNoConflict") {
-                return;
-            }
+        // noConflict test not applicable to node. filter it out.
+        if (key === "testModelNoConflict") {
+            return;
+        }
 
-            test(key, ModelTests.tests[key]);
-        });
+        test(key, ModelTests.tests[key]);
+    });
 
     // Node can't do asyncTests right now.
     /*
