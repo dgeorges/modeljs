@@ -16,6 +16,8 @@
     "dependencies": {
     },
     "devDependencies": {
+        "assert": ">= 0.4.x",
+        "benchmark": ">= 1.x.x",
         "qunitjs": ">=1.9.x"
     },
     "repository": {
@@ -23,7 +25,8 @@
         "url": "https://github.com/dgeorges/modeljs.git"
     },
     "scripts": {
-        "test": "node ./test/modeljsNodeTests.js"
+        "test": "node ./test/modeljsNodeTests.js",
+        "benchmark": "node ./test/benchmarkTests.js"
     },
     "engines": {
         "node": ">=0.4.0"
