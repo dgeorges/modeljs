@@ -466,6 +466,9 @@
         });
 
         var myValue = value;
+        if (isFunction(myValue)) {
+            myValue = myValue.bind(parent);
+        }
         //make sure value is valid
         if (!this.validateValue(myValue)) {
             myValue = undefined;

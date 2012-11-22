@@ -1096,6 +1096,23 @@
             deepEqual(JSON.stringify(model.toJSON(true)), JSON.stringify(jsonModel2), "toJSON still works on thin models");
         },
 
+        testModelFunctionProperties : function () {
+            var person = {
+                firstName: "John",
+                lastName: "Smith",
+                fullName: function () {
+                    return this.firstName.getValue() + " " + this.lastName.getValue();
+                }
+            };
+
+            var john = new Model(person);
+            equal(john.fullName.getValue()(), "John Smith", "function properties have this bound to parent");
+
+            john.createProperty("testFunctionThis", function () { return this;}.bind("NotParentModel"));
+            equal(john.testFunctionThis.getValue()(), "NotParentModel", "function this stays to value bound by bind");
+
+        },
+
         testPropertyArrayLoading : function () {
             var jsonModel0 = {
                 matrix: {
