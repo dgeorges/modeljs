@@ -16,7 +16,7 @@
     "dependencies": {
     },
     "devDependencies": {
-        "assert": ">= 0.4.x"
+        "qunitjs": ">=1.9.x"
     },
     "repository": {
         "type": "git",

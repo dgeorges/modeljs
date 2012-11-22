@@ -1,30 +1,19 @@
 /**
- * Set up environment for tests.
- * The following is solely required for running the tests in the Node environment since the
- * browser tests will import model.js and qunit prior to this file.
+ * A module that exports all modeljs test. The exported object has the following properties:
+ *   tests - a map of testName to testFunction for test that are enviornment independent
+ *   browserOnlyTests - a map of testName to testFunction for test that are only for the browser
+ *   nodeOnlyTests - a map of testName to testFunction for test that are only for node
  *
- * FYI: There may be a better way to do this.
+ * Test are written for qunit and assume the assert function (ok, equal, equals, deepEqual) are
+ * defined in the global name space, along with Model.
+ * For example usage of running these tests see ModelTests.html or modeljsNodeTest.html
+ *
+ * If the test function has the isAsync flag set it is an asynchronous test
+ *
  */
 
 (function (globalNS) { //globalNS === window in the browser or GLOBAL in nodejs
     "use strict";
-
-    // tests assume Model has been loaded to the global NS and qunit has also defined its asserts globally.
-    // This is not the case when running tests on node. So we stub it out to get tests workng.
-    if (typeof require === 'function' && typeof GLOBAL === 'object') {
-        try {
-            var assert = require("assert");
-            GLOBAL.Model = require("./../src/model");
-
-            if (assert && typeof ok !== 'function') {
-                GLOBAL.ok = assert.ok;
-                GLOBAL.equal = assert.equal;
-                GLOBAL.deepEqual = assert.deepEqual;
-            }
-        } catch (e) {
-            console.log("error setting up tests");
-        }
-    }
 
     var ModelTests = {};
     ModelTests.tests = {
@@ -707,7 +696,7 @@
             Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = false;
 
             equal(count, 1, "Hashed function called once when flattenCallbacksByHash set");
-            equal(count2, 3, " unhashed function called more than once when flattenCallbacksByHash set");
+            equal(count2, 3, "unhashed function called more than once when flattenCallbacksByHash set");
         },
 
         testSuppressAllEvents : function (){
@@ -807,22 +796,10 @@
 
 
             equal(count, 1, "Hashed function called once when flattenCallbacksByHash set");
-            equal(count2, 3, " unhashed function called more than once when flattenCallbacksByHash set");
+            equal(count2, 3, "unhashed function called more than once when flattenCallbacksByHash set");
             Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = false; // test ended restore defaults
             Model.TRANSACTION_OPTIONS.flattenCallbacks = false;
             Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = false;
-        },
-
-        testModelNoConflict : function () {
-
-            ok (Model, "Model exists in global namespace prior to noConflict");
-            var originalModel = Model;
-            var myModel = Model.noConflict();
-
-            ok (!Model, "Model remove from global namespace after noConflict called");
-            equal(myModel, originalModel, "Model returned from noConflict Method");
-            window.Model = myModel; //restore the world so other tests continue to work
-
         },
 
         testInvalidInitialValue : function () {
@@ -1279,27 +1256,27 @@
             var disconnectE = Model.connect(model.e, model2.e);
 
             model.createProperty("anotherProp", "anotherValue", {random:1});
-            ok(model2.anotherProp, " linked model received CHILD_CREATED event");
+            ok(model2.anotherProp, "linked model received CHILD_CREATED event");
 
             model.e.destroy();
-            ok(!model2.e, " linked model received CHILD_DESTROYED event");
+            ok(!model2.e, "linked model received CHILD_DESTROYED event");
 
             model.a.setValue(10);
-            equal(model2.a.getValue(), 10, " linked model received PROPERTY_CHANGE event");
+            equal(model2.a.getValue(), 10, "linked model received PROPERTY_CHANGE event");
 
             model2.a.setValue(15);
-            equal(model.a.getValue(), 15, " linked model received PROPERTY_CHANGE event in other direction");
+            equal(model.a.getValue(), 15, "linked model received PROPERTY_CHANGE event in other direction");
 
             var customEventOnModel2fired = false;
             model2.a.on("customEvent", function () {
                 customEventOnModel2fired = true;
             });
             model.a.trigger("customEvent");
-            ok(customEventOnModel2fired, " linked model received custom event");
+            ok(customEventOnModel2fired, "linked model received custom event");
 
             disconnectA();
             model.a.setValue(5);
-            equal(model2.a.getValue(), 15, " models were disconnected successfully");
+            equal(model2.a.getValue(), 15, "models were disconnected successfully");
 
             //test "oneWay" direction
             Model.connect(model.b, model2.b, {direction:"oneWay"});
@@ -1646,36 +1623,49 @@
         }
     };
 
-    ModelTests.asyncTests = {
-                testRemoteModel : function () {
-
-                expect(3);
-                var test = new Model();
-                test.createProperty ("remoteModel", {prop1: "defaultValue"}, {
-                    url: "http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback",
-                    doNotPersist: true,
-                    refreshRate: -1, // -1 means fetch once.
-                    isJSONPurl: true,
-                    validator: function() {
-                        return true;
-                    }
-                });
-
-                var onChangeRegistered = false;
-                function callback (property, oldValue) {
-                    onChangeRegistered = true;
+    ModelTests.browserOnlyTests = {
+        testJSONPRemoteModel : function testJSONPRemoteModel() {
+            testJSONPRemoteModel.isAsync = true;
+            expect(3);
+            var test = new Model();
+            test.createProperty ("remoteModel", {prop1: "defaultValue"}, {
+                url: "http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback",
+                doNotPersist: true,
+                refreshRate: -1, // -1 means fetch once.
+                isJSONPurl: true,
+                validator: function() {
+                    return true;
                 }
-                test.remoteModel.onChange(callback);
+            });
 
-                ok(!test.remoteModel.count, "remoteModel count property DNE");
-                setTimeout(function () {
-                    start();
-                    ok(test.remoteModel.query, "remoteModel was modified to have a count property");
-                    ok(onChangeRegistered, "onChange callback fired on remote Model");
-
-                }, 2500);
-
+            var onChangeRegistered = false;
+            function callback (property, oldValue) {
+                start(); // resume test
+                onChangeRegistered = true;
+                ok(test.remoteModel.query, "remoteModel was modified to have a count property");
+                ok(onChangeRegistered, "onChange callback fired on remote Model");
             }
+            test.remoteModel.onChange(callback);
+
+            ok(!test.remoteModel.count, "remoteModel count property DNE");
+            stop();
+        },
+
+        testModelNoConflict : function () {
+
+            ok (Model, "Model exists in global namespace prior to noConflict");
+            var originalModel = Model;
+            var myModel = Model.noConflict();
+
+            ok (!Model, "Model remove from global namespace after noConflict called");
+            equal(myModel, originalModel, "Model returned from noConflict Method");
+            window.Model = myModel; //restore the world so other tests continue to work
+
+        }
+    };
+
+
+    ModelTests.nodeOnlyTests = {
     };
 
    if (typeof define === "function" && define.amd) {
@@ -1691,4 +1681,4 @@
         /** @global */
         window["ModelTests"] = ModelTests;
     }
-}(this)); //this === window in the browser and GLOBAL in node
+}(typeof window !== 'undefined' ? window : GLOBAL)); //window in the browser and GLOBAL in node

@@ -9,12 +9,23 @@
 </head>
     <script src="../test/ModelTests.js"></script>
     <script type="text/javascript">
+
         Object.keys(ModelTests.tests).forEach(function (key) {
-            test(key, ModelTests.tests[key]);
+            testFunction = ModelTests.tests[key];
+            if (testFunction.isAsync) {
+                asyncTest(key, testFunction);
+            } else {
+                test(key, testFunction);
+            }
         });
 
-        Object.keys(ModelTests.asyncTests).forEach(function (key) {
-            asyncTest(key, ModelTests.asyncTests[key]);
+        Object.keys(ModelTests.browserOnlyTests).forEach(function (key) {
+            testFunction = ModelTests.browserOnlyTests[key];
+            if (testFunction.isAsync) {
+                asyncTest(key, testFunction);
+            } else {
+                test(key, testFunction);
+            }
         });
     </script>
 <body>
