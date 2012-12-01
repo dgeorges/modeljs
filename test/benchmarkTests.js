@@ -22,6 +22,7 @@
     //var options = new Benchmark.options;
     globalNS.console.log("Benchmark Options:", Benchmark.options, "\n");
     var suite = new Benchmark.Suite("modeljs Tests Suite", Benchmark.options);
+    var errors = false;
 
     globalNS.console.log("Begining Benchmark... ");
 
@@ -37,11 +38,16 @@
       globalNS.console.log('Slowest is ' + this.filter('slowest').pluck('name'));
     })
     .on('error', function (event) {
-        globalNS.console.log(event);
+        errors = true;
+        globalNS.console.log(" ### ERORR on", event.target.name);
     })
     .run();
 
     globalNS.console.log("Benchmark Complete");
+    if (errors) {
+        globalNS.console.log("");
+        globalNS.console.log("### There was some errors.");
+    }
 
 
 }(GLOBAL));
