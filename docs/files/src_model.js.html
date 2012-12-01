@@ -19,7 +19,7 @@
             
         </div>
         <div class="yui3-u-1-4 version">
-            <em>API Docs for: 2.1.0</em>
+            <em>API Docs for: 2.1.1</em>
         </div>
     </div>
     <div id="bd" class="yui3-g">
@@ -101,7 +101,7 @@
  *
  * @project modeljs
  * @author Daniel Georges
- * @version 2.1.0
+ * @version 2.1.1
  * @module Model
  *&#x2F;
 (function (globalNS, undefined) { &#x2F;&#x2F;globalNS === window in the browser or GLOBAL in nodejs
@@ -113,7 +113,11 @@
     }
 
     function isObject(obj) {
-        return obj === new Object(obj) &amp;&amp; !isFunction(obj) &amp;&amp; !Array.isArray(obj) &amp;&amp; !(obj instanceof Date);
+        return !!obj &amp;&amp; Object.prototype.toString.call(obj) === &#x27;[object Object]&#x27;;
+    }
+
+    function arrays_equal(a,b) {
+        return !(a&lt;b || b&lt;a);
     }
 
     function extend(destination, source) {
@@ -165,7 +169,7 @@
                 try {
                     new ActiveXObject(&quot;Microsoft.XMLHTTP&quot;);
                     return function () {
-                        return new ActiveXObject(&quot;Msxml2.XMLHTTP&quot;);
+                        return new ActiveXObject(&quot;Microsoft.XMLHTTP&quot;);
                     };
                 } catch (e2) {
                     &#x2F;&#x2F;do nothing
@@ -202,19 +206,44 @@
         return fnName;
     }
 
+    function nodeHttpCallback(response) {
+        var data = &quot;&quot;,
+            property = this; &#x2F;&#x2F;This is the property making the request
+
+        &#x2F;&#x2F;another chunk of data has been received, so append it to &#x60;data&#x60;
+        response.on(&#x27;data&#x27;, function (chunk) {
+            data += chunk;
+        });
+
+        &#x2F;&#x2F;the whole response has been received. Lets set it into the property.
+        response.on(&#x27;end&#x27;, function () {
+            property.setValue(JSON.parse(data));
+        });
+    }
+
     function makeRemoteRequest(property) {
         var url = property.getMetadata().url;
-        if (property.getMetadata().isJSONPurl) {
+        if (property.getMetadata().isJSONPurl) { &#x2F;&#x2F; JSONP request
             var uniqueCallbackId = generateJSONPCallback(property);
             url = url.replace(&quot;$jsonpCallback&quot;, uniqueCallbackId);
             makeJSONPRequest(url, uniqueCallbackId);
         } else {
-            var httpRequest = getXHRObject();
-            httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
-            &#x2F;&#x2F;httpRequest.orgin = &quot;localhost:8080&quot;;
-            &#x2F;&#x2F;httpRequest.setRequestHeader
-            httpRequest.open(&#x27;GET&#x27;, url);
-            httpRequest.send();
+            if (typeof window !== &#x27;undefined&#x27;) { &#x2F;&#x2F; browser ajax request
+                var httpRequest = getXHRObject();
+                httpRequest.onreadystatechange = retrieveRemoteRequest.bind(null, httpRequest, property);
+                httpRequest.open(&#x27;GET&#x27;, url);
+                httpRequest.send();
+            } else { &#x2F;&#x2F; We are not in the browser so this must be node.
+                try {
+                    var parsedURL = require(&#x27;url&#x27;).parse(url);
+                    var http = require(&#x27;http&#x27;);
+
+                    http.request({host: parsedURL.host, path: parsedURL.path},
+                        nodeHttpCallback.bind(property)).end();
+                } catch (e) {
+                    log(&#x27;error&#x27;, &quot;attempt to make remote request using require(&#x27;http&#x27;) object failed&quot;);
+                }
+            }
         }
     }
 
@@ -222,7 +251,7 @@
         if (xhr.readyState === 4) {
 
             if (xhr.status !== 200) {
-                log(&#x27;warn&#x27;, &quot;Remote request for &quot; + property.getName() + &quot; failded due to return status of &quot; + xhr.status);
+                log(&#x27;warn&#x27;, &quot;Remote request for &quot; + property.getName() + &quot; failed due to return status of &quot; + xhr.status);
                 if (property.getMetadata().refreshRate === -1) {
                     log(&#x27;warn&#x27;, &quot;Retrying remote request for &quot; + property.getName() + &quot; in 2 seconds&quot;);
                     setTimeout(makeRemoteRequest.bind(null, property), 2000);&#x2F;&#x2F; try again in 2 sec
@@ -311,11 +340,11 @@
             var callbackArgs = [property].concat(eventArgs);
             var eventListeners = property._eventListeners[eventName] || [];
             if (eventName === Model.Event.PROPERTY_CHANGE) {
-                eventListeners = eventListeners.concat(property._eventListeners.change);
+                Array.prototype.push.apply(eventListeners, property._eventListeners.change);
             } else if (eventName === Model.Event.MODEL_CHANGE) {
-                eventListeners = eventListeners.concat(property._eventListeners.change);
+                Array.prototype.push.apply(eventListeners, property._eventListeners.change);
             } else if (eventName === Model.Event.CHANGE) {
-                eventListeners = eventListeners.concat(property._eventListeners.propertyChange);
+                Array.prototype.push.apply(eventListeners, property._eventListeners.propertyChange);
             }
 
             &#x2F;&#x2F; update listeners registered for the event
@@ -414,9 +443,8 @@
     ObservableArray.prototype = Object.create(Array.prototype);
 
     ObservableArray.prototype.pop = function () {
-        var args = Array.prototype.slice.call(arguments);
-        this._myValue.pop();
-        var element = Array.prototype.pop.apply(this, args);
+        var args = Array.prototype.slice.call(arguments),
+            element = Array.prototype.pop.apply(this, args);
         element.destroy();
         return element;
     };
@@ -431,7 +459,6 @@
                 log(&#x27;error&#x27;, &quot;Incorrect Syntax: use push([property].getValue()) instead&quot;);
                 return;
             }
-            this._myValue.push(args[i]);
             property = _createProperty(length + i, args[i], this, {});
             pushedArgs.push(property);
         }
@@ -507,7 +534,9 @@
 
         Object.defineProperty(this, &quot;_parent&quot;, {
             value: parent,
-            enumerable: false
+            enumerable: false,
+            writable: false,
+            configurable: true &#x2F;&#x2F;set to configurable so we can delete it in destroy
         });
 
         Object.defineProperty(this, &quot;_metadata&quot;, {
@@ -525,10 +554,15 @@
                 destroy: [],
                 all: []
             },
-            enumerable: false
+            enumerable: false,
+            writable: false,
+            configurable: false
         });
 
         var myValue = value;
+        if (isFunction(myValue)) {
+            myValue = myValue.bind(parent);
+        }
         &#x2F;&#x2F;make sure value is valid
         if (!this.validateValue(myValue)) {
             myValue = undefined;
@@ -595,17 +629,20 @@
      *&#x2F;
     Property.prototype.getName = function (shortName) {
         if (shortName) {
-            return this._name.substring(this._name.lastIndexOf(&quot;&#x2F;&quot;) + 1);
+            return this.getShortName();
         }
         return this._name;
     };
 
     &#x2F;**
      * The given name of the property.
+     *
+     * @method  getShortName
+     *
      * @return {[String]} The given name of the property.
      *&#x2F;
     Property.prototype.getShortName = function () {
-            return this._name.substring(this._name.lastIndexOf(&quot;&#x2F;&quot;) + 1);
+        return this._name.substring(this._name.lastIndexOf(&quot;&#x2F;&quot;) + 1);
     };
 
 
@@ -684,11 +721,21 @@
      * @return {Property}   The deleted Property.
      *&#x2F;
     Property.prototype.destroy = function (suppressNotifications) {
-        delete this._parent[this.getShortName()];
+        delete this._parent[this.getShortName()]; &#x2F;&#x2F; remove forward reference
 
         if (!suppressNotifications) {
             this.trigger(Model.Event.DESTROY); &#x2F;&#x2F;equivalent since no event arg.
             this._parent.trigger(Model.Event.CHILD_DESTROYED, this);
+        }
+        &#x2F;&#x2F; destroy _parent and eventListeners which makes the Property useless if someone is holding a reference.
+        &#x2F;&#x2F; By deleting _parent it also helps the gc because properties are no longer connected, just in case someone is holding to one.
+        &#x2F;&#x2F; We can only do this when were are not in a transaction since transaction will relay on the properties when it is ended
+        if (!Model.inTransaction()) {
+            &#x2F;&#x2F;remove all listeners
+            for (var eventListeners in this._eventListeners) {
+                eventListeners = [];
+            }
+            delete this._parent;
         }
         return this;
     };
@@ -817,7 +864,7 @@
         return isFunction(this._metadata.validator);
     };
 
-   &#x2F;**
+    &#x2F;**
      * Determines if the given value will pass the validation function of this.
      *
      * @example
@@ -859,7 +906,7 @@
         return proto;
     }
 
-   &#x2F;**
+    &#x2F;**
      * The modeljs Property Object that extends a javaScript Array so that Array function like push,
      * pop, reverse, etc... can be used while at the same time inherited Property methods. Be
      * aware instances will return false to native Array.isArray() function. THe alternative is
@@ -897,8 +944,7 @@
         var newValue = value,
             i = 0;
         &#x2F;&#x2F; Note: this disallows setting a property to undefined. Only when it&#x27;s first created can it be undefined.
-        if (newValue !== undefined &amp;&amp; newValue !== this._myValue) { &#x2F;&#x2F;!== needs to be done another way.
-
+        if (newValue !== undefined &amp;&amp; !arrays_equal(newValue, this.getValue())) {
             if (this.validateValue(newValue)) {
                 var oldValue = this._myValue;
                 this._myValue = value;
@@ -970,7 +1016,7 @@
         }
     };
 
-  &#x2F;**
+    &#x2F;**
      * Determines if the given value will pass the validation function of this.
      *
      * @example
@@ -1000,7 +1046,27 @@
         return true;
     };
 
-   &#x2F;**
+    &#x2F;**
+     * Removes the property and its children if any from the Model. This will fire the &#x27;destroy&#x27; event on this and
+     * the &#x27;childDestroyed&#x27; event on the parent for every Property in the Array.
+     *
+     * @method  destroy
+     *
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of destroy.
+     * @return {Property}   The deleted Property.
+     *&#x2F;
+    ArrayProperty.prototype.destroy = function (suppressNotifications) {
+        var i = 0;
+        Model.startTransaction();
+        for (i = 0; i &lt; this.length; i++) {
+            this.pop(); &#x2F;&#x2F; pop will call destroy on all elements.
+        }
+        Model.endTransaction({suppressAllEvents:suppressNotifications});
+
+        Property.prototype.destroy.call(this, suppressNotifications);
+    };
+
+    &#x2F;**
      * The model Object that wraps the JSON.
      *
      * @example
@@ -1076,10 +1142,23 @@
      * @return {Object} The json Object represented by the model
      *&#x2F;
     Model.prototype.getValue = function () {
+        var property,
+            value = {};
+
         if (this._metadata.thin) {
             return this._myValue;
         }
-        return this.toJSON();
+
+        for (var name in this) {
+            if (this.hasOwnProperty(name) &amp;&amp;
+                (this[name] instanceof Property || Model.isArray(this[name])) &amp;&amp;
+                name !== &#x27;_parent&#x27;) {
+                &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable. and would cause infinite recursion
+                property = this[name];
+                value[name] = property.getValue();
+            }
+        }
+        return value;
     };
 
     &#x2F;**
@@ -1118,7 +1197,7 @@
         return this;
     };
 
-       &#x2F;**
+    &#x2F;**
      * Determines if the given value will pass the validation function of this.
      *
      * @example
@@ -1152,28 +1231,31 @@
 
     var MIN_MODEL_REFRESH_RATE = 100;
     function _createProperty (name, value, parent, metadata) {
+        var newProperty,
+            propertyMetadata = metadata || {};
         if (value instanceof Property || Model.isArray(value)) {
             log(&#x27;error&#x27;, &quot;Unsupported Operation: Try passing the Model&#x2F;Properties value instead&quot;);
             return;
         } else if (Array.isArray(value)) {
-            return new ArrayProperty(name, value, parent, metadata);
+            newProperty = new ArrayProperty(name, value, parent, metadata);
         } else if (isObject(value)) {
-            var modelMetadata = metadata || {};
-            modelMetadata.name = name;
-            var model = new Model(value, modelMetadata, parent);
-            if (modelMetadata.url &amp;&amp; modelMetadata.refreshRate) {
-                if (modelMetadata.refreshRate === -1){
-                    makeRemoteRequest(model);
-                } else {
-                    var interval = Math.max(MIN_MODEL_REFRESH_RATE, modelMetadata.refreshRate);
-                    var intervalId = setInterval(makeRemoteRequest.bind(null, model), interval);
-                    model.getMetadata().intervalId = intervalId;
-                }
-            }
-            return model;
+            propertyMetadata.name = name;
+            newProperty = new Model(value, propertyMetadata, parent);
         } else {
-            return new Property(name, value, parent, metadata);
+            newProperty = new Property(name, value, parent, metadata);
         }
+
+        if (propertyMetadata.url &amp;&amp; propertyMetadata.refreshRate &amp;&amp; newProperty) {
+            if (propertyMetadata.refreshRate === -1){
+                makeRemoteRequest(newProperty);
+            } else {
+                var interval = Math.max(MIN_MODEL_REFRESH_RATE, propertyMetadata.refreshRate);
+                var intervalId = setInterval(makeRemoteRequest.bind(null, newProperty), interval);
+                propertyMetadata.getMetadata().intervalId = intervalId;
+            }
+        }
+
+        return newProperty;
     }
 
     &#x2F;**
@@ -1237,12 +1319,33 @@
             log(&#x27;error&#x27;, &quot;Unsupported Operation: Can not create a property on a Thin model.&quot;);
             return this;
         }
-
         this[name] = _createProperty(name, value, this, metadata);
+
         if (!suppressNotifications) {
             this.trigger(Model.Event.CHILD_CREATED, this[name]);
         }
         return this;
+    };
+
+    &#x2F;**
+     * Removes the property and its children if any from the Model. This will fire the &#x27;destroy&#x27; event on this and
+     * the &#x27;childDestroyed&#x27; event on the parent for every Property in the Model.
+     *
+     * @method  destroy
+     *
+     * @param  {[Boolean]} suppressNotifications? indicates if listeners should be notified of destroy.
+     * @return {Property}   The deleted Property.
+     *&#x2F;
+    Model.prototype.destroy = function (suppressNotifications) {
+        for (var propName in this) {
+            if (this.hasOwnProperty(propName) &amp;&amp;
+                (this[propName] instanceof Property || Model.isArray(this[propName])) &amp;&amp;
+                propName !== &#x27;_parent&#x27;) { &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable
+                this[propName].destroy(suppressNotifications);
+            }
+        }
+
+        Property.prototype.destroy.call(this, suppressNotifications);
     };
 
     &#x2F;**
@@ -1296,16 +1399,16 @@
                     }
                 }
             }
+        }
 
-            &#x2F;&#x2F; delete properties that are not found in json
-            if (!keepOldProperties &amp;&amp; doModification) {
-                for (var modelProp in model) {
-                    if (!json[modelProp] &amp;&amp; &#x2F;&#x2F;property does exist in merge
-                            model.hasOwnProperty(modelProp) &amp;&amp;
-                            (model[modelProp] instanceof Property || Model.isArray(model[modelProp])) &amp;&amp;
-                            modelProp !== &#x27;_parent&#x27;) { &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable
-                        model[modelProp].destroy(suppressNotifications);
-                    }
+        &#x2F;&#x2F; delete properties that are not found in json
+        if (!keepOldProperties &amp;&amp; doModification) {
+            for (var modelProp in model) {
+                if (!json[modelProp] &amp;&amp; &#x2F;&#x2F;property does exist in merge
+                        model.hasOwnProperty(modelProp) &amp;&amp;
+                        (model[modelProp] instanceof Property || Model.isArray(model[modelProp])) &amp;&amp;
+                        modelProp !== &#x27;_parent&#x27;) { &#x2F;&#x2F; for ECMA backwards compatibility &#x27;_parent&#x27; must be filter since its non-enumerable
+                    model[modelProp].destroy(suppressNotifications);
                 }
             }
         }
@@ -1363,7 +1466,7 @@
      *&#x2F;
     Model.prototype.toJSON = function (includeMetaData) {
         var json = {};
-        if (this._myValue === undefined || this.getMetadata().doNotPersist) {
+        if (this.getMetadata().doNotPersist) {
             return undefined;
         } else if (this.getMetadata().doNotPersistValue){
             return {};
@@ -1474,8 +1577,11 @@
      * Connects two properties together. So that events fired on one are also fired on the other. The options
      * specifies the type of connection to create.
      *
-     * @param  {[Property]} a       The source Property
-     * @param  {[Property]} b       The destination Property
+     * @method connect
+     * @static
+     *
+     * @param  {[Property]} src       The source Property
+     * @param  {[Property]} dest       The destination Property
      * @param  {[Object]} options? A hash of options describing how to connect the two properties.
      *                             The following option are accepted:
      *                     &lt;ul&gt;&lt;li&gt;
@@ -1490,15 +1596,15 @@
      *                         If not specified the default behavior is to map all properties via the getName function. Thus only properties with the same name are connected
      *                     &lt;&#x2F;li&gt;
      *                     &lt;&#x2F;li&gt;&lt;li&gt;
-     *                         &lt;b&gt;direction&lt;&#x2F;b&gt; {&quot;oneWay&quot;|&quot;dual&quot;} - Specifies how you would like to connect the two Properties. If not specified default is &quot;dual&quot; if not specified.
+     *                         &lt;b&gt;direction&lt;&#x2F;b&gt; {&quot;oneWay&quot;|&quot;dual&quot;} - Specifies how you would like to connect the two Properties. If not specified default is &quot;dual&quot;.
      *                     &lt;&#x2F;li&gt;
      *
      * @return {[Function]}         The disconnect function. When executed will remove the connection between the properties.
      *&#x2F;
-    Model.connect = function connect (a, b, options) { &#x2F;&#x2F;AKA join connect, disconnect.
+    Model.connect = function connect (src, dest, options) { &#x2F;&#x2F;AKA join connect, disconnect.
 
-        var propergateAtoB,
-            propergateBtoA;
+        var propergateSrcToDest,
+            propergateDestToSrc;
             options = options || {};
 
         &#x2F;**
@@ -1525,9 +1631,13 @@
 
             var linkedProperty = this;
             var newPropDisconnect;
+            var reversePropergationFunction = isAtoB? propergateDestToSrc: propergateSrcToDest;
 
-            &#x2F;&#x2F; deregister our reverse connect function and put it back later, so we don&#x27;t have infinite loop.
-            linkedProperty.off(Model.Event.ALL, isAtoB? propergateBtoA: propergateAtoB);
+            &#x2F;&#x2F; deregister our reverse propergation function and put it back later, so we don&#x27;t have infinite loop.
+            if (reversePropergationFunction) { &#x2F;&#x2F; this will not exist if the connection direction was &quot;one-way&quot;
+                linkedProperty.off(Model.Event.ALL, reversePropergationFunction);
+            }
+
             if (eventName === Model.Event.PROPERTY_CHANGE) {
                 linkedProperty.setValue(property.getValue());
             } else if (eventName === Model.Event.CHILD_CREATED) {
@@ -1550,52 +1660,56 @@
             } else { &#x2F;&#x2F;custom event
                 linkedProperty.trigger(eventName, Array.prototype.slice.call(arguments, 1));
             }
-            linkedProperty.on(Model.Event.ALL, isAtoB? propergateBtoA : propergateAtoB);
+
+            &#x2F;&#x2F; only restore the connection if property is not destroyed
+            if (eventName !== Model.Event.DESTROY &amp;&amp; reversePropergationFunction) {
+                linkedProperty.on(Model.Event.ALL, reversePropergationFunction);
+            }
 
             return newPropDisconnect; &#x2F;&#x2F; how do we disconnect this.
         }
 
-        function disconnect(a, b, propergateAtoB, propergateBtoA) {
-            if (propergateAtoB) {
-                a.off(Model.Event.ALL, propergateAtoB);
+        function disconnect(src, dest, propergateSrcToDest, propergateDestToSrc) {
+            if (propergateSrcToDest) {
+                src.off(Model.Event.ALL, propergateSrcToDest);
             }
-            if (propergateBtoA) {
-                b.off(Model.Event.ALL, propergateBtoA);
+            if (propergateDestToSrc) {
+                dest.off(Model.Event.ALL, propergateDestToSrc);
             }
         }
 
         &#x2F;&#x2F; one direction
-        propergateAtoB = propergateEvent.bind(b, true);
-        a.on(Model.Event.ALL, propergateAtoB);
+        propergateSrcToDest = propergateEvent.bind(dest, true);
+        src.on(Model.Event.ALL, propergateSrcToDest);
 
         &#x2F;&#x2F; other direction
         if (!options.direction || options.direction !== &quot;oneWay&quot;) {
-            propergateBtoA = propergateEvent.bind(a, false);
-            b.on(Model.Event.ALL, propergateBtoA);
+            propergateDestToSrc = propergateEvent.bind(src, false);
+            dest.on(Model.Event.ALL, propergateDestToSrc);
         }
 
-        if (options.includeChildren &amp;&amp; (a instanceof Model || Model.isArray(a))) { &#x2F;&#x2F; go through children
+        if (options.includeChildren &amp;&amp; (src instanceof Model || Model.isArray(src))) { &#x2F;&#x2F; go through children
             var disconnectFunctions  = [];
-            for (var propName in a) {
-                if (a.hasOwnProperty(propName) &amp;&amp;
-                        (a[propName] instanceof Property || Model.isArray(a[propName])) &amp;&amp;
+            for (var propName in src) {
+                if (src.hasOwnProperty(propName) &amp;&amp;
+                        (src[propName] instanceof Property || Model.isArray(src[propName])) &amp;&amp;
                         propName !== &quot;_parent&quot;) {
 
-                        var childLinkedPropertyName = options.mapFunction ? options.mapFunction(a[propName].getName()) : a[propName].getName();
-                        var childLinkedProperty = Model.find(b, childLinkedPropertyName );
+                        var childLinkedPropertyName = options.mapFunction ? options.mapFunction(src[propName].getName()) : src[propName].getName();
+                        var childLinkedProperty = Model.find(dest, childLinkedPropertyName );
                         if (childLinkedProperty) {
-                            disconnectFunctions.push(Model.connect(a[propName], childLinkedProperty, options));
+                            disconnectFunctions.push(Model.connect(src[propName], childLinkedProperty, options));
                         }
                     }
             }
-            return function disconnect(functionsToDisconnect) {
+            return function disconnectModel(functionsToDisconnect) {
                 for (var i = 0; i &lt; functionsToDisconnect.length; i++) {
                     functionsToDisconnect[i]();
                 }
             }.bind(null, disconnectFunctions);
         }
 
-        return disconnect.bind(null, a,b, propergateAtoB, propergateBtoA);
+        return disconnect.bind(null, src, dest, propergateSrcToDest, propergateDestToSrc);
     };
 
 
@@ -1639,19 +1753,13 @@
 
         if (options) { &#x2F;&#x2F; if option override global setting keeping them so they can be restored later
             originalTransactionOptions = JSON.parse(JSON.stringify(Model.TRANSACTION_OPTIONS));
-            Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = !!options.fireOnlyMostRecentPropertyEvent;
-            Model.TRANSACTION_OPTIONS.flattenCallbacks = !!options.flattenCallbacks;
-            Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = !!options.flattenCallbacksByHash;
-            Model.TRANSACTION_OPTIONS.suppressAllEvents = !!options.suppressAllEvents;
+            extend(Model.TRANSACTION_OPTIONS, options);
         }
 
         eventProxy.endTransaction();
 
         if (options) { &#x2F;&#x2F;restore global settings
-            Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = originalTransactionOptions.fireOnlyMostRecentPropertyEvent;
-            Model.TRANSACTION_OPTIONS.flattenCallbacks = originalTransactionOptions.flattenCallbacks;
-            Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = originalTransactionOptions.flattenCallbacksByHash;
-            Model.TRANSACTION_OPTIONS.suppressAllEvents = !!options.suppressAllEvents;
+            extend(Model.TRANSACTION_OPTIONS, originalTransactionOptions);
         }
 
     };
@@ -1767,7 +1875,7 @@
          * All events are considered &#x27;real&#x27; except for the MODEL_CHANGE event which is a special
          * propagation event and the CHANGE event which is a pseudo event.
          * Triggering the ALL event does not fire all event, but fires an event named all which will
-         * call all callback registered to the ALL event. The callback will have the following arguments:
+         * call all callbacks registered to the ALL event. The callback will have the following arguments:
          *      &lt;ul&gt;
          *      &lt;li&gt;this = the property listening to the event&lt;&#x2F;li&gt;
          *      &lt;li&gt;arg[0-..n-1] = the same arguments passed to the original event&lt;&#x2F;li&gt;

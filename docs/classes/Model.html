@@ -19,7 +19,7 @@
             
         </div>
         <div class="yui3-u-1-4 version">
-            <em>API Docs for: 2.1.0</em>
+            <em>API Docs for: 2.1.1</em>
         </div>
     </div>
     <div id="bd" class="yui3-g">
@@ -100,7 +100,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l909"><code>src\model.js:909</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;src_model.js.html#l975"><code>src\model.js:975</code></a>
         </div>
     
 
@@ -170,7 +170,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l909"><code>src\model.js:909</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l975"><code>src\model.js:975</code></a>
         
         </p>
 
@@ -276,6 +276,15 @@
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_connect">connect</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_createProperty">createProperty</a>
 
                                 
@@ -323,6 +332,13 @@
                         
                             <li class="index-item method inherited">
                                 <a href="#method_getName">getName</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method inherited">
+                                <a href="#method_getShortName">getShortName</a>
 
                                 
                                 
@@ -611,7 +627,7 @@
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1154"><code>src\model.js:1154</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1257"><code>src\model.js:1257</code></a>
         
         </p>
 
@@ -655,6 +671,170 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
 <p>For more examples: <b>testModelClone</b></p>
             </div>
         </div>
+    
+</div>
+
+                
+                    <div id="method_connect" class="method item">
+    <h3 class="name"><code>connect</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>src</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>dest</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>options?</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">Function</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1482"><code>src\model.js:1482</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Connects two properties together. So that events fired on one are also fired on the other. The options
+specifies the type of connection to create.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">src</code>
+                        <span class="type"><a href="..\classes\Property.html" class="crosslink">[Property]</a></span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The source Property</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">dest</code>
+                        <span class="type"><a href="..\classes\Property.html" class="crosslink">[Property]</a></span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The destination Property</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">options?</code>
+                        <span class="type">Object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>A hash of options describing how to connect the two properties.
+                            The following option are accepted:
+                    <ul><li>
+                        <b>eventBlackList</b> {Array} - A array of eventNames that <b>should not</b> be connected between the two Properties, all other event are connected.
+                    </li><li>
+                        <b>eventWhiteList</b> {Array} - A array of eventNames that <b>should</b> be connected between the two Properties, all other events not connected.
+                    </li><li>
+                        <b>includeChildred</b> {boolean} - Indicates if we should connect all the children of source Property as well. The default is false.
+                    </li><li>
+                        <b>mapFunction</b> {function} - A function that will map PropertyNames in 'a' to propertyNames in 'b' that should be connected.
+                        If the function returns null, the property won't be connected to anything. *This option must be used in conjunction with includeChildren=true.
+                        If not specified the default behavior is to map all properties via the getName function. Thus only properties with the same name are connected
+                    </li>
+                    </li><li>
+                        <b>direction</b> {"oneWay"|"dual"} - Specifies how you would like to connect the two Properties. If not specified default is "dual".
+                    </li></p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">Function</span>:
+                    
+                    The disconnect function. When executed will remove the connection between the properties.
+                
+            </div>
+        </div>
+    
+
     
 </div>
 
@@ -723,7 +903,7 @@ var clonedSubModel = model.subModel.clone(); // clone subModel
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1085"><code>src\model.js:1085</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1167"><code>src\model.js:1167</code></a>
         
         </p>
 
@@ -871,7 +1051,7 @@ model.createProperty("number", 1) // a simple property (model.number)
 </div>
 
                 
-                    <div id="method_destroy" class="method item inherited">
+                    <div id="method_destroy" class="method item">
     <h3 class="name"><code>destroy</code></h3>
 
     
@@ -908,13 +1088,16 @@ model.createProperty("number", 1) // a simple property (model.number)
 
     <div class="meta">
         
+            <p>Inherited from
+            <a href="..\classes\Property.html#method_destroy">
+                Property
+            </a>
             
-                <p>Inherited from
-                <a href="..\classes\Property.html#method_destroy">Property</a>:
+            but overwritten in
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l583"><code>src\model.js:583</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1236"><code>src\model.js:1236</code></a>
         
         </p>
 
@@ -926,7 +1109,7 @@ model.createProperty("number", 1) // a simple property (model.number)
 
     <div class="description">
         <p>Removes the property and its children if any from the Model. This will fire the 'destroy' event on this and
-the 'childDestroyed' event on the parent.</p>
+the 'childDestroyed' event on the parent for every Property in the Model.</p>
     </div>
 
     
@@ -1017,7 +1200,7 @@ the 'childDestroyed' event on the parent.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1524"><code>src\model.js:1524</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1638"><code>src\model.js:1638</code></a>
         
         </p>
 
@@ -1133,7 +1316,7 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1331"><code>src\model.js:1331</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1434"><code>src\model.js:1434</code></a>
         
         </p>
 
@@ -1239,7 +1422,7 @@ model.endTransaction({   // override the Model.TRANSACTION_OPTIONS settings for 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l468"><code>src\model.js:468</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l502"><code>src\model.js:502</code></a>
         
         </p>
 
@@ -1309,7 +1492,7 @@ Model.Formatter. If that does not exist it will return this.getValue();</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l695"><code>src\model.js:695</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l742"><code>src\model.js:742</code></a>
         
         </p>
 
@@ -1383,7 +1566,7 @@ meaning. <b>[validator, Formatter, name, url, refreshRate, isJSONPurl, doNotPers
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l487"><code>src\model.js:487</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l521"><code>src\model.js:521</code></a>
         
         </p>
 
@@ -1433,6 +1616,74 @@ namedRoot.property1.getName();       // returns "/customName/property1"
 </div>
 
                 
+                    <div id="method_getShortName" class="method item inherited">
+    <h3 class="name"><code>getShortName</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">String</span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                <p>Inherited from
+                <a href="..\classes\Property.html#method_getShortName">Property</a>:
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l543"><code>src\model.js:543</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>The given name of the property.</p>
+    </div>
+
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">String</span>:
+                    
+                    The given name of the property.
+                
+            </div>
+        </div>
+    
+
+    
+</div>
+
+                
                     <div id="method_getValue" class="method item">
     <h3 class="name"><code>getValue</code></h3>
 
@@ -1469,7 +1720,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l977"><code>src\model.js:977</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1043"><code>src\model.js:1043</code></a>
         
         </p>
 
@@ -1537,7 +1788,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l712"><code>src\model.js:712</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l759"><code>src\model.js:759</code></a>
         
         </p>
 
@@ -1618,7 +1869,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1565"><code>src\model.js:1565</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1673"><code>src\model.js:1673</code></a>
         
         </p>
 
@@ -1709,7 +1960,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l957"><code>src\model.js:957</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1023"><code>src\model.js:1023</code></a>
         
         </p>
 
@@ -1825,7 +2076,7 @@ namedRoot.property1.getName();       // returns "/customName/property1"
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1221"><code>src\model.js:1221</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1324"><code>src\model.js:1324</code></a>
         
         </p>
 
@@ -1963,7 +2214,7 @@ those that try to set a value from a property to a model and vise versa.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1732"><code>src\model.js:1732</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1840"><code>src\model.js:1840</code></a>
         
         </p>
 
@@ -2059,7 +2310,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l665"><code>src\model.js:665</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l712"><code>src\model.js:712</code></a>
         
         </p>
 
@@ -2181,7 +2432,7 @@ var localModel = window.Model.noConflict();
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l635"><code>src\model.js:635</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l682"><code>src\model.js:682</code></a>
         
         </p>
 
@@ -2303,7 +2554,7 @@ event type.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l553"><code>src\model.js:553</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l590"><code>src\model.js:590</code></a>
         
         </p>
 
@@ -2431,7 +2682,7 @@ model.subModel.onChange(callback) //listen to change on subModel only. (ie. via 
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l991"><code>src\model.js:991</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1070"><code>src\model.js:1070</code></a>
         
         </p>
 
@@ -2541,7 +2792,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1508"><code>src\model.js:1508</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1622"><code>src\model.js:1622</code></a>
         
         </p>
 
@@ -2617,7 +2868,7 @@ listeners will be notified unless the suppressNotifications option indicates oth
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1256"><code>src\model.js:1256</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1359"><code>src\model.js:1359</code></a>
         
         </p>
 
@@ -2735,7 +2986,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l619"><code>src\model.js:619</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l666"><code>src\model.js:666</code></a>
         
         </p>
 
@@ -2854,7 +3105,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1027"><code>src\model.js:1027</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1106"><code>src\model.js:1106</code></a>
         
         </p>
 
@@ -2953,7 +3204,7 @@ properties will have the value set to 'undefined' while models will be set to an
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1671"><code>src\model.js:1671</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1779"><code>src\model.js:1779</code></a>
         
         </p>
 
@@ -2967,7 +3218,7 @@ properties will have the value set to 'undefined' while models will be set to an
 All events are considered 'real' except for the MODEL_CHANGE event which is a special
 propagation event and the CHANGE event which is a pseudo event.
 Triggering the ALL event does not fire all event, but fires an event named all which will
-call all callback registered to the ALL event. The callback will have the following arguments:
+call all callbacks registered to the ALL event. The callback will have the following arguments:
      <ul>
      <li>this = the property listening to the event</li>
      <li>arg[0-..n-1] = the same arguments passed to the original event</li>
@@ -3008,7 +3259,7 @@ call all callback registered to the ALL event. The callback will have the follow
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1615"><code>src\model.js:1615</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1723"><code>src\model.js:1723</code></a>
         
         </p>
 
@@ -3061,7 +3312,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1643"><code>src\model.js:1643</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1751"><code>src\model.js:1751</code></a>
         
         </p>
 
@@ -3114,7 +3365,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1657"><code>src\model.js:1657</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1765"><code>src\model.js:1765</code></a>
         
         </p>
 
@@ -3167,7 +3418,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1629"><code>src\model.js:1629</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1737"><code>src\model.js:1737</code></a>
         
         </p>
 
@@ -3220,7 +3471,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1601"><code>src\model.js:1601</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1709"><code>src\model.js:1709</code></a>
         
         </p>
 
@@ -3274,7 +3525,7 @@ The callback will have the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1585"><code>src\model.js:1585</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1693"><code>src\model.js:1693</code></a>
         
         </p>
 
@@ -3329,7 +3580,7 @@ PROPERTY_CHANGE event callbacks will be called with the following arguments:
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1297"><code>src\model.js:1297</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1400"><code>src\model.js:1400</code></a>
         
         </p>
 
@@ -3392,7 +3643,7 @@ input type as a value.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1320"><code>src\model.js:1320</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1423"><code>src\model.js:1423</code></a>
         
         </p>
 
@@ -3441,7 +3692,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1691"><code>src\model.js:1691</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1799"><code>src\model.js:1799</code></a>
         
         </p>
 
@@ -3497,7 +3748,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1700"><code>src\model.js:1700</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1808"><code>src\model.js:1808</code></a>
         
         </p>
 
@@ -3553,7 +3804,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1709"><code>src\model.js:1709</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1817"><code>src\model.js:1817</code></a>
         
         </p>
 
@@ -3609,7 +3860,7 @@ if it exists.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;src_model.js.html#l1718"><code>src\model.js:1718</code></a>
+        <a href="..&#x2F;files&#x2F;src_model.js.html#l1826"><code>src\model.js:1826</code></a>
         
         </p>
 
