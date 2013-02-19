@@ -217,12 +217,17 @@
             // used to get around the JSLint warning of creating a function within the while loop below
             var executeCallbacksFunction = function (thisProperty, callbackArgs) {
                 return function (callback) {
+
+                    function notifyListener() {
+                        callback.apply(thisProperty, callbackArgs);
+                    }
+
                     if (Model.TRANSACTION_OPTIONS.flattenCallbacks || Model.TRANSACTION_OPTIONS.flattenCallbacksByHash) {
                         var callbackExecuted = false;
                         if (Model.TRANSACTION_OPTIONS.flattenCallbacks) {
                             if (executedCallbacks.indexOf(callback) === -1) { // Only call callback once
                                 executedCallbacks.push(callback);
-                                callback.apply(thisProperty, callbackArgs);
+                                notifyListener();
                                 callbackExecuted = true;
                             }
                         }
@@ -232,13 +237,13 @@
                                     callbackHashs.push(callback.hash);
                                 }
                                 if (!callbackExecuted) {
-                                    callback.apply(thisProperty, callbackArgs);
+                                    notifyListener();
                                     callbackExecuted = true;
                                 }
                             }
                         }
                     } else {
-                        callback.apply(thisProperty, callbackArgs);
+                        notifyListener();
                     }
                 };
             };

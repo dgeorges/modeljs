@@ -18,6 +18,7 @@
     var ModelTests = {};
     ModelTests.tests = {
         testPrimitiveSaveLoad : function () {
+            expect(1);
             var jsonModel = { number: 1,
                 str : "aString",
                 bool : true,
@@ -31,6 +32,7 @@
         },
 
         testObjectsSaveLoad : function () {
+            expect(1);
             var jsonModel = {   number: 1,
                                 str : "aString",
                                 subModel: {
@@ -42,7 +44,7 @@
         },
 
         testComplexSaveLoad : function () {
-
+            expect(3);
             var jsonModel = {   number: 1,
                                 str : "aString",
                                 x: function () {return "I am function x";},
@@ -68,7 +70,7 @@
         },
 
         testPrimitiveSetGet : function () {
-
+            expect(3);
             var jsonModel = { number: 1,
                 str : "aString",
                 bool : true,
@@ -94,7 +96,7 @@
         },
 
         testGetNameMethod : function () {
-
+            expect(8);
             var jsonModel = {   number: 1,
                                 str : "aString",
                                 x: function () {return "I am function x";},
@@ -118,6 +120,7 @@
         },
 
         testOnChangeCallbackWhenSettingToSameValue : function () {
+            expect(1);
             var jsonModel = { number: 1,
                 str : "aString",
                 bool : true,
@@ -139,6 +142,7 @@
         },
 
         testModelCreationUsingCreatePropertyMethod : function () {
+            expect(5);
             var expectedJSON = {
                 x: 1,
                 y: "y",
@@ -186,7 +190,7 @@
         },
 
         testPropertyDestroyMethod : function() {
-
+            expect(7);
             var jsonModel = {
                 number: 1,
                 str : "aString",
@@ -225,7 +229,8 @@
         },
 
         testModelMergeMethod : function () {
-             var modelJSON = {
+            expect(8);
+            var modelJSON = {
                 x: 1,
                 y: "y",
                 obj: {
@@ -274,6 +279,7 @@
         },
 
         testComplexChangePropertyValue : function () {
+            expect(2);
             var json = {
                 x: 1,
                 y: "y",
@@ -338,6 +344,7 @@
         },
 
         testSuppressNotifications : function () {
+            expect(3);
             var jsonModel = {
                 x: 1,
                 y: "y",
@@ -362,7 +369,7 @@
         },
 
         testPropertyValidation : function () {
-
+            expect(5);
             var onlyPositive = function (value){
                 return value > 0;
             };
@@ -380,7 +387,7 @@
         },
 
         testSaveLoadWithMetaData : function () {
-
+            expect(4);
             var expectedJSON = {
                 x: 1,
                 x__modeljs__metadata: {
@@ -406,6 +413,7 @@
         },
 
         testModelTransactions : function () {
+            expect(5);
             var jsonModel = { number: 1,
                 str : "aString",
                 bool : true,
@@ -439,6 +447,7 @@
         },
 
         testBubbleUpEvents : function () {
+            expect(4);
             var jsonModel = {
                 number: 1,
                 str: "aString",
@@ -479,7 +488,8 @@
             equal(count, 2, "EventNotification bubbled up correctly");
         },
 
-        testModelClone : function (){
+        testModelClone : function () {
+            expect(6);
             var jsonModel = {
                     number: 1,
                     number__modeljs__metadata: {
@@ -522,7 +532,7 @@
         },
 
         testGetFormattedValue : function() {
-
+            expect(5);
             Model.Formatter = function (value) {
 
                 if (typeof value ==='string'){
@@ -554,7 +564,8 @@
 
         },
 
-        testFireOnlyMostRecentPropertyEvent : function (){
+        testFireOnlyMostRecentPropertyEvent : function () {
+            expect(4);
             var jsonModel = {
                     number: 1,
                     str: "aString",
@@ -612,7 +623,8 @@
             equal(count, 2, "fireOnlyMostRecentPropertyEvent does not effect bubbled events");
         },
 
-        testFlattenCallbacks : function (){
+        testFlattenCallbacks : function () {
+            expect(2);
             var jsonModel = {
                     number: 1,
                     str: "aString",
@@ -654,7 +666,8 @@
             Model.TRANSACTION_OPTIONS.flattenCallbacks = false; //restore
         },
 
-        testFlattenCallbacksByHash : function (){
+        testFlattenCallbacksByHash : function () {
+            expect(2);
             var jsonModel = {
                     number: 1,
                     str: "aString",
@@ -699,7 +712,8 @@
             equal(count2, 3, "unhashed function called more than once when flattenCallbacksByHash set");
         },
 
-        testSuppressAllEvents : function (){
+        testSuppressAllEvents : function () {
+            expect(2);
             var jsonModel = {
                     number: 1,
                     str: "aString",
@@ -742,6 +756,7 @@
         },
 
         testModelEndTransactionWithOptions : function () {
+            expect(6);
             var jsonModel = {
                     number: 1,
                     str: "aString",
@@ -803,6 +818,7 @@
         },
 
         testInvalidInitialValue : function () {
+            expect(5);
             function isPositive(value) {
                 return value > 0;
             }
@@ -841,8 +857,9 @@
             equal(m.negativeNumber.getValue(), 3, "assignment to undefined Property");
         },
 
-        testGetMetadataMethod : function (){
-           var expectedJSON = {
+        testGetMetadataMethod : function () {
+            expect(4);
+            var expectedJSON = {
                 number: 1,
                 number__modeljs__metadata: {
                     validator: function (value){
@@ -874,8 +891,9 @@
             equal(JSON.stringify(model.toJSON(true)), JSON.stringify(expectedJSON), "metadata serialized correctly");
         },
 
-        testCustomEvent : function (){
-           var jsonModel = {
+        testCustomEvent : function () {
+            expect(9);
+            var jsonModel = {
                 number: 1,
                 str: "aString",
                 bool: true,
@@ -927,8 +945,9 @@
             ok(callbackCalled === 0, "same event registered twice");
          },
 
-        testChildCreatedEvent : function (){
-           var jsonModel = {
+        testChildCreatedEvent : function () {
+            expect(4);
+            var jsonModel = {
                 number: 1,
                 str: "aString",
                 bool: true,
@@ -959,6 +978,7 @@
         },
 
         testAllEvent : function () {
+            expect(5);
             var jsonModel = {
                 number: 1,
                 str: "a string",
@@ -996,23 +1016,24 @@
             equal(count, 2, "all event Notified of DESTROY and CHILD_DESTROYED event");
         },
 
-        testDoNotPersist : function (){
-           var jsonModel = {
-                    number: 1,
-                    str: "aString",
-                    bool: true,
-                    nil: null,
-                    undef: undefined,
+        testDoNotPersist : function () {
+            expect(4);
+            var jsonModel = {
+                number: 1,
+                str: "aString",
+                bool: true,
+                nil: null,
+                undef: undefined,
+                fun: function () {return "I am a function";},
+                subModel: {
+                    subProp: "I am the subProp",
                     fun: function () {return "I am a function";},
-                    subModel: {
-                        subProp: "I am the subProp",
-                        fun: function () {return "I am a function";},
-                        obj: {
-                            num: 1,
-                            num2: 2
-                        }
+                    obj: {
+                        num: 1,
+                        num2: 2
                     }
-                };
+                }
+            };
 
             var model = new Model(jsonModel);
             equal(JSON.stringify(model.toJSON(true)), JSON.stringify(jsonModel), "metadata serialized correctly");
@@ -1064,6 +1085,7 @@
         },
 
         testThinModel : function () {
+            expect(4);
             var jsonModel = {
                 matrix: {
                     obj2: {
@@ -1097,6 +1119,7 @@
         },
 
         testModelFunctionProperties : function () {
+            expect(2);
             var person = {
                 firstName: "John",
                 lastName: "Smith",
@@ -1114,6 +1137,7 @@
         },
 
         testPropertyArrayLoading : function () {
+            expect(1);
             var jsonModel0 = {
                 matrix: {
                     obj2: {
@@ -1133,7 +1157,8 @@
             deepEqual(JSON.stringify(model.getValue()), JSON.stringify(jsonModel), "Complex Model From JSON and back equal");
         },
 
-        testPropertyArray : function (){
+        testPropertyArray : function () {
+            expect(38);
 
             function testPropertyArrayOnlyContainsProperties(propertyArray) {
                 for (var i = 0; i < propertyArray.length; i++){
@@ -1264,7 +1289,7 @@
         },
 
         testLinkingModels : function () {
-
+            expect(27);
             var model = new Model({a:1, b:"str", c:100, d:300, e:"prop"}, {name: "a"});
             var model2 = model.clone();
 
@@ -1402,7 +1427,7 @@
         },
 
         testLinkingEntireModels : function () {
-
+            expect(5);
             var model = new Model({
                 a:1,
                 b:"str",
@@ -1449,6 +1474,7 @@
         },
 
         testModelFind : function () {
+            expect(5);
             var json = {
                 prop1:"prop1",
                 subProp1:{
@@ -1641,8 +1667,8 @@
     };
 
     ModelTests.browserOnlyTests = {
+
         testJSONPRemoteModel : function testJSONPRemoteModel() {
-            testJSONPRemoteModel.isAsync = true;
             expect(3);
             var test = new Model();
             test.createProperty ("remoteModel", {prop1: "defaultValue"}, {
@@ -1665,11 +1691,10 @@
             test.remoteModel.onChange(callback);
 
             ok(!test.remoteModel.count, "remoteModel count property DNE");
-            stop();
         },
 
         testModelNoConflict : function () {
-
+            expect(3);
             ok (Model, "Model exists in global namespace prior to noConflict");
             var originalModel = Model;
             var myModel = Model.noConflict();
@@ -1684,6 +1709,9 @@
 
     ModelTests.nodeOnlyTests = {
     };
+
+    // flag asyn tests
+    ModelTests.browserOnlyTests.testJSONPRemoteModel.isAsync = true;
 
    if (typeof define === "function" && define.amd) {
         define([], function () {

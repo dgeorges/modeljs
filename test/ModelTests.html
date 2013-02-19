@@ -11,7 +11,7 @@
     <script type="text/javascript">
 
         Object.keys(ModelTests.tests).forEach(function (key) {
-            testFunction = ModelTests.tests[key];
+            var testFunction = ModelTests.tests[key];
             if (testFunction.isAsync) {
                 asyncTest(key, testFunction);
             } else {
@@ -20,7 +20,7 @@
         });
 
         Object.keys(ModelTests.browserOnlyTests).forEach(function (key) {
-            testFunction = ModelTests.browserOnlyTests[key];
+            var testFunction = ModelTests.browserOnlyTests[key];
             if (testFunction.isAsync) {
                 asyncTest(key, testFunction);
             } else {

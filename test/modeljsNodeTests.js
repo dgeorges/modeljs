@@ -24,6 +24,8 @@
     global.equal = testrunner.equal;
     global.equals = testrunner.equals;
     global.deepEqual = testrunner.deepEqual;
+    global.expect = testrunner.expect;
+    global.start = testrunner.start;
 
     var showPassingTests = false;
     var currentProgress = "No tests run";
