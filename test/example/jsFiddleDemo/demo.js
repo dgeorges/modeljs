@@ -10,4 +10,4 @@ function changeAction() {
 
 model.name.onChange(function(property, oldValue) {
     $("#data").text(property.getValue());
-});​
+});
