@@ -219,7 +219,13 @@
                 return function (callback) {
 
                     function notifyListener() {
-                        callback.apply(thisProperty, callbackArgs);
+                        if (Model.asyncEvents) {
+                            setTimeout(function () {
+                                callback.apply(thisProperty, callbackArgs);
+                            }, 0);
+                        } else {
+                            callback.apply(thisProperty, callbackArgs);
+                        }
                     }
 
                     if (Model.TRANSACTION_OPTIONS.flattenCallbacks || Model.TRANSACTION_OPTIONS.flattenCallbacksByHash) {
@@ -485,6 +491,12 @@
             writable: true
         });
     }
+
+    //Override Default Object.prototype.valueOf so Property behave like underlying primitive when primitive value is expected.
+    // eg if we had aProperty with value 1 and name numberOne. NumberOne++ would return 2.
+    Property.prototype.valueOf = function () {
+        return this.getValue();
+    };
 
     /**
      * Gets the value of the property.
@@ -861,7 +873,7 @@
                 this._myValue = value;
                 if (this.length > newValue.length) { //remove excess iterating backwards because modifying the end.
                     for (i = this.length - 1; i >= newValue.length; i-=1) {
-                        this.pop(); // will fire CHILD_CREATED event
+                        this.pop(); // will fire CHILD_DESTROYED event
                     }
                 }
                 for (i = 0; i < newValue.length; i++) {
@@ -1569,7 +1581,7 @@
                     linkedProperty.destroy();
                 }
             } else { //custom event
-                linkedProperty.trigger(eventName, Array.prototype.slice.call(arguments, 1));
+                Property.prototype.trigger.apply(linkedProperty, [eventName].concat(Array.prototype.slice.call(arguments, 2)));
             }
 
             // only restore the connection if property is not destroyed
@@ -1603,15 +1615,15 @@
             var disconnectFunctions  = [];
             for (var propName in src) {
                 if (src.hasOwnProperty(propName) &&
-                        (src[propName] instanceof Property || Model.isArray(src[propName])) &&
-                        propName !== "_parent") {
+                    (src[propName] instanceof Property || Model.isArray(src[propName])) &&
+                    propName !== "_parent") {
 
-                        var childLinkedPropertyName = options.mapFunction ? options.mapFunction(src[propName].getName()) : src[propName].getName();
-                        var childLinkedProperty = Model.find(dest, childLinkedPropertyName );
-                        if (childLinkedProperty) {
-                            disconnectFunctions.push(Model.connect(src[propName], childLinkedProperty, options));
-                        }
+                    var childLinkedPropertyName = options.mapFunction ? options.mapFunction(src[propName].getName()) : src[propName].getName();
+                    var childLinkedProperty = Model.find(dest, childLinkedPropertyName );
+                    if (childLinkedProperty) {
+                        disconnectFunctions.push(Model.connect(src[propName], childLinkedProperty, options));
                     }
+                }
             }
             return function disconnectModel(functionsToDisconnect) {
                 for (var i = 0; i < functionsToDisconnect.length; i++) {
@@ -1690,6 +1702,16 @@
     Model.inTransaction = function() {
         return eventProxy.inTransaction();
     };
+
+    /**
+     * Determines if Events notify listener asynchronously.
+     *
+     * @property asyncEvents
+     * @default true
+     * @static
+     * @type {Boolean} Indicates if event notify listener asynchronously
+     */
+    Model.asyncEvents = true;
 
     // does property change bubble a model change?
     // does model change include this or just it's children?

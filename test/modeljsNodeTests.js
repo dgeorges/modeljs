@@ -27,36 +27,32 @@
     global.expect = testrunner.expect;
     global.start = testrunner.start;
 
+
     var showPassingTests = false;
-    var currentProgress = "No tests run";
     var testCount = 0;
 
 
     // set up Test runner
     testrunner.module("modeljs Tests");
 
-    // Called once before running a tests
-    testrunner.testStart(function (details) {
-        testCount +=1;
-        log(testCount + ".", details.name);
-    });
 
+    // called whenever and assertion completes
     testrunner.log(function( details ) {
         if (showPassingTests && details.result) { // test passed
             log("  ", details.message, "PASSED");
         } else if (!details.result) { // test failed
-            log("  ### ", details.message);
+            log("  ### ", details.message, "##", details);
         }
     });
 
+
+    // Called when test Complete
     testrunner.testDone(function( details ) {
-        log( "       -", "(" + details.passed + "/" + details.total+ ")", "PASSED -", "\n");
+        testCount +=1;
+        log(testCount + ".", details.name);
+        log("       -", "(" + details.passed + "/" + details.total+ ")", "PASSED -", "\n");
     });
 
-    testrunner.done(function( details ) {
-        // keep track of current progress
-        currentProgress = details;
-    });
 
 
     // do work execute tests
@@ -64,7 +60,12 @@
     Object.keys(ModelTests.tests).forEach(function (key) {
         var testFunction = ModelTests.tests[key];
         if (testFunction.isAsync) {
-            testrunner.asyncTest(key, testFunction);
+            testrunner.asyncTest(key, function () {
+                testFunction();
+                setTimeout(function() {
+                    start();
+                }, 1000);
+            });
         } else {
             testrunner.test(key, testFunction);
         }
@@ -72,17 +73,30 @@
     Object.keys(ModelTests.nodeOnlyTests).forEach(function (key) {
         var testFunction = ModelTests.nodeOnlyTests[key];
         if (testFunction.isAsync) {
-            testrunner.asyncTest(key, testFunction);
+            testrunner.asyncTest(key, function () {
+                testFunction();
+                setTimeout(function() {
+                    start();
+                }, 1000);
+            });
         } else {
             testrunner.test(key, testFunction);
         }
     });
 
-    if (currentProgress.failed > 0) {
-        log("### some tests FAILED ###", "\n", currentProgress);
-    } else {
-        log("### all tests PASSED ###", "\n", currentProgress);
-    }
+
+
+    // Called when test Suite Complete
+    testrunner.moduleDone(function( details ) {
+        // keep track of current progress
+        //currentProgress = details;
+
+        if (details.failed > 0) {
+            log("### some tests FAILED ###", "\n", details);
+        } else {
+            log("### all tests PASSED ###", "\n", details);
+        }
+    });
 
 
 }(GLOBAL));

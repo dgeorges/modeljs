@@ -120,7 +120,7 @@
         },
 
         testOnChangeCallbackWhenSettingToSameValue : function () {
-            expect(1);
+            expect(2);
             var jsonModel = { number: 1,
                 str : "aString",
                 bool : true,
@@ -132,13 +132,12 @@
             var m = new Model(jsonModel);
             var f = function (property, oldValue) {
                 count++;
+                ok(true, "change callback should be hit twice. Once for each time the value actually changed");
             };
             m.number.onChange(f);
             m.number.setValue(2);
             m.number.setValue(3);
             m.number.setValue(3); // value is the same should not fire a change
-
-            equal(count, 2, "onChangeEvent only fires when OldValue != newValue");
         },
 
         testModelCreationUsingCreatePropertyMethod : function () {
@@ -205,6 +204,7 @@
             var deleteCallbackCalled = false;
             function deleteCallback(property) {
                 deleteCallbackCalled = true;
+                ok(deleteCallbackCalled, "destroy callback called, 3 times");
             }
 
             var model = new Model(jsonModel);
@@ -212,24 +212,21 @@
             model.number.onDestroy(deleteCallback);
             model.number.destroy();
             ok(!model.number, "number Property no longer exists it was destroyed");
-            ok(deleteCallbackCalled, "destroy callback called");
 
             deleteCallbackCalled = false;
             model.subModel.str2.onDestroy(deleteCallback);
             model.subModel.destroy();
             ok(!model.subModel, "SubModel Property no longer exists it was destroyed");
-            ok(deleteCallbackCalled, "destroy callback of child called");
 
             deleteCallbackCalled = false;
             model.arr[1].onDestroy(deleteCallback);
             model.arr.destroy();
             ok(!model.arr, "Array Property no longer exists it was destroyed");
-            ok(deleteCallbackCalled, "destroy callback called on array children");
 
         },
 
         testModelMergeMethod : function () {
-            expect(8);
+            expect(11);
             var modelJSON = {
                 x: 1,
                 y: "y",
@@ -251,9 +248,14 @@
                 aArray: [1,4]
             };
 
-            var callbackCount = 0;
-            function callback (property, arg){
-                callbackCount++;
+
+            function callback (property, arg) {
+                // should be called 4 times
+                ok (true, "new property added1");
+            }
+            function callback1 (property, arg) {
+                // should be called once
+                ok (true, "new property added2");
             }
 
             var m = new Model(modelJSON);
@@ -264,18 +266,17 @@
             ok (!m.obj2.key2, "old properties removed");
             equal (m.obj2.key1.getValue(), "new key1Value", "existing property overridden");
             equal (m.obj2.key3.getValue(), "new key", "new property added");
-            equal (callbackCount, 4, "new property added");
+            //equal (callbackCount, 4, "new property added");
 
-            callbackCount = 0; //reset Callback
             var m1 = new Model(modelJSON);
-            m1.obj2.key2.onDestroy(callback);
-            m1.obj2.on("childCreated childDestroyed", callback); //1 callback for create
+            m1.obj2.key2.onDestroy(callback1);
+            m1.obj2.on("childCreated childDestroyed", callback1); //1 callback for create
 
-            m1.obj2.merge(mergeObj, true);
+            m1.obj2.merge(mergeObj, true); // keepAllProperties = true
             equal (m1.obj2.key2.getValue(), "key2", "old properties remain");
             equal (m1.obj2.key1.getValue(), "new key1Value", "existing property overridden");
             equal (m1.obj2.key3.getValue(), "new key", "new property added");
-            equal (callbackCount, 1, "new property added");
+
         },
 
         testComplexChangePropertyValue : function () {
@@ -344,7 +345,7 @@
         },
 
         testSuppressNotifications : function () {
-            expect(3);
+            expect(2);
             var jsonModel = {
                 x: 1,
                 y: "y",
@@ -354,18 +355,22 @@
             };
 
             var m = new Model(jsonModel);
-            var notified = false;
+
             var callback = function (property, oldValue) {
-                notified = true;
+                ok(true, "onChange Callback works");
+            };
+
+            var callback1 = function (property, oldValue) {
+                // this callback should be suppressed
+                ok(false, "onChange callback suppressed succesfully");
             };
 
             m.x.onChange(callback);
             m.x.setValue(2);
-            ok(notified, "onChange Callback works");
-            notified = false;
-            m.x.setValue(5, true); // better way to set value and suppress notification
-            ok(!notified, "onChange callback suppressed succesfully");
-            equal(m.x.getValue(), 5, "Assignment successful when notification suppressed");
+
+            m.y.onChange(callback1);
+            m.y.setValue(5, true); // way to set value and suppress notification
+            equal(m.y.getValue(), 5, "Assignment successful when notification suppressed");
         },
 
         testPropertyValidation : function () {
@@ -428,9 +433,13 @@
                 count++;
             };
 
+        var suppresCallback = function (property, oldValue) {
+                ok(false, "callbackShuld not be called because suppressed");
+            };
+
             var m = new Model(jsonModel);
             m.number.onChange(callback);
-            m.bool.onChange(callback);
+            m.bool.onChange(suppresCallback);
             m.str.onChange(callback);
 
             Model.startTransaction();
@@ -442,8 +451,11 @@
             Model.endTransaction();
             ok(!Model.inTransaction(), "Model inTranaction repoting correctly");
 
-            ok(callbackCalled, "onChange Callback called after tranaction ended");
-            equal(count, 2, "Expected number of callbacks after transaction completed");
+            setTimeout(function () {
+                // transaction should be fired by now.
+                ok(callbackCalled, "onChange Callback called after tranaction ended");
+                equal(count, 2, "Expected number of callbacks after transaction completed");
+            }, 0)
         },
 
         testBubbleUpEvents : function () {
@@ -456,62 +468,64 @@
                 undef: undefined,
                 fun: function () {return "I am a function";},
                 subModel: {
-                    subProp: "I am the subProp",
+                    subProp: "subPropOriginalValue",
                     subSubModel: {
                         str: "another string"
                     }
                 }
             };
 
-            var callbackCalled = false;
-            var count = 0;
-            var callback = function (property, oldValue) {
-                callbackCalled = true;
-                count++;
+            var rootCallback = function (property, oldValue) {
+                // should be called twice
+                ok(true, "Root notified of Change");
             };
 
-            var m = new Model(jsonModel);
-            m.onChange(callback, true);
-            m.number.onChange(callback);
+            var numberCallback = function (property, oldValue) {
+                equal(oldValue, 1, "Number Changed event fired");
+            };
 
+            var subModelCallback = function (property, oldValue) {
+                equal(oldValue, "subPropOriginalValue", "SubModel Changed event fired");
+            };
+
+
+            var m = new Model(jsonModel);
+            m.onChange(rootCallback, true);
+            m.number.onChange(numberCallback);
+
+            // should fire 2 events one on number and one on root.
             m.number.setValue(5);
 
-            ok(callbackCalled, "Passed");
-            equal(count, 2, "EventNotification bubbled up correctly");
+            m.subModel.onChange(subModelCallback, true);
 
-            count = 0; //reset counter
-            callbackCalled = false;
-            m.subModel.onChange(callback, true);
+            // should fire 2 events one on submodel and one on root.
             m.subModel.subProp.setValue("new value");
 
-            ok(callbackCalled, "Passed");
-            equal(count, 2, "EventNotification bubbled up correctly");
         },
 
         testModelClone : function () {
-            expect(6);
+            expect(7);
             var jsonModel = {
-                    number: 1,
-                    number__modeljs__metadata: {
-                        validator: function (value){
-                            return value > 0;
-                        }
-                    },
-                    str: "aString",
-                    bool: true,
-                    nil: null,
-                    aArray: [1,2],
-                    undef: undefined,
-                    fun: function () {return "I am a function";},
-                    subModel: {
-                        subProp: "I am the subProp",
-                        fun: function () {return "I am a function";}
+                number: 1,
+                number__modeljs__metadata: {
+                    validator: function (value){
+                        return value > 0;
                     }
-                };
+                },
+                str: "aString",
+                bool: true,
+                nil: null,
+                aArray: [1,2],
+                undef: undefined,
+                fun: function () {return "I am a function";},
+                subModel: {
+                    subProp: "I am the subProp",
+                    fun: function () {return "I am a function";}
+                }
+            };
 
-            var count = 0;
             function callback(){
-                return count++;
+                ok(true, "callback called");
             }
 
             var model = new Model(jsonModel);
@@ -522,13 +536,16 @@
             ok (clone.number.hasValidator(), "Clone keeps the validator");
             equal(JSON.stringify(model.toJSON(true)), JSON.stringify(clone.toJSON(true)), "Model.clone looks identical");
 
-            model.number.setValue(-3); // shouldn't pass validator
-            model.number.setValue(3);
-            equal(count, 1, "Callback not cloned");
+            model.number.setValue(-3); // shouldn't pass validator thus callback not called
+            model.number.setValue(3); // should pass and notify the callback
+
+            //same applies to clone
+            clone.number.setValue(-3); // shouldn't pass validator
+            equal(clone.number.getValue(), 1, "Cloned attributes have the same validator");
+
             var subModelClone = model.subModel.clone();
             equal(subModelClone.getName(), "/subModel", "Cloned name adjusted");
             equal(subModelClone.subProp.getName(), "/subModel/subProp", "Cloned child properties names adjusted");
-
         },
 
         testGetFormattedValue : function() {
@@ -567,23 +584,24 @@
         testFireOnlyMostRecentPropertyEvent : function () {
             expect(4);
             var jsonModel = {
-                    number: 1,
-                    str: "aString",
-                    bool: true,
-                    nil: null,
-                    undef: undefined,
-                    fun: function () {return "I am a function";},
-                    subModel: {
-                        subProp: "I am the subProp",
-                        fun: function () {return "I am a function";}
-                    }
-                };
+                number: 1,
+                str: "aString",
+                bool: true,
+                nil: null,
+                undef: undefined,
+                fun: function () {return "I am a function";},
+                subModel: {
+                    subProp: "I am the subProp",
+                    fun: function () {return "I am a function";}
+                },
+               subModel2: {
+                    subProp: "I am the subProp",
+                    fun: function () {return "I am a function";}
+                }
+            };
 
-            var count = 0;
-            var callbackNewValue;
-            function callback(property, oldValue){
-                count +=1;
-                callbackNewValue = property.getValue();
+            function callback(property, oldValue) {
+                equal(property.getValue(), 4, "fireOnlyMostRecentPropertyEvent onChange event is the most recent");
             }
 
             var model = new Model(jsonModel);
@@ -598,58 +616,66 @@
             model.number.setValue(4);
             Model.endTransaction();
 
-            equal(count, 1, "fireOnlyMostRecentPropertyEvent does suppress all but 1 onChangeEvent");
-            equal(callbackNewValue, 4, "fireOnlyMostRecentPropertyEvent onChange event is the most recent");
+            function callback1(property, oldValue) {
+                equal(property.getValue(), "new subProp value3", "fireOnlyMostRecentPropertyEvent onChange event is the most recent");
+            }
 
             //test on Model
-            count = 0; //reset counter
-            model.subModel.onChange(callback, true);
+            model.subModel.onChange(callback1, true);
             Model.startTransaction();
             model.subModel.subProp.setValue("new subProp value1");
             model.subModel.subProp.setValue("new subProp value2");
             model.subModel.subProp.setValue("new subProp value3");
             Model.endTransaction();
 
-            equal(count, 1, "fireOnlyMostRecentPropertyEvent does suppress all but 1 onChangeEvent");
+            function transactionCallback(property, oldValue) {
+                if (property.getShortName() === "subProp") {
+                    equal(property.getValue(), "new value1", "fireOnlyMostRecentPropertyEvent onChange event is the most recent");
+                } else if (property.getShortName() === "fun") {
+                    equal(property.getValue(), "changeFunAgain", "fireOnlyMostRecentPropertyEvent onChange event is the most recent");
+                } else {
+                    ok(false, "unexpected call");
+                }
+            }
 
-            count = 0;
+            // test on model with mulitple changes
+            model.subModel2.onChange(transactionCallback, true);
             Model.startTransaction();
-            model.subModel.subProp.setValue("new subProp value");
-            model.subModel.fun.setValue("replace function with string");
+            model.subModel2.subProp.setValue("new value");
+            model.subModel2.subProp.setValue("new value1");
+            model.subModel2.fun.setValue("changeFun");
+            model.subModel2.fun.setValue("changeFunAgain");
             Model.endTransaction();
-            Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = false; //restore
 
-            // This is what I expect. 2 different properties change but same callback called
-            equal(count, 2, "fireOnlyMostRecentPropertyEvent does not effect bubbled events");
+            Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = false; //restore
         },
 
         testFlattenCallbacks : function () {
             expect(2);
             var jsonModel = {
-                    number: 1,
-                    str: "aString",
-                    bool: true,
-                    nil: null,
-                    undef: undefined,
-                    fun: function () {return "I am a function";},
-                    subModel: {
-                        subProp: "I am the subProp",
-                        fun: function () {return "I am a function";}
-                    }
-                };
+                number: 1,
+                str: "aString",
+                bool: true,
+                nil: null,
+                undef: undefined,
+                fun: function () {return "I am a function";},
+                subModel: {
+                    subProp: "I am the subProp",
+                    fun: function () {return "I am a function";}
+                }
+            };
 
-            var count = 0;
             function callback(property, oldValue){
-                count +=1;
+                ok(true, "onChange callback called once, even though registared on different porperties");
             }
-            var count2 = 0;
             function callback2(property, oldValue){
-                count2 +=1;
+                ok(true, "onChange callback2 called once because different than other callback");
             }
 
             var model = new Model(jsonModel);
             model.number.onChange(callback);
             model.subModel.onChange(callback, true);
+            model.subModel.onChange(callback2, true);
             model.subModel.subProp.onChange(callback);
             model.str.onChange(callback2);
 
@@ -661,34 +687,32 @@
             model.str.setValue("new Value");
             Model.endTransaction();
 
-            equal(count, 1, "onChange callback called once, even though registared on different porperties");
-            equal(count2, 1, "onChange callback2 called once because different than other callback");
             Model.TRANSACTION_OPTIONS.flattenCallbacks = false; //restore
         },
 
         testFlattenCallbacksByHash : function () {
-            expect(2);
+            expect(4);
             var jsonModel = {
-                    number: 1,
-                    str: "aString",
-                    bool: true,
-                    nil: null,
-                    undef: undefined,
-                    fun: function () {return "I am a function";},
-                    subModel: {
-                        subProp: "I am the subProp",
-                        fun: function () {return "I am a function";}
-                    }
-                };
+                number: 1,
+                str: "aString",
+                bool: true,
+                nil: null,
+                undef: undefined,
+                fun: function () {return "I am a function";},
+                subModel: {
+                    subProp: "I am the subProp",
+                    fun: function () {return "I am a function";}
+                }
+            };
 
             var count = 0;
             function callback(property, oldValue){
-                count +=1;
+                ok(count++ === 0, "Hashed function called once when flattenCallbacksByHash set");
             }
             callback.hash = "uniqueID";
-            var count2 = 0;
+
             function callback2(property, oldValue){
-                count2 +=1;
+                ok(true, "unhashed function called more than once when flattenCallbacksByHash set");
             }
 
             var model = new Model(jsonModel);
@@ -707,33 +731,28 @@
             model.str.setValue("new Value");
             Model.endTransaction();
             Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = false;
-
-            equal(count, 1, "Hashed function called once when flattenCallbacksByHash set");
-            equal(count2, 3, "unhashed function called more than once when flattenCallbacksByHash set");
         },
 
         testSuppressAllEvents : function () {
-            expect(2);
+            expect(0);
             var jsonModel = {
-                    number: 1,
-                    str: "aString",
-                    bool: true,
-                    nil: null,
-                    undef: undefined,
-                    fun: function () {return "I am a function";},
-                    subModel: {
-                        subProp: "I am the subProp",
-                        fun: function () {return "I am a function";}
-                    }
-                };
+                number: 1,
+                str: "aString",
+                bool: true,
+                nil: null,
+                undef: undefined,
+                fun: function () {return "I am a function";},
+                subModel: {
+                    subProp: "I am the subProp",
+                    fun: function () {return "I am a function";}
+                }
+            };
 
-            var count = 0;
             function callback(property, oldValue){
-                count +=1;
+                ok(false, "This callback should be suppressed");
             }
-            var count2 = 0;
             function callback2(property, oldValue){
-                count2 +=1;
+                ok(false, "This callback should be suppressed");
             }
 
             var model = new Model(jsonModel);
@@ -750,34 +769,32 @@
             model.str.setValue("new Value");
             Model.endTransaction();
 
-            equal(count, 0, "suppress all fired no events");
-            equal(count2, 0, "suppress all fired no events");
             Model.TRANSACTION_OPTIONS.suppressAllEvents = false; //restore
         },
 
         testModelEndTransactionWithOptions : function () {
-            expect(6);
+            expect(8);
             var jsonModel = {
-                    number: 1,
-                    str: "aString",
-                    bool: true,
-                    nil: null,
-                    undef: undefined,
-                    fun: function () {return "I am a function";},
-                    subModel: {
-                        subProp: "I am the subProp",
-                        fun: function () {return "I am a function";}
-                    }
-                };
+                number: 1,
+                str: "aString",
+                bool: true,
+                nil: null,
+                undef: undefined,
+                fun: function () {return "I am a function";},
+                subModel: {
+                    subProp: "I am the subProp",
+                    fun: function () {return "I am a function";}
+                }
+            };
 
             var count = 0;
-            function callback(property, oldValue){
-                count +=1;
+            function callback(property, oldValue) {
+                ok(count++ === 0, "Hashed function called once when flattenCallbacksByHash set");
             }
+
             callback.hash = "uniqueID";
-            var count2 = 0;
             function callback2(property, oldValue){
-                count2 +=1;
+                ok(true, "unhashed function called more than once when flattenCallbacksByHash set");
             }
 
             var model = new Model(jsonModel);
@@ -810,8 +827,6 @@
             ok(Model.TRANSACTION_OPTIONS.suppressAllEvents, "global event setting restore after endTransaction with options");
 
 
-            equal(count, 1, "Hashed function called once when flattenCallbacksByHash set");
-            equal(count2, 3, "unhashed function called more than once when flattenCallbacksByHash set");
             Model.TRANSACTION_OPTIONS.flattenCallbacksByHash = false; // test ended restore defaults
             Model.TRANSACTION_OPTIONS.flattenCallbacks = false;
             Model.TRANSACTION_OPTIONS.fireOnlyMostRecentPropertyEvent = false;
@@ -892,7 +907,7 @@
         },
 
         testCustomEvent : function () {
-            expect(9);
+            expect(6);
             var jsonModel = {
                 number: 1,
                 str: "aString",
@@ -907,21 +922,17 @@
             };
             var model = new Model(jsonModel);
 
-            var callbackCalled = 0;
             function callback (property, arg) {
-                var a = arguments;
-                callbackCalled++;
+                //var a = arguments;
                 equal(arg, "bar", "correct argument passed to callback");
                 equal(property, model.str, "callback property argument is the property event was triggered on");
                 equal(this, model.str, "callback this is the property event was triggered on");
             }
 
-            model.str.on("foo", callback);
-            ok(callbackCalled === 0);
-            model.str.trigger("bar", "bar");
-            ok(callbackCalled === 0);
-            model.str.trigger("foo", "bar");
-            ok(callbackCalled === 1);
+            model.str.on("foo", callback); // register custom event
+            model.str.trigger("bar", "bar"); // trigger incorrect custom event
+            model.str.trigger("foo", "bar"); // trigger correct custom event
+
             function fourArgsCallback() {
                 ok (arguments.length === 4);
             }
@@ -929,24 +940,21 @@
             //first arg is always the property.
             model.str.trigger("fourArgsCallback", "a", "b", "c");
 
-            callbackCalled = 0;
+            var numberCallbackCount = 0;
             function numberCallback (property, arg) {
-                callbackCalled++;
+                ok(numberCallbackCount++ < 2, "this custome Event should be triggered twice");
             }
 
             model.number.on("foo", numberCallback); //registar same callback twice
             model.number.on("foo", numberCallback);
             model.number.trigger("foo", "bar");
-            ok(callbackCalled === 2, "same event registered twice");
 
-            callbackCalled = 0;
             model.number.off("foo", numberCallback); // should remove everything
             model.number.trigger("foo", "bar");
-            ok(callbackCalled === 0, "same event registered twice");
          },
 
         testChildCreatedEvent : function () {
-            expect(4);
+            expect(3);
             var jsonModel = {
                 number: 1,
                 str: "aString",
@@ -960,20 +968,15 @@
                 }
             };
 
-            var callbackCalled = false;
             function callback (property, arg){
                 equal(JSON.stringify(this.toJSON()), JSON.stringify(model.toJSON()), "creteChildCallback this equals model listener attached too");
                 equal(JSON.stringify(property.toJSON()), JSON.stringify(model.toJSON()), "creteChildCallback property argument equals model listener attached too");
                 equal(JSON.stringify(arg.getValue()), JSON.stringify(model.newProp.getValue()), "creteChildCallback arg argument equals newly created property");
-
-                callbackCalled = true;
             }
 
             var model = new Model(jsonModel);
             model.on("childCreated", callback);
             model.createProperty("newProp", "string Prop");
-
-            ok(callbackCalled, "childCreate callback called");
 
         },
 
@@ -988,32 +991,25 @@
             };
 
             var model = new Model(jsonModel);
-            var count = 0;
             function callback(property, originalArg, eventName) {
                 var a = arguments;// put breakpoint here to see arguments to callback which depend on event.
-                count++;
+                ok(true, "Callback should be fired 5 times");
             }
             model.on(Model.Event.ALL, callback);
+            // all event does not listen to propegated MODEL_CHANGED events. Only listens to real events.
             model.number.setValue(10);
-            equal(count, 0, "all event does not listen to propegated MODEL_CHANGED events. Only listens to real events.");
+
             // Do stuff to model. And make sure it works.
 
             model.createProperty("second", "secondProp");//CHILD_CREATED
-            equal(count, 1, "all event Notified of CHILD_CREATED event");
 
-            count = 0;
             model.trigger("knockKnock", "whose", "there", "son");//CUSTOM
-            equal(count, 1, "all event Notified of CUSTOM event");
 
             model.number.on(Model.Event.ALL, callback);
 
-            count = 0;
             model.number.setValue(2); //PROPERTY_CHANGE
-            equal(count, 1, "all event Notified of PROPERTY_CHANGE event");
 
-            count = 0;
-            model.number.destroy(); // DESTROY/ CHILD_DESTROYED
-            equal(count, 2, "all event Notified of DESTROY and CHILD_DESTROYED event");
+            model.number.destroy(); // DESTROY & CHILD_DESTROYED
         },
 
         testDoNotPersist : function () {
@@ -1157,8 +1153,8 @@
             deepEqual(JSON.stringify(model.getValue()), JSON.stringify(jsonModel), "Complex Model From JSON and back equal");
         },
 
-        testPropertyArray : function () {
-            expect(38);
+        testPropertyArrayPushPopSort : function () {
+            expect(17);
 
             function testPropertyArrayOnlyContainsProperties(propertyArray) {
                 for (var i = 0; i < propertyArray.length; i++){
@@ -1182,169 +1178,243 @@
                 childCreatedCallbackCount = 0;
             function changeCallback (property, oldValue) {
                 var a = arguments.length; // put breakpoint here to see arguments
-                callbackCount++;
+                ok(callbackCount++ < 1, "sort causes a CHANGE event");
             }
 
             function childCreatedCallback(property, arg){
                 var a = arguments.length; // put breakpoint here to see arguments
-                childCreatedCallbackCount++;
+                ok(childCreatedCallbackCount++ < 6, "pushing multiple item cause a CHILD_CREATED event for each item");
             }
             function childDestroyedCallback (property, arg){
                 var a = arguments.length; // put breakpoint here to see arguments
-                childDestroyedCallbackCount++;
+                ok(childDestroyedCallbackCount++ < 1, "pop cause a CHILD_DESTROYED event for each item");
             }
 
             model.oArray.onChange(changeCallback);
             model.oArray.on(Model.Event.CHILD_CREATED, childCreatedCallback);
             model.oArray.on(Model.Event.CHILD_DESTROYED, childDestroyedCallback);
 
-            childCreatedCallbackCount = 0;
-            model.oArray.push(3,2,8,4,10);
+            model.oArray.push(3,2,8,4,10); // 5 CHILD_CREATED events
             arrayPrimitiveValue.push(3,2,8,4,10);
             ok (testPropertyArrayOnlyContainsProperties(model.oArray), "Property Array contains only Properties");
-            equal(childCreatedCallbackCount, 5, "pusing multiple item cause a CHILD_CREATED event for each item");
             equal(model.oArray.length, 8, "test Array post push length");
             equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "push() works as expected");
 
 
-            childDestroyedCallbackCount = 0;
-            model.oArray.pop();
+            model.oArray.pop(); // Causes one CHILD_DESTROYED event
             arrayPrimitiveValue.pop();
             equal(model.oArray.length, 7, "test Array post pop length");
-            equal(childDestroyedCallbackCount, 1, "pop results in one CHILD_DESTROYED event.");
             equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "pop() works as expected");
-
-            childDestroyedCallbackCount = 0;
-            model.oArray.shift();
-            arrayPrimitiveValue.shift();
-            equal(childDestroyedCallbackCount, 1, "shift results in one CHILD_DESTROYED event.");
-            equal(model.oArray.length, 6, "Shift remove element from array");
-            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "shift() works as expected");
-
-            childCreatedCallbackCount = 0;
-            model.oArray.unshift(1,2); // needs to creat proper properties to insert.
-            arrayPrimitiveValue.unshift(1,2);
-            equal(childCreatedCallbackCount, 2, "unshift results in one CHILD_CREATED event per element.");
-            equal(model.oArray.length, 8, "Unshift adds elements to array");
-            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "unshift() works as expected");
 
             callbackCount = 0;
             model.oArray.sort();
-            arrayPrimitiveValue.sort();
-            equal(callbackCount, 1, "Sort fires a change event.");
+            arrayPrimitiveValue.sort();  // Sort fires a change event
             equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "sort() works as expected");
-
-            callbackCount = 0;
-            model.oArray.reverse();
-            arrayPrimitiveValue.reverse();
-            equal(callbackCount, 1, "Sort fires a change event.");
-            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "reverse() works as expected");
-
-            childDestroyedCallbackCount = 0;
-            model.oArray.splice(1,1); // removes the second element.
-            arrayPrimitiveValue.splice(1,1);
-            equal(childDestroyedCallbackCount, 1, "splice(1,1) results in one CHILD_DESTROYED event.");
-            equal(model.oArray.length, 7, "Unshift adds elements to array");
-            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "unshift() works as expected");
-
-            childCreatedCallbackCount = 0;
-            model.oArray.splice(1, 0, 99); // adds 99 to index 2.
-            arrayPrimitiveValue.splice(1, 0, 99);
-            equal(childCreatedCallbackCount, 1, "splice(1,0,99) results in one CHILD_DESTROYED event.");
-            equal(model.oArray.length, 8, "Unshift adds elements to array");
-            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "unshift() works as expected");
-
-            childCreatedCallbackCount = 0;
-            childDestroyedCallbackCount = 0;
-            model.oArray.splice(1, 1, 25); // removes the second element, to add 99, this function changes the value rather than do a destroy and create
-            arrayPrimitiveValue.splice(1, 1, 25);
-            equal(childCreatedCallbackCount, 0, "splice(1,0,99) results in one CHILD_DESTROYED event.");
-            equal(childDestroyedCallbackCount, 0, "splice(1,0,99) results in one CHILD_DESTROYED event.");
-            equal(model.oArray.length, 8, "Unshift adds elements to array");
-            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "unshift() works as expected");
-
-            callbackCount = 0;
-            childDestroyedCallbackCount = 0;
-            var newValue = [9, 8, 7];
-            model.oArray.setValue(newValue);
-            equal(model.oArray.length, 3, "test Array setValue updates length");
-            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(newValue), "test Array setValue works as expected");
-            equal(callbackCount, 1, "setValue fires a PROPERTY_CHANGE event.");
-            equal(childDestroyedCallbackCount, 5, "setValue will call destroy on excess.");
-
-            var modelChangeCallbackCount = 0;
-            model.oArray.on(Model.Event.MODEL_CHANGE, function modelChanged (property, oldValue) {
-                var a = arguments.length; // put breakpoint here to see arguments
-                modelChangeCallbackCount++;
-            });
-
-            modelChangeCallbackCount = 0;
-            var prop = Model.find(model, "/root/oArray/0");
-            equal(prop.getValue(), 9, "test Model.find with array's");
-            model.oArray.setValueAt(0, 12);
-            equal(model.oArray[0].getValue(), 12, "test Array setValueAt");
-            equal(modelChangeCallbackCount, 1, "setValue fires a MODEL_CHANGE event on array.");
-            // The following is a limitation we currently have. String doesn't get converted into a property
-            //model.oArray[0] = "Inserted value by index";
         },
 
-        testLinkingModels : function () {
-            expect(27);
-            var model = new Model({a:1, b:"str", c:100, d:300, e:"prop"}, {name: "a"});
+        testPropertyArrayShiftUnshitReverse : function () {
+            expect(15);
+
+            function testPropertyArrayOnlyContainsProperties(propertyArray) {
+                for (var i = 0; i < propertyArray.length; i++){
+                    if (!Model.isProperty(propertyArray[i])){
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            var model = new Model();
+            var arrayPrimitiveValue = [1,2,3];
+            model.createProperty("oArray", arrayPrimitiveValue);
+            ok( Model.isArray(model.oArray), "Array Property created");
+            equal(model.oArray.length, 3, "Array initial size correct");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "test Array initial getValue");
+            ok (testPropertyArrayOnlyContainsProperties(model.oArray), "Property Array contains only Properties");
+
+            var callbackCount = 0,
+                childDestroyedCallbackCount = 0,
+                childCreatedCallbackCount = 0;
+            function changeCallback (property, oldValue) {
+                var a = arguments.length; // put breakpoint here to see arguments
+                ok(callbackCount++ < 3, "reverse, shift and unshift causes a CHANGE event");
+            }
+
+            function childCreatedCallback(property, arg){
+                var a = arguments.length; // put breakpoint here to see arguments
+                ok(childCreatedCallbackCount++ < 2, "unshifting cause a CHILD_CREATED event for each item");
+            }
+            function childDestroyedCallback (property, arg){
+                var a = arguments.length; // put breakpoint here to see arguments
+                ok(childDestroyedCallbackCount++ < 1, "pop cause a CHILD_DESTROYED event for each item");
+            }
+
+            model.oArray.onChange(changeCallback);
+            model.oArray.on(Model.Event.CHILD_CREATED, childCreatedCallback);
+            model.oArray.on(Model.Event.CHILD_DESTROYED, childDestroyedCallback);
+
+            var ModelShift = model.oArray.shift();
+            var ArrayShift = arrayPrimitiveValue.shift();  // shift results in one CHILD_DESTROYED event.
+            equal(model.oArray.length, 2, "Shift remove element from array");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "shift() works as expected");
+
+            model.oArray.unshift(5,4); // needs to create proper properties to insert.
+            arrayPrimitiveValue.unshift(5,4); // unshift results in one CHILD_CREATED event per element.
+            equal(model.oArray.length, 4, "Unshift adds elements to array");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "unshift() works as expected");
+
+            model.oArray.reverse();
+            arrayPrimitiveValue.reverse(); // reverse fires a change event.
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "reverse() works as expected");
+
+        },
+
+        testPropertyArraySlice : function () {
+            expect(15);
+
+            function testPropertyArrayOnlyContainsProperties(propertyArray) {
+                for (var i = 0; i < propertyArray.length; i++){
+                    if (!Model.isProperty(propertyArray[i])){
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            var model = new Model();
+            var arrayPrimitiveValue = [8, 4, 1, 2, 6, 3, 3, 10];
+            model.createProperty("oArray", arrayPrimitiveValue);
+            ok( Model.isArray(model.oArray), "Array Property created");
+            equal(model.oArray.length, 8, "Array initial size correct");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "test Array initial getValue");
+            ok (testPropertyArrayOnlyContainsProperties(model.oArray), "Property Array contains only Properties");
+
+            var callbackCount = 0,
+                childDestroyedCallbackCount = 0,
+                childCreatedCallbackCount = 0;
+            function changeCallback (property, oldValue) {
+                var a = arguments.length; // put breakpoint here to see arguments
+                ok(callbackCount++ < 3, "slice will fire a event");
+            }
+
+            function childCreatedCallback(property, arg){
+                var a = arguments.length; // put breakpoint here to see arguments
+                ok(childCreatedCallbackCount++ < 1, "slice can fire a CHILD_CREATED event");
+            }
+            function childDestroyedCallback (property, arg){
+                var a = arguments.length; // put breakpoint here to see arguments
+                ok(childDestroyedCallbackCount++ < 1, "slice can fire a DESTROY event");
+            }
+
+            model.oArray.onChange(changeCallback);
+            model.oArray.on(Model.Event.CHILD_CREATED, childCreatedCallback);
+            model.oArray.on(Model.Event.CHILD_DESTROYED, childDestroyedCallback);
+
+            model.oArray.splice(1,1); // removes the second element. CHILD_DESTROYED & CHANGE event
+            arrayPrimitiveValue.splice(1,1);
+            equal(model.oArray.length, 7, "Splice can remove elements from array");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "splice() works as expected");
+
+
+            model.oArray.splice(1, 0, 99); // adds 99 to index 2. one CHILD_CREATED & CHANGE event.
+            arrayPrimitiveValue.splice(1, 0, 99);
+            equal(model.oArray.length, 8, "splice can add elements to array");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "splice() works as expected");
+
+            childCreatedCallbackCount = 0;
+            childDestroyedCallbackCount = 0;
+            model.oArray.splice(1, 1, 25); // removes the second element, to add 25, this is CHANGE event rather than do a destroy and create
+            arrayPrimitiveValue.splice(1, 1, 25);
+            equal(model.oArray.length, 8, "Splice removes the second element, to add 25 to array");
+            equal(JSON.stringify(model.oArray.getValue()), JSON.stringify(arrayPrimitiveValue), "splice() works as expected");
+
+        },
+
+        testPropertyArraySetValue : function () {
+            expect(1);
+
+            var model = new Model({
+                arr: [1,2,3,4]
+            });
+            model.arr.setValueAt(0, 12);
+            equal(model.arr[0].getValue(), 12, "test Array setValueAt");
+        },
+
+        testLinkingModelProperties : function () {
+            expect(8);
+            var model = new Model({a:1, b:"str", c:100, d:300, e:"prop", f:200}, {name: "a"});
             var model2 = model.clone();
 
             var disconnectModel = Model.connect(model, model2);
             var disconnectA = Model.connect(model.a, model2.a);
             var disconnectE = Model.connect(model.e, model2.e);
+            var disconnectF = Model.connect(model.f, model2.f);
 
+            // do actions
             model.createProperty("anotherProp", "anotherValue", {random:1});
-            ok(model2.anotherProp, "linked model received CHILD_CREATED event");
-
             model.e.destroy();
-            ok(!model2.e, "linked model received CHILD_DESTROYED event");
-
             model.a.setValue(10);
-            equal(model2.a.getValue(), 10, "linked model received PROPERTY_CHANGE event");
+            model2.f.setValue(15);
 
-            model2.a.setValue(15);
-            equal(model.a.getValue(), 15, "linked model received PROPERTY_CHANGE event in other direction");
+            //test result
+            setTimeout (function () {
+                ok(model2.anotherProp, "linked model received CHILD_CREATED event");
+                ok(!model2.e, "linked model received CHILD_DESTROYED event");
+                equal(model2.a.getValue(), 10, "linked model received PROPERTY_CHANGE event");
+                equal(model.f.getValue(), 15, "linked model received PROPERTY_CHANGE event in other direction");
+            }, 50);
 
-            var customEventOnModel2fired = false;
             model2.a.on("customEvent", function () {
-                customEventOnModel2fired = true;
+                ok(true, "linked model received custom event");
             });
             model.a.trigger("customEvent");
-            ok(customEventOnModel2fired, "linked model received custom event");
 
-            disconnectA();
-            model.a.setValue(5);
-            equal(model2.a.getValue(), 15, "models were disconnected successfully");
+
+            disconnectA(); // after you disconnect you need events. to flush.
+            setTimeout( function () {
+
+                model.a.setValue(5);
+            }, 50);
+
+            setTimeout( function () {
+                equal(model2.a.getValue(), 10, "models were disconnected successfully");
+            }, 100);
+
 
             //test "oneWay" direction
             Model.connect(model.b, model2.b, {direction:"oneWay"});
             model.b.setValue(123);
-            equal(model2.b.getValue(), 123, "Forward event propagates");
-            model2.b.setValue(987);
-            equal(model.b.getValue(), 123, "OneWay does not propagate in reverse direction");
+            setTimeout( function () {
+                equal(model2.b.getValue(), 123, "Forward event propagates");
+                model2.b.setValue(987);
+            }, 100);
+            setTimeout( function () {
+                equal(model.b.getValue(), 123, "OneWay does not propagate in reverse direction");
+            }, 150);
 
+        },
+
+        testLinkedModelWhiteAndBlackLists: function () {
+            expect(12);
+            var model = new Model({a:1, b:"str", c:100, d:300, e:"prop", f:200}, {name: "a"});
+            var model2 = model.clone();
 
             var testCallbackSourceCalled = false;
-            function testCallbackSource() {
-                testCallbackSourceCalled = true;
+            function testCallbackSource(property, eventArg) {
+                equal(eventArg, "normalEvent", "normalEvent fired on Source Property");
             }
             var testCallbackDestCalled = false;
-            function testCallbackDest() {
-                testCallbackDestCalled = true;
+            function testCallbackDest(property, eventArg) {
+                equal(eventArg, "normalEvent", "normalEvent fired on Dest Property");
             }
 
             /** test black listed events **/
-            var blackListedEventCallbackCalledOnSource = false;
-            function blackListedEventCallback () {
-                blackListedEventCallbackCalledOnSource = true;
+            function blackListedEventCallback (property, eventArg) {
+                equal(eventArg, "blackListedEventCallbackCalledOnSource", "blackListedEvent fired on Source Property");
             }
-            var blackListedEventCallbackCalledOnDest = false;
-            function blackListedEventCallback2 () {
-                blackListedEventCallbackCalledOnDest = true;
+
+            function blackListedEventCallback2 (property, eventArg) {
+                equal(eventArg, "blackListedEventCallbackCalledOnDest", "blackListedEvent fired on Dest Property");
             }
 
             Model.connect(model.c, model2.c, {eventBlackList:"blackListedEvent"});
@@ -1354,76 +1424,72 @@
             model2.c.on("test", testCallbackDest);
 
             //blacklisted event should not propagate
-            model.c.trigger("blackListedEvent");
-            ok(blackListedEventCallbackCalledOnSource, "blackListedEvent fired on Source Property");
-            ok(!blackListedEventCallbackCalledOnDest, "blackListedEvent does not propagated to connected Property");
+            model.c.trigger("blackListedEvent", "blackListedEventCallbackCalledOnSource");
 
-            blackListedEventCallbackCalledOnSource = false;
-            model2.c.trigger("blackListedEvent");
-            ok(blackListedEventCallbackCalledOnDest, "blackListedEvent fired on Destination Property");
-            ok(!blackListedEventCallbackCalledOnSource, "blackListedEvent does not propagated to connected Property");
+            model2.c.trigger("blackListedEvent", "blackListedEventCallbackCalledOnDest");
+
 
             // test is not blacklisted so should propagate
-            model.c.trigger("test");
-            ok(testCallbackSourceCalled, "non black listed event still fired");
-            ok(testCallbackDestCalled, "non black listed event still fired");
-            testCallbackSourceCalled = testCallbackDestCalled = false;
+            model.c.trigger("test", "normalEvent");
 
-            model2.c.trigger("test");
-            ok(testCallbackSourceCalled, "non black listed event still fired");
-            ok(testCallbackDestCalled, "non black listed event still fired");
+            model2.c.trigger("test", "normalEvent");
+
 
             /** Test white listed Events **/
-            var whiteListedEventCallbackCalledOnSource = false;
-            function whiteListedEventCallback () {
-                whiteListedEventCallbackCalledOnSource = true;
+            function whiteListedEventCallback (property, eventArg) {
+                equal(eventArg, "whiteListedEvent", "whiteListedEvent fired on Source Property");
             }
-            var whiteListedEventCallbackCalledOnDest = false;
-            function whiteListedEventCallback2 () {
-                whiteListedEventCallbackCalledOnDest = true;
+            function whiteListedEventCallback2 (property, eventArg) {
+                equal(eventArg, "whiteListedEvent", "whiteListedEvent fired on Dest Property");
+            }
+
+
+            function nonWhiteListedEventCallback (property, eventArg) {
+                equal(eventArg, "nonWhiteListedEventCallbackOnSrc", "nonWhiteListedEvent fired on Source Property");
+            }
+
+            function nonWhiteListedEventCallback2 (property, eventArg) {
+                equal(eventArg, "nonWhiteListedEventCallbackOnDest", "nonWhiteListedEvent fired on Dest Property");
             }
 
             Model.connect(model.d, model2.d, {eventWhiteList:"whiteListedEvent"});
             model.d.on("whiteListedEvent", whiteListedEventCallback);
-            model.d.on("test", testCallbackSource);
+            model.d.on("test", nonWhiteListedEventCallback);
             model2.d.on("whiteListedEvent", whiteListedEventCallback2);
-            model2.d.on("test", testCallbackDest);
+            model2.d.on("test", nonWhiteListedEventCallback2);
 
             testCallbackSourceCalled = testCallbackDestCalled = false;
-            model.d.trigger("test");
-            ok(testCallbackSourceCalled, "test is triggered on Source");
-            ok(!testCallbackDestCalled, "test is not on the white listed so not propagated");
-            testCallbackSourceCalled = false;
 
-            model2.d.trigger("test");
-            ok(testCallbackDestCalled, "test is triggered on Destination");
-            ok(!testCallbackSourceCalled, "test is not on the white listed so not propagated");
-            testCallbackDestCalled = false;
+            //condif
+            model.d.trigger("test", "nonWhiteListedEventCallbackOnSrc");
+            model2.d.trigger("test", "nonWhiteListedEventCallbackOnDest");
 
+            // whiteListedEvent should also notify linked model.
+            model.d.trigger("whiteListedEvent", "whiteListedEvent");
 
-            model.d.trigger("whiteListedEvent");
-            ok(whiteListedEventCallbackCalledOnDest, "blackListedEvent fired on Destination Property");
-            ok(whiteListedEventCallbackCalledOnSource, "blackListedEvent does not propagated to connected Property");
-            whiteListedEventCallbackCalledOnDest = whiteListedEventCallbackCalledOnDest = false;
+            model2.d.trigger("whiteListedEvent", "whiteListedEvent"); // other direction
+        },
 
-            model2.d.trigger("whiteListedEvent"); // other direction
-            ok(whiteListedEventCallbackCalledOnDest, "blackListedEvent fired on Destination Property");
-            ok(whiteListedEventCallbackCalledOnSource, "blackListedEvent does not propagated to connected Property");
-            whiteListedEventCallbackCalledOnDest = whiteListedEventCallbackCalledOnDest = false;
-
-            // test arrays.
+        testLinkedModelArrays: function () {
+            expect(2);
+            //Model.asyncEvents = false;
             var arrayModel = new Model({arr: [1,2,3]});
             var arrayModel2 = new Model({arr: [4,5,6]});
-            arrayModel.arr[0].getValue();
+
             Model.connect(arrayModel.arr, arrayModel2.arr);
             arrayModel.arr.push(2);
-            equal(arrayModel2.arr.length, 4, "push propagated to linked Array");
 
-            arrayModel.arr.pop();
-            equal(arrayModel2.arr.length, 3, "pop propagated to linked Array");
+            setTimeout(function () {
+                equal(arrayModel2.arr.length, 4, "push propagated to linked Array");
 
-            arrayModel.arr.shift();
-            equal(arrayModel2.arr.length, 2, "shift propagated to linked Array");
+                arrayModel.arr.pop();
+
+                setTimeout(function () {
+                        equal(arrayModel2.arr.length, 3, "pop propagated to linked Array");
+                }, 100);
+            }, 100);
+
+
         },
 
         testLinkingEntireModels : function () {
@@ -1442,43 +1508,73 @@
             var disconnectModel = Model.connect(model, model2, {includeChildren: true});
 
             model.a.setValue(1234);
-            equal(model2.a.getValue(), 1234, "Direct children linked");
-
             model.d.g.setValue(567);
-            equal(model2.d.g.getValue(), 567, "indirect children linked");
-
             model.d.arr.pop();
-            equal(model.d.arr.length, model2.d.arr.length, "arrays linked");
 
-            disconnectModel();
+            disconnectModel(); //TODO flush the Queue
+            //since linking models works off events it is asynchronous thus notification to other model is delayed. At time of notification value may differ
 
-            model.a.setValue(999);
-            model.d.g.setValue(999);
-            equal(model2.a.getValue(), 1234, "linked properties disconnected correctly");
-            equal(model2.d.g.getValue(), 567, "linked properties disconnected correctly");
+            //we do these chages later after disconnect events fire. else this will be the value set.
+            setTimeout(function () {
+                model.d.g.setValue(999);
+                setTimeout(function () {
+                    equal(model2.a.getValue(), 1234, "Direct children linked");
+                    equal(model2.d.g.getValue(), 567, "indirect children linked");
+                    equal(model.d.arr.length, model2.d.arr.length, "arrays linked");
 
-            var model3 = new Model({ linktoA: "not Linked", linktoG:1});
+                    equal(model.a.getValue(), 1234, "linked properties disconnected correctly");
+                    equal(model.d.g.getValue(), 999, "linked properties disconnected correctly");
+
+                }, 50);
+            }, 50);
+
+
+
+        },
+
+        testLinkingModelsViaMap : function () {
+            expect(2);
+            var model = new Model({
+                a:1,
+                b:"str",
+                c:300,
+                d: {
+                    g:123,
+                    arr: [1,2,3]
+                }
+            }, {name: "a"});
+
+            var model2 = new Model({ linktoA: "not Linked", linktoC:1});
 
             var mapFunction = function (input) {
                 var map = {
                     "/a/a":"/root/linktoA",
-                    "/a/d/g": "/root/linktoG"
+                    "/a/c": "/root/linktoC"
                 };
                 return map[input];
             };
-            var disconnectModel2 = Model.connect(model, model3, {
+            var disconnectModel2 = Model.connect(model, model2, {
                 includeChildren: true,
                 mapFunction: mapFunction
             });
 
+            model.a.setValue(200);
+
+            model2.linktoC.setValue(200);
+
+            setTimeout(function () {
+                equal(model.a.getValue(), model2.linktoA.getValue(), "mapping works forward");
+                equal(model.c.getValue(), model2.linktoC.getValue(), "mapping works backwards");
+            }, 50);
         },
 
         testModelFind : function () {
-            expect(5);
+            expect(7);
             var json = {
                 prop1:"prop1",
                 subProp1:{
                     prop1: "prop1-l2",
+                    arr: ["value1", "value2"],
                     subProp2: {
                         prop1: "prop1l3",
                         subProp3:{
@@ -1495,6 +1591,9 @@
             ok(Model.find(baby, rootModel.prop1.getName()), "search for sibling/cousin");
             ok(Model.find(baby, baby.getName()), "search for self");
             equal(Model.find(rootModel, "/root/subProp1/doesNotExist/a"), null, "Searching for non-existant property returns null");
+
+            equal(Model.find(rootModel, rootModel.subProp1.arr[1].getName()).getValue(), "value2", "search within a array");
+            equal(Model.find(rootModel, "/root/subProp1/arr/1").getValue(), "value2", "search within a array");
         },
 
         modlejsTutorial : function () {
@@ -1519,7 +1618,7 @@
                 objProperty: {
                     name: "point",
                     value: {
-                        x: 2,
+                            x: 2,
                         y: 8,
                         desc: "a complex value"
                     },
@@ -1681,12 +1780,9 @@
                 }
             });
 
-            var onChangeRegistered = false;
             function callback (property, oldValue) {
-                start(); // resume test
-                onChangeRegistered = true;
                 ok(test.remoteModel.query, "remoteModel was modified to have a count property");
-                ok(onChangeRegistered, "onChange callback fired on remote Model");
+                ok(true, "onChange callback fired on remote Model");
             }
             test.remoteModel.onChange(callback);
 
@@ -1712,6 +1808,34 @@
 
     // flag asyn tests
     ModelTests.browserOnlyTests.testJSONPRemoteModel.isAsync = true;
+
+    ModelTests.tests.testOnChangeCallbackWhenSettingToSameValue.isAsync = true;
+    ModelTests.tests.testPropertyDestroyMethod.isAsync = true;
+    ModelTests.tests.testModelMergeMethod.isAsync = true;
+    ModelTests.tests.testSuppressAllEvents.isAsync = true;
+
+    ModelTests.tests.testSuppressNotifications.isAsync = true;
+    ModelTests.tests.testModelTransactions.isAsync = true;
+    ModelTests.tests.testBubbleUpEvents.isAsync = true;
+    ModelTests.tests.testModelClone.isAsync = true;
+
+    ModelTests.tests.testFireOnlyMostRecentPropertyEvent.isAsync = true;
+    ModelTests.tests.testCustomEvent.isAsync = true;
+    ModelTests.tests.testFlattenCallbacks.isAsync = true;
+    ModelTests.tests.testFlattenCallbacksByHash.isAsync = true;
+    ModelTests.tests.testChildCreatedEvent.isAsync = true;
+    ModelTests.tests.testAllEvent.isAsync = true;
+    ModelTests.tests.testModelEndTransactionWithOptions.isAsync = true;
+    ModelTests.tests.testPropertyArraySlice.isAsync = true;
+    ModelTests.tests.testPropertyArrayPushPopSort.isAsync = true;
+    ModelTests.tests.testPropertyArrayShiftUnshitReverse.isAsync = true;
+
+    ModelTests.tests.testLinkingModelProperties.isAsync = true;
+    ModelTests.tests.testLinkingEntireModels.isAsync = true;
+    ModelTests.tests.testLinkingModelsViaMap.isAsync = true;
+    ModelTests.tests.testLinkedModelArrays.isAsync = true;
+    ModelTests.tests.testLinkedModelWhiteAndBlackLists.isAsync = true;
+
 
    if (typeof define === "function" && define.amd) {
         define([], function () {

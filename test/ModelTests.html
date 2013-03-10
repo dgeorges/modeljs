@@ -13,7 +13,12 @@
         Object.keys(ModelTests.tests).forEach(function (key) {
             var testFunction = ModelTests.tests[key];
             if (testFunction.isAsync) {
-                asyncTest(key, testFunction);
+                asyncTest(key, function (testFn) {
+                    testFn();
+                    setTimeout(function() {
+                        start();
+                    }, 1000);
+                }.bind(null, testFunction));
             } else {
                 test(key, testFunction);
             }
@@ -22,8 +27,14 @@
         Object.keys(ModelTests.browserOnlyTests).forEach(function (key) {
             var testFunction = ModelTests.browserOnlyTests[key];
             if (testFunction.isAsync) {
-                asyncTest(key, testFunction);
-            } else {
+                asyncTest(key, function (testFn) {
+                    testFn();
+                    setTimeout(function() {
+                        start();
+                    }, 1000);
+                }.bind(null, testFunction));
+
+            } else {window.console.log(key);
                 test(key, testFunction);
             }
         });

@@ -18,16 +18,22 @@
     globalNS.equal = assert.equal;
     globalNS.equals = assert.equals;
     globalNS.deepEqual = assert.deepEqual;
+    globalNS.expect = function () {}; //stub out this method
 
     //var options = new Benchmark.options;
+
     globalNS.console.log("Benchmark Options:", Benchmark.options, "\n");
     var suite = new Benchmark.Suite("modeljs Tests Suite", Benchmark.options);
     var errors = false;
 
     globalNS.console.log("Begining Benchmark... ");
 
+    globalNS.Model.async = false;
     Object.keys(ModelTests.tests).forEach(function (key) {
-        suite.add(key, ModelTests.tests[key]);
+        // only benchmark non-async tests
+        if (ModelTests.tests[key].isAsync !== true) {
+            suite.add(key, ModelTests.tests[key]);
+        }
     });
 
     suite.on('cycle', function(event) {
@@ -41,7 +47,7 @@
         errors = true;
         globalNS.console.log(" ### ERORR on", event.target.name);
     })
-    .run();
+    .run({async: true});
 
     globalNS.console.log("Benchmark Complete");
     if (errors) {
