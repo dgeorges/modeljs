@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Modeljs by dgeorges</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>Modeljs</h1>
+        <p>A simple javascript library for creating a Model part of a MVC application from JSON.</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/dgeorges/modeljs" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/dgeorges/modeljs/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/dgeorges/modeljs/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h1>modeljs</h1>
+
+<p>A simple javaScript library for creating a Model part of a MVC application from JSON.</p>
+
+<h2>Features</h2>
+
+<ul>
+<li>Simple easy to use and intuitive library.</li>
+<li>No dependencies.</li>
+<li>Can save/load Model to/from JSON with/without model meta data.</li>
+<li>Can attach custom meta-data to properties that can be persisted with model.</li>
+<li>Supports models defined by a remote resource with the ability to periodically refresh.</li>
+<li>remote model has option to use JSONP in the event of CORS issues.</li>
+<li>Can register on change events with any single property or group of properties.</li>
+<li>Model change events bubble up.</li>
+<li>Can define and trigger custom events.</li>
+<li>Can suppress change event notification.</li>
+<li>Can batch actions into a transaction.</li>
+<li>Transaction callbacks can be easily optimized.</li>
+<li>Can tie validation methods to models and properties.</li>
+<li>Can flag any property value to not be persisted to JSON.</li>
+<li>Can retrieve FormattedValues using a custom defined Formatter.</li>
+<li>Can enable logging to flag incorrect uses of api to the console.</li>
+<li>Native browser Support for all browsers that support ECMA5 including and tested on IE9, Firefox 4+, Safari 5.1.4+, Chrome 7+, Opera 12+ without a shim library.</li>
+<li>Works on non-ECMA5 browser with use of a shim library. Specifically tested on IE8 with es5-shim.</li>
+<li>Compatible with the CommonJS module format and is usable as a Node module.</li>
+<li>Compatible with AMD module loaders like requirejs.</li>
+</ul><h2>Browser Support</h2>
+
+<p>modeljs works on all browsers that support ECMAScript 5th Edition (December 2009, <a href="http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-262.pdf">http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-262.pdf</a>).  It has been manually tested on IE9, Firefox 14+, Safari 5.1.4 and Chrome 21+. To see if it work on a specify browser version of your choice, run the unit tests(test/ModelTest.html). To support older non ECMA5 browsers using a shim library like <a href="https://github.com/kriskowal/es5-shim">es5-shim</a>. Modeljs has been successfully tested on IE8 with the es5-shim library.</p>
+
+<h2>Getting Started</h2>
+
+<p>Clone the repo, <code>git clone git://github.com/dgeorges/modeljs.git</code>, or <a href="https://github.com/dgeorges/modeljs/zipball/master">download the latest release</a></p>
+
+<p>To use modeljs in your application copy src/model.js to an appropriate location and include it in your HTML like so:</p>
+
+<pre><code>&lt;script type="text/javascript" src="/path/to/model.js"&gt;&lt;/script&gt;
+</code></pre>
+
+<p>If your doing server side development in Node, you can import it like so:</p>
+
+<pre><code>var Model = require("/path/to/model.js");
+</code></pre>
+
+<p>Or using npm install</p>
+
+<pre><code>npm install modeljs
+var Model = require("modeljs");
+</code></pre>
+
+<h2>Examples</h2>
+
+<p>A couple of example pages have been created to show how to use modeljs. They can be found in the /test/example folder</p>
+
+<ul>
+<li>
+<strong>New</strong> sandbox enviornment on jsFiddle <a href="http://jsfiddle.net/gh/get/jQuery/1.8.2/dgeorges/modeljs/tree/master/test/example/jsFiddleDemo/">here</a>.</li>
+<li>tableWidget.js Shows how a table widget can be created with model js.</li>
+<li>example.html Shows how to integrate the table widget on your page and is followed by a tutorial of the modeljs api.</li>
+<li>knockoutExample.html Shows how easy it is to build a binding library on top of modeljs that behaves like the popular knockoutjs library. The example is almost identical to the knockoutjs introduction example.</li>
+</ul><h2>Documentation</h2>
+
+<p>Documentation is generated by YUIdoc and can be viewed by cloning the repo or downloading the source and viewing <strong>doc/index.html</strong>.
+For more information visit modeljs's <a href="https://github.com/dgeorges/modeljs/wiki">wiki</a></p>
+
+<h3>Project Status: Stable - v2.1.1 Released (Dec 1st 2012).</h3>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/dgeorges">dgeorges</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
