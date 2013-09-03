@@ -255,7 +255,7 @@
             };
 
             var callbackArgs = [property].concat(eventArgs);
-            var eventListeners = property._eventListeners[eventName] || [];
+            var eventListeners = property._eventListeners[eventName].slice(0) || [];
             if (eventName === Model.Event.PROPERTY_CHANGE) {
                 Array.prototype.push.apply(eventListeners, property._eventListeners.change);
             } else if (eventName === Model.Event.MODEL_CHANGE) {
