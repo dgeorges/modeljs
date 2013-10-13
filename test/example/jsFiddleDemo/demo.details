@@ -5,7 +5,7 @@ description: Simple example of how to use modeljs
 authors:
   - Daniel Georges
 resources:
-  - https://raw.github.com/dgeorges/modeljs/v2.1.1/src/model.js
+  - https://rawgithub.com/dgeorges/modeljs/v2.1.1/src/model.js
 ...
 */
 
