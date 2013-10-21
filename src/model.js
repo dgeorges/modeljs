@@ -397,6 +397,7 @@
             removedProperty = this[this.length - 1];
 
         this.setValue(arrayValue); // set value will set all the values correctly and delete the last property
+        removedProperty.setValue(removed);
         return removedProperty;
     };
     ObservableArray.prototype.sort = function () {
