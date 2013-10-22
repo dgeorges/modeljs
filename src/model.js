@@ -1529,7 +1529,7 @@
 
         var propergateSrcToDest,
             propergateDestToSrc;
-            options = options || {};
+        options = options || {};
 
         /**
          * This function is registered on the ALL event to propagate its events to the
@@ -1582,7 +1582,12 @@
                     linkedProperty.destroy();
                 }
             } else { //custom event
-                Property.prototype.trigger.apply(linkedProperty, [eventName].concat(Array.prototype.slice.call(arguments, 2)));
+                // remove the first argument, 'isAtoB' which is bound to this function via bind
+                // also remove the second which is the property event triggered on
+                // extract the middle
+                // remove the last argument which is the event name since this method is registared to the Model.Event.ALL event.
+                var args = [eventName].concat(Array.prototype.slice.call(arguments, 2, arguments.length-1));
+                Property.prototype.trigger.apply(linkedProperty, args );
             }
 
             // only restore the connection if property is not destroyed
