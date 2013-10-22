@@ -311,12 +311,23 @@
             &#x2F;&#x2F; used to get around the JSLint warning of creating a function within the while loop below
             var executeCallbacksFunction = function (thisProperty, callbackArgs) {
                 return function (callback) {
+
+                    function notifyListener() {
+                        if (Model.asyncEvents) {
+                            setTimeout(function () {
+                                callback.apply(thisProperty, callbackArgs);
+                            }, 0);
+                        } else {
+                            callback.apply(thisProperty, callbackArgs);
+                        }
+                    }
+
                     if (Model.TRANSACTION_OPTIONS.flattenCallbacks || Model.TRANSACTION_OPTIONS.flattenCallbacksByHash) {
                         var callbackExecuted = false;
                         if (Model.TRANSACTION_OPTIONS.flattenCallbacks) {
                             if (executedCallbacks.indexOf(callback) === -1) { &#x2F;&#x2F; Only call callback once
                                 executedCallbacks.push(callback);
-                                callback.apply(thisProperty, callbackArgs);
+                                notifyListener();
                                 callbackExecuted = true;
                             }
                         }
@@ -326,19 +337,19 @@
                                     callbackHashs.push(callback.hash);
                                 }
                                 if (!callbackExecuted) {
-                                    callback.apply(thisProperty, callbackArgs);
+                                    notifyListener();
                                     callbackExecuted = true;
                                 }
                             }
                         }
                     } else {
-                        callback.apply(thisProperty, callbackArgs);
+                        notifyListener();
                     }
                 };
             };
 
             var callbackArgs = [property].concat(eventArgs);
-            var eventListeners = property._eventListeners[eventName] || [];
+            var eventListeners = property._eventListeners[eventName] ? property._eventListeners[eventName].slice(0) : [];
             if (eventName === Model.Event.PROPERTY_CHANGE) {
                 Array.prototype.push.apply(eventListeners, property._eventListeners.change);
             } else if (eventName === Model.Event.MODEL_CHANGE) {
@@ -480,6 +491,7 @@
             removedProperty = this[this.length - 1];
 
         this.setValue(arrayValue); &#x2F;&#x2F; set value will set all the values correctly and delete the last property
+        removedProperty.setValue(removed);
         return removedProperty;
     };
     ObservableArray.prototype.sort = function () {
@@ -574,6 +586,12 @@
             writable: true
         });
     }
+
+    &#x2F;&#x2F;Override Default Object.prototype.valueOf so Property behave like underlying primitive when primitive value is expected.
+    &#x2F;&#x2F; eg if we had aProperty with value 1 and name numberOne. NumberOne++ would return 2.
+    Property.prototype.valueOf = function () {
+        return this.getValue();
+    };
 
     &#x2F;**
      * Gets the value of the property.
@@ -950,7 +968,7 @@
                 this._myValue = value;
                 if (this.length &gt; newValue.length) { &#x2F;&#x2F;remove excess iterating backwards because modifying the end.
                     for (i = this.length - 1; i &gt;= newValue.length; i-=1) {
-                        this.pop(); &#x2F;&#x2F; will fire CHILD_CREATED event
+                        this.pop(); &#x2F;&#x2F; will fire CHILD_DESTROYED event
                     }
                 }
                 for (i = 0; i &lt; newValue.length; i++) {
@@ -1605,7 +1623,7 @@
 
         var propergateSrcToDest,
             propergateDestToSrc;
-            options = options || {};
+        options = options || {};
 
         &#x2F;**
          * This function is registered on the ALL event to propagate its events to the
@@ -1658,7 +1676,12 @@
                     linkedProperty.destroy();
                 }
             } else { &#x2F;&#x2F;custom event
-                linkedProperty.trigger(eventName, Array.prototype.slice.call(arguments, 1));
+                &#x2F;&#x2F; remove the first argument, &#x27;isAtoB&#x27; which is bound to this function via bind
+                &#x2F;&#x2F; also remove the second which is the property event triggered on
+                &#x2F;&#x2F; extract the middle
+                &#x2F;&#x2F; remove the last argument which is the event name since this method is registared to the Model.Event.ALL event.
+                var args = [eventName].concat(Array.prototype.slice.call(arguments, 2, arguments.length-1));
+                Property.prototype.trigger.apply(linkedProperty, args );
             }
 
             &#x2F;&#x2F; only restore the connection if property is not destroyed
@@ -1692,15 +1715,15 @@
             var disconnectFunctions  = [];
             for (var propName in src) {
                 if (src.hasOwnProperty(propName) &amp;&amp;
-                        (src[propName] instanceof Property || Model.isArray(src[propName])) &amp;&amp;
-                        propName !== &quot;_parent&quot;) {
+                    (src[propName] instanceof Property || Model.isArray(src[propName])) &amp;&amp;
+                    propName !== &quot;_parent&quot;) {
 
-                        var childLinkedPropertyName = options.mapFunction ? options.mapFunction(src[propName].getName()) : src[propName].getName();
-                        var childLinkedProperty = Model.find(dest, childLinkedPropertyName );
-                        if (childLinkedProperty) {
-                            disconnectFunctions.push(Model.connect(src[propName], childLinkedProperty, options));
-                        }
+                    var childLinkedPropertyName = options.mapFunction ? options.mapFunction(src[propName].getName()) : src[propName].getName();
+                    var childLinkedProperty = Model.find(dest, childLinkedPropertyName );
+                    if (childLinkedProperty) {
+                        disconnectFunctions.push(Model.connect(src[propName], childLinkedProperty, options));
                     }
+                }
             }
             return function disconnectModel(functionsToDisconnect) {
                 for (var i = 0; i &lt; functionsToDisconnect.length; i++) {
@@ -1779,6 +1802,16 @@
     Model.inTransaction = function() {
         return eventProxy.inTransaction();
     };
+
+    &#x2F;**
+     * Determines if Events notify listener asynchronously.
+     *
+     * @property asyncEvents
+     * @default true
+     * @static
+     * @type {Boolean} Indicates if event notify listener asynchronously
+     *&#x2F;
+    Model.asyncEvents = true;
 
     &#x2F;&#x2F; does property change bubble a model change?
     &#x2F;&#x2F; does model change include this or just it&#x27;s children?
