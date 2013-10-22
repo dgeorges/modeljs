@@ -7,36 +7,48 @@
     <script src="../lib/qunit-1.9.0.js"></script>
     <script src="../src/model.js"></script>
     <script src="../test/ModelTests.js"></script>
-    <script type="text/javascript">
+    <script>
+    // browser only tests
+    QUnit.module("browser Specific");
 
-        Object.keys(ModelTests.tests).forEach(function (key) {
-            var testFunction = ModelTests.tests[key];
-            if (testFunction.isAsync) {
-                asyncTest(key, function (testFn) {
-                    testFn();
-                    setTimeout(function() {
-                        start();
-                    }, 1000);
-                }.bind(null, testFunction));
-            } else {
-                test(key, testFunction);
+    test("NoConflict", function () {
+        expect(3);
+        ok (Model, "Model exists in global namespace prior to noConflict");
+        var originalModel = Model;
+        var myModel = Model.noConflict();
+
+        ok (!Model, "Model remove from global namespace after noConflict called");
+        equal(myModel, originalModel, "Model returned from noConflict Method");
+        window.Model = myModel; //restore the world so other tests continue to work
+    });
+
+    // FYI JSONP test currenly fails because twitter new v2 api require oauth
+    // authentication, which is not currently being done.
+    /*
+    test("JSONP Remote Model", function () {
+        expect(3);
+        stop();
+        var test = new Model();
+        test.createProperty ("remoteModel", {prop1: "defaultValue"}, {
+            url: "http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback",
+            doNotPersist: true,
+            refreshRate: -1, // -1 means fetch once.
+            isJSONPurl: true,
+            validator: function() {
+                return true;
             }
         });
 
-        Object.keys(ModelTests.browserOnlyTests).forEach(function (key) {
-            var testFunction = ModelTests.browserOnlyTests[key];
-            if (testFunction.isAsync) {
-                asyncTest(key, function (testFn) {
-                    testFn();
-                    setTimeout(function() {
-                        start();
-                    }, 1000);
-                }.bind(null, testFunction));
-
-            } else {window.console.log(key);
-                test(key, testFunction);
-            }
+        test.remoteModel.onChange(function (property, oldValue) {
+            ok(test.remoteModel.query, "remoteModel was modified to have a count property");
+            ok(true, "onChange callback fired on remote Model");
+            start();
         });
+
+        ok(!test.remoteModel.count, "remoteModel count property DNE");
+    });
+    */
+
     </script>
 </head>
 <body>
