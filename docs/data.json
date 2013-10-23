@@ -4,7 +4,7 @@
         "line": 1,
         "description": "Model js - A simple javaScript library for creating the Model part of a MVC application.\nhttps://github.com/dgeorges/modeljs.git\n\nCopyright 2012, Daniel Georges\nmodeljs is distributed freely under a MIT license",
         "author": "Daniel Georges",
-        "version": "2.1.1"
+        "version": "2.1.2"
     },
     "files": {
         "src\\model.js": {
