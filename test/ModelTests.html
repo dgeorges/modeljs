@@ -22,15 +22,14 @@
         window.Model = myModel; //restore the world so other tests continue to work
     });
 
-    // FYI JSONP test currenly fails because twitter new v2 api require oauth
-    // authentication, which is not currently being done.
-    /*
     test("JSONP Remote Model", function () {
-        expect(3);
+        expect(2);
         stop();
         var test = new Model();
+        // fyi this jsonp request is local (ie. not Cross-orgin), but it's good enough to test.
         test.createProperty ("remoteModel", {prop1: "defaultValue"}, {
-            url: "http://search.twitter.com/search.json?q=tennis&callback=$jsonpCallback",
+            // $jsonpCallback will be replaced by real generated function callback name by modeljs
+            url: "modeljsJSONPtest.js?jsonpCallbackParameter=$jsonpCallback",
             doNotPersist: true,
             refreshRate: -1, // -1 means fetch once.
             isJSONPurl: true,
@@ -40,14 +39,13 @@
         });
 
         test.remoteModel.onChange(function (property, oldValue) {
-            ok(test.remoteModel.query, "remoteModel was modified to have a count property");
-            ok(true, "onChange callback fired on remote Model");
+            ok(test.remoteModel.jsonPRequestSuccessful, "remoteModel was modified to have a jsonPRequestSuccessful property");
             start();
         });
 
-        ok(!test.remoteModel.count, "remoteModel count property DNE");
+        ok(!test.remoteModel.jsonPRequestSuccessful, "remoteModel count property DNE");
     });
-    */
+
 
     </script>
 </head>
