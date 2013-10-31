@@ -3,7 +3,7 @@
     "description": "A simple javaScript library for creating a Model part of a MVC application from JSON.",
     "homepage": "https://github.com/dgeorges/modeljs",
     "main": "./src/model.js",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "license": "MIT",
     "author": {
         "name": "Daniel Georges",
@@ -16,16 +16,15 @@
     "dependencies": {
     },
     "devDependencies": {
-        "assert": ">= 0.4.x",
         "benchmark": ">= 1.x.x",
-        "qunitjs": ">=1.9.x"
+        "qunit": ">= 0.5.16"
     },
     "repository": {
         "type": "git",
         "url": "https://github.com/dgeorges/modeljs.git"
     },
     "scripts": {
-        "test": "node ./test/modeljsNodeTests.js",
+        "test": "node ./test/nodeTestRunner.js",
         "benchmark": "node ./test/benchmarkTests.js"
     },
     "engines": {
