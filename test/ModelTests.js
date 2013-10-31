@@ -458,7 +458,28 @@ test("incorrect setValue usage", function () {
 
 });
 
-test("FormattedValue", function() {
+test("getFormattedValue with a Local Formatter", function () {
+    var json = {
+        str: "unformattedString",
+        str2: "another string",
+        str2__modeljs__metadata: { //local formatter
+            Formatter: function (value) {
+                return "localFormatedResult";
+            }
+        },
+        number: 1,
+        date: new Date()
+    };
+
+    var model = new Model(json);
+    equal(model.str.getValue(), json.str, "getValue returns raw value");
+    equal(model.str.getFormattedValue(), json.str, "getFormattedValue returns raw value when no formatter defined");
+
+    equal(model.str2.getValue(), json.str2, "getValue return the raw value regardless of local formatter defined");
+    equal(model.str2.getFormattedValue(), "localFormatedResult", "local formatter work");
+});
+
+test("getFormattedValue with a Global Formatter", function() {
     expect(4);
     // global formatter
     Model.Formatter = function (value) {
@@ -482,10 +503,10 @@ test("FormattedValue", function() {
 
     var model = new Model(json);
     equal(model.str.getValue(), "unformattedString", "getValue returns raw value");
-    equal(model.str.getFormattedValue(), "UNFORMATTEDSTRING", "getFormattedValue returns formatted value");
+    equal(model.str.getFormattedValue(), "UNFORMATTEDSTRING", "getFormattedValue returns formatted value using global formatter");
 
-    equal(model.str2.getValue(), "another string", "getValue return the raw value regardless of Formatters defined");
-    equal(model.str2.getFormattedValue(), "localFormatedResult", "Formatter in metadata takes precedence over global Formatter");
+    equal(model.str2.getValue(), "another string", "getValue return the raw value regardless of local and global formatters defined");
+    equal(model.str2.getFormattedValue(), "localFormatedResult", "local Formatter in metadata takes precedence over global Formatter");
 
     Model.Formatter = undefined; //restore formatter
 });
@@ -595,7 +616,8 @@ test("Synchronous Events", function () {
     Model.asyncEvents = oldAsyncValue;
 });
 
-asyncTest("Asynchronous Events", function () {
+test("Asynchronous Events", function () {
+    stop();
     expect(2);
 
     var oldAsyncValue = Model.asyncEvents;
