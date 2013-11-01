@@ -511,9 +511,9 @@ test("getFormattedValue with a Global Formatter", function() {
     Model.Formatter = undefined; //restore formatter
 });
 
-QUnit.module("Property Name");
+QUnit.module("Property identity");
 
-test("testGetNameMethod", function () {
+test("getName", function () {
     expect(10);
 
     var m = new Model(mixedModel);
@@ -561,6 +561,24 @@ test("Model.find", function () {
 
     equal(Model.find(rootModel, rootModel.subProp1.arr[1].getName()).getValue(), "value2", "search within a array");
     equal(Model.find(rootModel, "/root/subProp1/arr/1").getValue(), "value2", "search within a array");
+});
+
+test("getRoot", function () {
+    var model = new Model(mixedModel);
+
+    var numberRoot = model.number.getRoot();
+    var innerPropertyRoot = model.innerModel.str.getRoot();
+
+    equal(numberRoot, model, "the root of a property is the top most model");
+    equal(numberRoot, innerPropertyRoot, "all properties of the same model share the same root");
+});
+
+test("getParent", function () {
+    var model = new Model(mixedModel);
+
+    equal(model.getParent(), null, "getParent on top most property is null");
+    equal(model.number.getParent(), model, "getParent works on top level properties");
+    equal(model.innerModel.str.getParent(), model.innerModel, "getParent work on child properties");
 });
 
 test("Metadata", function () {
@@ -737,7 +755,7 @@ test("MODEL_CHANGED Event aka BubbledUp PROPERTY_CHANGED event", function () {
     // should fire 2 events one on submodel and one on root.
     model.innerModel.str.setValue("new value");
 
-    // 2 move events fired one on subModel and one on rood
+    // 2 more events fired one on subModel and one on root
     model.innerModel.arr[1].setValue("position one");
 });
 
@@ -847,7 +865,29 @@ test("CUSTOM Event variable arguments", function () {
     model.number.trigger("CUSTOM_EVENT", "optionalArgument", "anyAmountofOtherArguments" /* ..*/);
 });
 
-test("Removing Event Listeners", function () {
+test("Remove a Event Listeners", function () {
+    expect(3);
+    stop(3);
+
+    var model = new Model(mixedModel);
+    function numberCallback () {
+        ok(true, "this custom Event should be triggered twice");
+        start();
+    }
+    function numberCallback1 () {
+        ok(true, "this custom Event should be triggered twice");
+        start();
+    }
+
+    model.number.on("foo", numberCallback);
+    model.number.on("foo", numberCallback1);
+    model.number.trigger("foo", "bar"); //triggers 2 event listeners
+
+    model.number.off("foo", numberCallback); // remove one of them
+    model.number.trigger("foo", "bar");
+});
+
+test("Removing All Event Listeners", function () {
     expect(2);
     stop(2);
 
@@ -856,12 +896,16 @@ test("Removing Event Listeners", function () {
         ok(true, "this custom Event should be triggered twice");
         start();
     }
+    function numberCallback1 () {
+        ok(true, "this custom Event should be triggered twice");
+        start();
+    }
 
-    model.number.on("foo", numberCallback); //register same callback twice
     model.number.on("foo", numberCallback);
-    model.number.trigger("foo", "bar"); //triggers numberCallback twice
+    model.number.on("foo", numberCallback1);
+    model.number.trigger("foo", "bar"); //triggers 2 listeners
 
-    model.number.off("foo", numberCallback); //  remove everything
+    model.number.off("foo"); //  removes all listening functions
     model.number.trigger("foo", "bar");
 });
 
