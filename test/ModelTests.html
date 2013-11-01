@@ -5,6 +5,8 @@
     <title>Modeljs Unit Tests</title>
     <link rel="stylesheet" href="../lib/qunit-1.9.0.css" />
     <script src="../lib/qunit-1.9.0.js"></script>
+    <script src="../lib/sinon-1.7.3.js"></script>
+
     <script src="../src/model.js"></script>
     <script src="../test/ModelTests.js"></script>
     <script>
@@ -43,9 +45,83 @@
             start();
         });
 
-        ok(!test.remoteModel.jsonPRequestSuccessful, "remoteModel count property DNE");
+        ok(!test.remoteModel.jsonPRequestSuccessful, "jsonPRequestSuccessful property should not be changed yet");
     });
 
+    test("Remote Model", function () {
+        expect(2);
+        stop();
+        var test = new Model();
+
+        // use sinon to stub out xhr requests to remote resourse
+        var server = sinon.fakeServer.create();
+
+        server.respondWith(/.*/, function (xhr, id) {
+            var response = '{ "remoteRequestSuccessful": true }';
+            xhr.setResponseHeaders({ "Content-Type": "application/json"});
+            xhr.responseType = "json";
+            xhr.status = 200;
+            xhr.setResponseBody(response);
+        });
+
+        // fyi this remote request will be handled by the fake server above.
+        test.createProperty ("remoteModel", {remoteRequestSuccessful: false}, {
+            url: "/testService",
+            doNotPersist: true,
+            refreshRate: -1, // -1 means fetch once.
+            validator: function() {
+                return true;
+            }
+        });
+
+        test.remoteModel.onChange(function (property, oldValue) {
+            ok(test.remoteModel.remoteRequestSuccessful.getValue(), "remoteModel was modified to have a remoteRequestSuccessful property");
+            server.restore();
+            start();
+        });
+
+        ok(!test.remoteModel.remoteRequestSuccessful.getValue(), "remoteRequestSuccessful property equal to default value");
+        server.respond();
+    });
+
+    test("Remote Model with Last-Modified header", function () {
+        expect(1);
+
+        var test = new Model();
+
+        // use sinon to stub out xhr requests to remote resourse
+        var server = sinon.fakeServer.create();
+
+        var responseModifidedTimeStamp = Date.now();
+        server.respondWith(/.*/, function (xhr, id) {
+            var response = '{ "remoteRequestSuccessful": true }';
+            xhr.setResponseHeaders({ "Content-Type": "application/json", "Last-Modified": responseModifidedTimeStamp});
+            xhr.responseType = "json";
+            xhr.status = 200;
+            xhr.setResponseBody(response);
+        });
+
+        // fyi this remote request will be handled by the fake server above.
+        test.createProperty ("remoteModel", {
+            remoteRequestSuccessful: false
+        }, {
+            url: "/testService",
+            doNotPersist: true,
+            refreshRate: -1, // -1 means fetch once.
+            lastModified: responseModifidedTimeStamp, // wet timestamp
+            validator: function() {
+                return true;
+            }
+        });
+
+        test.remoteModel.onChange(function (property, oldValue) {
+            ok(false, "remoteModel onChange should not modified due to Response Last-Modified timestamp being older");
+        });
+
+        ok(!test.remoteModel.remoteRequestSuccessful.getValue(), "remoteRequestSuccessful property should not be modified");
+        server.respond();
+        server.restore();
+    });
 
     </script>
 </head>
