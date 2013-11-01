@@ -173,7 +173,7 @@
             //look into ArrayBuffer
             var jsonResponse = {};
             try {
-                jsonResponse = JSON.parse(xhr.response);
+                jsonResponse = xhr.response || JSON.parse(xhr.responseText);
             } catch (e) {
                 log('error', "Unable to parse remote Model request for " + property.getName());
                 return; //should retry? makeRemoteRequest(property);
